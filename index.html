@@ -883,6 +883,10 @@
                             <label class="block text-[#9C8EAD] mb-1 font-semibold">🎥 Link Fixo da Sala Online (Google Meet / Zoom)</label>
                             <input type="url" id="editPacienteLinkSala" placeholder="https://meet.google.com/xxx-xxxx-xxx" class="w-full p-2 input-dark rounded-xl outline-none">
                         </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[#9C8EAD] mb-1 font-semibold">🧠 Abordagem Clínica Utilizada (para Prontuário)</label>
+                            <input type="text" id="editPacienteAbordagem" placeholder="Ex: TCC, Psicanálise, Fenomenologia..." class="w-full p-2 input-dark rounded-xl outline-none">
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
@@ -919,9 +923,14 @@
                             <h4 class="text-xs font-bold uppercase tracking-wider text-[#F3EEF6]">Histórico Cronológico (Imutável · CFP)</h4>
                             <p id="statusLgpdDrawer" class="text-[10px] text-emerald-400 mt-0.5"></p>
                         </div>
-                        <button type="button" onclick="exportarProntuarioPDF()" class="px-3 py-1.5 bg-[#2B2138] hover:bg-[#3F3152] border border-[#5F4A78] text-[#E9DDF5] rounded-xl text-[11px] font-semibold flex items-center gap-1.5 transition shadow-sm">
-                            <span>📄</span> Exportar Prontuário (PDF)
-                        </button>
+                        <div class="flex flex-wrap items-center gap-2">
+                            <button type="button" onclick="alternarSelecionarTodasEvolucoes()" id="btnToggleSelecionarTodas" class="px-2.5 py-1.5 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] text-[#C2ADC9] rounded-xl text-[11px] font-semibold transition">
+                                ☑️ Marcar todas
+                            </button>
+                            <button type="button" onclick="exportarProntuarioPDF()" class="px-3 py-1.5 bg-[#2B2138] hover:bg-[#3F3152] border border-[#5F4A78] text-[#E9DDF5] rounded-xl text-[11px] font-semibold flex items-center gap-1.5 transition shadow-sm">
+                                <span>📄</span> Exportar PDF <span id="contadorEvolucoesSelecionadas" class="text-purple-300">(Todas)</span>
+                            </button>
+                        </div>
                     </div>
                     <div id="listaHistoricoProntuarios" class="space-y-3 max-h-72 overflow-y-auto pr-1"></div>
                 </div>
@@ -1992,6 +2001,7 @@
                  lgpdEl.className = "text-[10px] text-amber-400 mt-0.5";
                 }
              }
+            document.getElementById('editPacienteAbordagem').value = p.abordagem || (usuarioAtualPerfil ? (usuarioAtualPerfil.abordagem || '') : '');
             document.getElementById('detalheStatusFinanceiro').value = p.status_financeiro || 'Em dia';
 
             const containerPsi = document.getElementById('containerEditPsicologaDrawer');
@@ -2041,26 +2051,55 @@
             historicoProntuarioAtualCache = historico;
 
        container.innerHTML = historico.map((reg, index) => {
-           const dataReg = new Date(reg.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-           const horaReg = new Date(reg.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-           const numeroRegistro = historico.length - index;
-           const btnExcluirAudit = ehAdmin()
-               ? `<button onclick="excluirProntuario('${reg.id}')" title="Remover registro (Admin)" class="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/15 rounded-lg transition text-xs">🗑️</button>`
-               : '';
+                const dataReg = new Date(reg.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+                const horaReg = new Date(reg.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const numeroRegistro = historico.length - index;
+                const btnExcluirAudit = ehAdmin()
+                    ? `<button onclick="excluirProntuario('${reg.id}')" title="Remover registro (Admin)" class="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/15 rounded-lg transition text-xs">🗑️</button>`
+                    : '';
 
-           return `
-               <div class="p-3.5 bg-[#141019] rounded-2xl border border-[#2E2538] space-y-1.5 relative">
-                   <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#9C8EAD]">
-                       <span class="font-bold text-[#C2ADC9]">🔒 Registro #${numeroRegistro} · ${dataReg} às ${horaReg}</span>
-                       <div class="flex items-center gap-2">
-                           <span class="text-[10px] bg-[#1D1724] px-2 py-0.5 rounded-md border border-[#32283D] font-medium">${escapeHtml(reg.autor_email || 'Psicologia')}</span>
-                           ${btnExcluirAudit}
-                       </div>
-                   </div>
-                   <p class="text-xs text-[#E5DCED] whitespace-pre-wrap leading-relaxed">${escapeHtml(reg.conteudo)}</p>
-               </div>
-           `;
-       }).join('');
+                return `
+                    <div class="p-3.5 bg-[#141019] rounded-2xl border border-[#2E2538] space-y-1.5 relative">
+                        <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#9C8EAD]">
+                            <label class="flex items-center gap-2 cursor-pointer font-bold text-[#C2ADC9]">
+                                <input type="checkbox" value="${reg.id}" onchange="atualizarContadorSelecaoEvolucoes()" class="chk-evolucao-pdf accent-[#8E73AD] w-3.5 h-3.5 rounded">
+                                <span>🔒 Registro #${numeroRegistro} · ${dataReg} às ${horaReg}</span>
+                            </label>
+                            <div class="flex items-center gap-2">
+                                <button type="button" onclick="exportarProntuarioPDF('${reg.id}')" title="Exportar somente esta evolução em PDF" class="px-2 py-0.5 bg-[#2B2138] hover:bg-[#3F3152] border border-[#5F4A78] text-[#E9DDF5] rounded-md text-[10px] font-semibold transition">
+                                    📄 Só esta
+                                </button>
+                                <span class="text-[10px] bg-[#1D1724] px-2 py-0.5 rounded-md border border-[#32283D] font-medium">${escapeHtml(reg.autor_email || 'Psicologia')}</span>
+                                ${btnExcluirAudit}
+                            </div>
+                        </div>
+                        <p class="text-xs text-[#E5DCED] whitespace-pre-wrap leading-relaxed pl-5">${escapeHtml(reg.conteudo)}</p>
+                    </div>
+                `;
+            }).join('');
+
+            atualizarContadorSelecaoEvolucoes();
+        }
+
+        function atualizarContadorSelecaoEvolucoes() {
+            const marcados = document.querySelectorAll('.chk-evolucao-pdf:checked').length;
+            const span = document.getElementById('contadorEvolucoesSelecionadas');
+            const btnTodas = document.getElementById('btnToggleSelecionarTodas');
+            const total = document.querySelectorAll('.chk-evolucao-pdf').length;
+
+            if (span) {
+                span.textContent = marcados > 0 ? `(${marcados} ${marcados === 1 ? 'selecionada' : 'selecionadas'})` : '(Todas)';
+            }
+            if (btnTodas) {
+                btnTodas.textContent = (total > 0 && marcados === total) ? '⬜ Desmarcar' : '☑️ Marcar todas';
+            }
+        }
+
+        function alternarSelecionarTodasEvolucoes() {
+            const checkboxes = document.querySelectorAll('.chk-evolucao-pdf');
+            const todosMarcados = Array.from(checkboxes).every(cb => cb.checked);
+            checkboxes.forEach(cb => { cb.checked = !todosMarcados; });
+            atualizarContadorSelecaoEvolucoes();
         }
 
         async function excluirProntuario(prontuarioId) {
@@ -2102,7 +2141,8 @@
             cpf: document.getElementById('editPacienteCpf').value.trim() || null,
             responsavel_nome: document.getElementById('editResponsavelNome').value.trim() || null,
             responsavel_cpf: document.getElementById('editResponsavelCpf').value.trim() || null,
-            status_financeiro
+            status_financeiro,
+            abordagem: document.getElementById('editPacienteAbordagem').value.trim() || null,
             };
 
             if (ehAdmin()) {
@@ -2826,7 +2866,7 @@
      // ==========================================
         // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
         // ==========================================
-        function exportarProntuarioPDF() {
+        function exportarProntuarioPDF(registroUnicoId = null) {
             if (!pacienteSelecionadoId) return;
             const pac = todosPacientesCache.find(p => p.id === pacienteSelecionadoId);
             if (!pac) return;
@@ -2834,7 +2874,22 @@
             const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
             const nomePsi = psi.nome || obterNomeExibicaoUsuario();
             const crpPsi = psi.crp || 'Não informado';
-            const abordagemPsi = psi.abordagem || 'Não informada';
+            const abordagemUtilizada = pac.abordagem || psi.abordagem || 'Não informada';
+
+            // Define quais evoluções entram no PDF: 1 específica, as marcadas, ou todas se nenhuma estiver marcada
+            let registrosFiltrados = [...historicoProntuarioAtualCache];
+            let subtituloEscopo = 'Prontuário Completo';
+
+            if (registroUnicoId) {
+                registrosFiltrados = registrosFiltrados.filter(r => r.id === registroUnicoId);
+                subtituloEscopo = 'Registro Individual de Atendimento';
+            } else {
+                const idsMarcados = Array.from(document.querySelectorAll('.chk-evolucao-pdf:checked')).map(cb => cb.value);
+                if (idsMarcados.length > 0) {
+                    registrosFiltrados = registrosFiltrados.filter(r => idsMarcados.includes(r.id));
+                    subtituloEscopo = `Extrato Selecionado (${idsMarcados.length} ${idsMarcados.length === 1 ? 'registro' : 'registros'})`;
+                }
+            }
 
             const nascFormatado = pac.data_nascimento
                 ? new Date(pac.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR')
@@ -2843,15 +2898,16 @@
                 ? 'Consentimento registrado em ' + new Date(pac.lgpd_aceito_em).toLocaleString('pt-BR')
                 : 'Consentimento pendente de registro digital';
 
-            // Ordena do mais antigo para o mais recente (ordem cronológica documental)
-            const evolucoesCronologicas = [...historicoProntuarioAtualCache].reverse();
+            const evolucoesCronologicas = registrosFiltrados.reverse();
 
             const blocosEvolucao = evolucoesCronologicas.length === 0
-                ? '<p style="color:#666; font-style:italic;">Nenhuma evolução clínica registrada até a presente data.</p>'
-                : evolucoesCronologicas.map((reg, idx) => {
+                ? '<p style="color:#666; font-style:italic;">Nenhuma evolução clínica selecionada ou registrada.</p>'
+                : evolucoesCronologicas.map((reg) => {
+                    const indexOriginal = historicoProntuarioAtualCache.findIndex(item => item.id === reg.id);
+                    const numeroReal = indexOriginal !== -1 ? (historicoProntuarioAtualCache.length - indexOriginal) : 1;
                     const dt = new Date(reg.criado_em).toLocaleString('pt-BR');
                     return '<div class="evolucao">' +
-                        '<div class="evo-header"><strong>Evolução #' + (idx + 1) + '</strong> · ' + dt + ' · Responsável: ' + escapeHtml(reg.autor_email || nomePsi) + '</div>' +
+                        '<div class="evo-header"><strong>Registro #' + numeroReal + '</strong> · ' + dt + ' · Responsável: ' + escapeHtml(reg.autor_email || nomePsi) + '</div>' +
                         '<div class="evo-body">' + escapeHtml(reg.conteudo).replace(/\n/g, '<br>') + '</div>' +
                     '</div>';
                 }).join('');
@@ -2876,7 +2932,7 @@
                 '<button onclick="window.print()" style="background:#5F4A78;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:bold;">🖨️ Imprimir / Salvar PDF (CFP)</button>',
                 '</div>',
                 '<div class="header"><div>',
-                '<div class="sub">Documento Sigiloso · Resolução CFP nº 01/2009</div>',
+                '<div class="sub">Documento Sigiloso · Resolução CFP nº 01/2009 · ' + escapeHtml(subtituloEscopo) + '</div>',
                 '<div class="title">PRONTUÁRIO DE ATENDIMENTO PSICOLÓGICO</div>',
                 '</div><div style="text-align:right;font-size:12px;">Emitido em: ' + new Date().toLocaleDateString('pt-BR') + '</div></div>',
                 '<div class="ficha"><div class="ficha-grid">',
@@ -2886,7 +2942,7 @@
                 '<div><strong>Contato:</strong> ' + escapeHtml(pac.whatsapp || 'Não informado') + '</div>',
                 (pac.responsavel_nome ? '<div><strong>Responsável:</strong> ' + escapeHtml(pac.responsavel_nome) + '</div><div><strong>CPF Responsável:</strong> ' + escapeHtml(pac.responsavel_cpf || '—') + '</div>' : ''),
                 '<div><strong>Profissional:</strong> ' + escapeHtml(nomePsi) + ' (CRP: ' + escapeHtml(crpPsi) + ')</div>',
-                '<div><strong>Abordagem:</strong> ' + escapeHtml(abordagemPsi) + '</div>',
+                '<div><strong>Abordagem Utilizada:</strong> ' + escapeHtml(abordagemUtilizada) + '</div>',
                 '<div style="grid-column:1/-1;margin-top:6px;padding-top:6px;border-top:1px dashed #ccc;"><strong>LGPD:</strong> ' + escapeHtml(lgpdTexto) + '</div>',
                 '</div></div>',
                 '<h3 style="font-size:15px;color:#3f3152;margin-bottom:14px;">Registro Cronológico de Evoluções Clínicas</h3>',
