@@ -1426,7 +1426,11 @@
             const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('nome', { ascending: true });
             todosUsuariosCache = usuarios || [];
 
-            const { data: pacientes } = await client.from('pacientes').select('*').order('created_at', { ascending: false });
+            const { data: pacientes } = await client
+                .from('pacientes')
+                .select('*')
+                .is('excluido_em', null)
+                .order('created_at', { ascending: false });
             const todosBrutos = pacientes || [];
 
             if (ehAdmin()) {
@@ -1458,15 +1462,25 @@
 
             const idsPacientesVisiveis = new Set(clientes.map(c => c.id));
 
-            const { data: atendimentos } = await client.from('atendimentos').select('*, pacientes(nome, whatsapp, modalidade, valor_padrao_sessao)').order('data_hora', { ascending: true });
+            const { data: atendimentos } = await client
+                .from('atendimentos')
+                .select('*, pacientes(nome, whatsapp, modalidade, valor_padrao_sessao)')
+                .is('excluido_em', null)
+                .order('data_hora', { ascending: true });
             todosAtendimentosCache = (atendimentos || []).filter(a => ehAdmin() || idsPacientesVisiveis.has(a.paciente_id));
 
-            const { data: pagamentos } = await client.from('pagamentos').select('*, pacientes(nome, whatsapp)').order('data_vencimento', { ascending: false });
+            const { data: pagamentos } = await client
+                .from('pagamentos')
+                .select('*, pacientes(nome, whatsapp)')
+                .is('excluido_em', null)
+                .order('data_vencimento', { ascending: false });
             todosPagamentosCache = (pagamentos || []).filter(pg => ehAdmin() || idsPacientesVisiveis.has(pg.paciente_id));
-                const { data: prontuariosRecentes } = await client
-             .from('prontuarios_historico')
-             .select('paciente_id, criado_em')
-             .order('criado_em', { ascending: false });
+
+            const { data: prontuariosRecentes } = await client
+                .from('prontuarios_historico')
+                .select('paciente_id, criado_em')
+                .is('excluido_em', null)
+                .order('criado_em', { ascending: false });
 
             gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes || []);
             renderizarCronogramaHoje(todosAtendimentosCache);
@@ -2253,7 +2267,11 @@
                 return;
             }
 
-            const { error } = await client.from('pacientes').delete().eq('id', pacienteId);
+            const agoraIso = new Date().toISOString();
+         const { error } = await client
+             .from('pacientes')
+             .update({ excluido_em: agoraIso })
+             .eq('id', pacienteId);
             if (error) {
                 alert("Erro ao excluir paciente: " + error.message);
             } else {
@@ -2421,10 +2439,11 @@
             container.innerHTML = `<p class="text-xs text-[#9C8EAD]">Carregando prontuários antigos...</p>`;
 
             const { data: historico, error } = await client
-                .from('prontuarios_historico')
-                .select('*')
-                .eq('paciente_id', pacienteId)
-                .order('criado_em', { ascending: false });
+             .from('prontuarios_historico')
+             .select('*')
+             .eq('paciente_id', pacienteId)
+             .is('excluido_em', null)
+             .order('criado_em', { ascending: false });
 
             if (error || !historico || historico.length === 0) {
                 historicoProntuarioAtualCache = [];
@@ -2538,9 +2557,9 @@
             }
 
             const { error } = await client
-                .from('prontuarios_historico')
-                .delete()
-                .eq('id', prontuarioId);
+             .from('prontuarios_historico')
+             .update({ excluido_em: new Date().toISOString() })
+             .eq('id', prontuarioId);
 
             if (error) {
                 alert("Erro ao excluir prontuário: " + error.message);
@@ -2899,11 +2918,42 @@
         }
 
         async function excluirSessao(atendimentoId) {
-            if (!confirm("Deseja realmente excluir este agendamento?")) return;
-            const { error } = await client.from('atendimentos').delete().eq('id', atendimentoId);
-            if (error) alert("Erro ao excluir agendamento: " + error.message);
-            else await carregarDados();
-        }
+         if (!confirm("Deseja realmente excluir este agendamento?\n\nA cobrança vinculada a esta sessão também será removida da lista.")) return;
+
+         const sessao = todosAtendimentosCache.find(a => a.id === atendimentoId);
+         const agoraIso = new Date().toISOString();
+
+         const { error } = await client
+             .from('atendimentos')
+             .update({ excluido_em: agoraIso })
+             .eq('id', atendimentoId);
+
+         if (error) {
+             alert("Erro ao excluir agendamento: " + error.message);
+             return;
+         }
+
+         // Oculta também a cobrança vinculada a esse paciente na data dessa sessão
+         if (sessao && sessao.paciente_id && sessao.data_hora) {
+             const dataSessaoStr = obterChaveDiaLocal(new Date(sessao.data_hora));
+             const cobrancaVinculada = todosPagamentosCache.find(pg =>
+                 pg.paciente_id === sessao.paciente_id &&
+                 pg.data_vencimento === dataSessaoStr
+             );
+
+             if (cobrancaVinculada) {
+                 await client
+                     .from('pagamentos')
+                     .update({ excluido_em: agoraIso })
+                     .eq('id', cobrancaVinculada.id);
+             }
+         }
+
+         await carregarDados();
+         if (pacienteSelecionadoId) {
+             renderizarSessoesDoPacienteNaFicha(pacienteSelecionadoId);
+         }
+     }
         
         function abrirModalCobranca() {
             const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
@@ -2964,7 +3014,10 @@
 
         async function excluirTriagem(id, nome) {
             if (!confirm(`Deseja excluir esta triagem de "${nome}"? Ela será removida permanentemente.`)) return;
-            const { error } = await client.from('pacientes').delete().eq('id', id);
+            const { error } = await client
+             .from('pacientes')
+             .update({ excluido_em: new Date().toISOString() })
+             .eq('id', id);
             if (error) alert("Erro ao excluir triagem: " + error.message);
             else await carregarDados();
         }
@@ -3110,7 +3163,10 @@
 
         async function excluirCobranca(id) {
             if (!confirm("Deseja realmente excluir esta cobrança? Essa ação não pode ser desfeita.")) return;
-            const { error } = await client.from('pagamentos').delete().eq('id', id);
+            const { error } = await client
+             .from('pagamentos')
+             .update({ excluido_em: new Date().toISOString() })
+             .eq('id', id);
             if (error) {
                 alert("Erro ao excluir cobrança: " + error.message);
             } else {
