@@ -2058,7 +2058,20 @@
             if (campoNovoTexto) campoNovoTexto.value = '';
 
             await carregarHistoricoProntuarios(id);
-
+            
+            const SpeechRecSuportado = window.SpeechRecognition || window.webkitSpeechRecognition;
+                        const btnVoz = document.getElementById('btnVozDrawer');
+                        if (btnVoz) {
+                            if (!SpeechRecSuportado) {
+                                btnVoz.disabled = true;
+                                btnVoz.className = "px-3 py-1.5 bg-[#141019] border border-[#2E2538] text-[#9C8EAD] text-[11px] rounded-xl cursor-not-allowed";
+                                btnVoz.innerHTML = "🎙️ Voz disponível no Chrome/Safari";
+                            } else {
+                                btnVoz.disabled = false;
+                                btnVoz.className = "px-3.5 py-1.5 btn-plum text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm";
+                                btnVoz.innerHTML = '<span id="iconeMicDrawer">🎙️</span> <span id="textoMicDrawer">Gravar Voz</span>';
+                            }
+                        }
             document.getElementById('drawerPaciente').classList.remove('hidden');
         }
 
