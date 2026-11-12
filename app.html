@@ -511,9 +511,25 @@
                         </div>
 
                         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div>
-                                <label class="block text-xs font-semibold uppercase mb-1.5 text-[#C2ADC9]">Data e horário *</label>
-                                <input type="datetime-local" id="agendarDataHora" oninput="atualizarResumoAgendamento()" required class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                            <div class="space-y-2.5">
+                                <label class="block text-xs font-semibold uppercase text-[#C2ADC9]">Data e horário *</label>
+                                <div class="grid grid-cols-2 gap-2.5">
+                                    <input type="date" id="agendarData" onchange="atualizarResumoAgendamento()" required class="w-full px-3.5 py-2.5 input-dark rounded-xl text-sm outline-none cursor-pointer">
+                                    <input type="time" id="agendarHora" onchange="atualizarResumoAgendamento()" required class="w-full px-3.5 py-2.5 input-dark rounded-xl text-sm outline-none cursor-pointer">
+                                </div>
+                                <!-- Atalhos rápidos de horário -->
+                                <div class="flex flex-wrap gap-1.5 pt-0.5">
+                                    <button type="button" onclick="selecionarHorarioRapido('08:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">08:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('09:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">09:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('10:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">10:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('14:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">14:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('15:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">15:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('16:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">16:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('18:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">18:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('19:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">19:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('20:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">20:00</button>
+                                    <button type="button" onclick="selecionarHorarioRapido('21:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">21:00</button>
+                                </div>
                             </div>
                             <div>
                                 <label class="block text-xs font-semibold uppercase mb-1.5 text-[#C2ADC9]">Modalidade</label>
@@ -1477,7 +1493,7 @@
          const dt = new Date(dataHoraIso);
          const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
          const hojeStr = obterChaveDiaLocal();
-         const diaSessaoStr = dataHoraIso.slice(0, 10);
+         const diaSessaoStr = obterChaveDiaLocal(new Date(dataHoraIso));
          const quando = diaSessaoStr === hojeStr ? 'hoje' : `no dia ${dt.toLocaleDateString('pt-BR')}`;
 
          let msg = `Olá ${pac.nome}, passando para confirmar nossa sessão ${quando} às ${hora}.`;
@@ -1537,7 +1553,7 @@
             // 2. LEMBRETE DE SESSÃO (Hoje ou Amanhã)
             atendimentos.forEach(a => {
                 if (!a.data_hora || a.status !== 'Agendada') return;
-                const diaIso = a.data_hora.slice(0, 10);
+                const diaIso = obterChaveDiaLocal(new Date(a.data_hora));
                 const dtSessao = new Date(a.data_hora);
                 if (dtSessao < agora) return;
 
@@ -1638,7 +1654,7 @@
             const container = document.getElementById('listaCronogramaHoje');
             const subtitulo = document.getElementById('subtituloHoje');
             const hojeStr = obterChaveDiaLocal();
-            const deHoje = atendimentos.filter(a => a.data_hora && a.data_hora.slice(0, 10) === hojeStr);
+            const deHoje = atendimentos.filter(a => a.data_hora && obterChaveDiaLocal(new Date(a.data_hora)) === hojeStr);
 
             document.getElementById('kpiSessoesHoje').textContent = deHoje.length;
             const realizadas = deHoje.filter(a => a.status === 'Realizada').length;
@@ -1705,7 +1721,7 @@
         function renderizarProximosEAlertas(atendimentos) {
             const containerProximos = document.getElementById('listaProximosDias');
             const hojeStr = obterChaveDiaLocal();
-            const futuros = atendimentos.filter(a => a.data_hora && a.data_hora.slice(0, 10) > hojeStr && a.status !== 'Cancelada').slice(0, 3);
+            const futuros = atendimentos.filter(a => a.data_hora && obterChaveDiaLocal(new Date(a.data_hora)) > hojeStr && a.status !== 'Cancelada').slice(0, 3);
 
             if (containerProximos) {
                 if (futuros.length === 0) {
@@ -1780,7 +1796,7 @@
                 const ehHoje = dataDiaIso === hojeStr;
                 const ehSelecionado = dataDiaIso === diaSelecionadoAgendaIso;
 
-                const sessoesDia = todosAtendimentosCache.filter(a => a.data_hora && a.data_hora.slice(0, 10) === dataDiaIso);
+                const sessoesDia = todosAtendimentosCache.filter(a => a.data_hora && obterChaveDiaLocal(new Date(a.data_hora)) === dataDiaIso);
 
                 html += `
                     <div onclick="selecionarDiaAgenda('${dataDiaIso}')" class="min-h-[52px] sm:min-h-[75px] p-1 sm:p-2 rounded-xl sm:rounded-2xl border cursor-pointer transition flex flex-col justify-between ${ehSelecionado ? 'border-[#8E73AD] bg-[#2B2138]' : (ehHoje ? 'border-[#5F4A78] bg-[#231B2E]' : 'border-[#2E2538] bg-[#141019] hover:border-[#5F4A78]')}">
@@ -1820,7 +1836,7 @@
             const dataObj = new Date(ano, mes - 1, dia);
 
             titulo.textContent = dataObj.toLocaleDateString('pt-BR', { day: 'numeric', month: 'long' });
-            const sessoesDoDia = todosAtendimentosCache.filter(a => a.data_hora && a.data_hora.slice(0, 10) === diaSelecionadoAgendaIso);
+            const sessoesDoDia = todosAtendimentosCache.filter(a => a.data_hora && obterChaveDiaLocal(new Date(a.data_hora)) === diaSelecionadoAgendaIso);
 
             if (sessoesDoDia.length === 0) {
                 corpo.innerHTML = `
@@ -1871,10 +1887,49 @@
         }
 
         function abrirAgendamentoComData(dataIso) {
+            const hojeStr = obterChaveDiaLocal();
+            if (dataIso < hojeStr) {
+                alert("⚠️ Não é possível agendar sessões em datas passadas.");
+                return;
+            }
             trocarAba('agendar');
-            const inputData = document.getElementById('agendarDataHora');
-            if (inputData) inputData.value = `${dataIso}T14:00`;
+            const inputData = document.getElementById('agendarData');
+            const inputHora = document.getElementById('agendarHora');
+            if (inputData) {
+                inputData.min = hojeStr;
+                inputData.value = dataIso;
+            }
+            if (inputHora && !inputHora.value) inputHora.value = '14:00';
             atualizarResumoAgendamento();
+        }
+
+        function selecionarHorarioRapido(horaStr) {
+            const inputHora = document.getElementById('agendarHora');
+            if (inputHora) {
+                inputHora.value = horaStr;
+                atualizarResumoAgendamento();
+            }
+        }
+
+        function montarDataLocalAgendamento() {
+            const dataVal = document.getElementById('agendarData')?.value;
+            const horaVal = document.getElementById('agendarHora')?.value;
+            if (!dataVal || !horaVal) return null;
+
+            const [ano, mes, dia] = dataVal.split('-').map(Number);
+            const [hora, minuto] = horaVal.split(':').map(Number);
+            return new Date(ano, mes - 1, dia, hora, minuto, 0, 0);
+        }
+
+        function formatarIsoComFusoLocal(dateObj) {
+            const pad = (n) => String(n).padStart(2, '0');
+            const offsetMin = -dateObj.getTimezoneOffset();
+            const sinal = offsetMin >= 0 ? '+' : '-';
+            const absOffset = Math.abs(offsetMin);
+            const offH = pad(Math.floor(absOffset / 60));
+            const offM = pad(absOffset % 60);
+
+            return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}:00${sinal}${offH}:${offM}`;
         }
 
         // 3. TELA: AGENDAR SESSÃO
@@ -1890,13 +1945,21 @@
 
             select.innerHTML = clientes.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join('');
 
-            const inputData = document.getElementById('agendarDataHora');
-            if (!inputData.value) {
+            const inputData = document.getElementById('agendarData');
+            const inputHora = document.getElementById('agendarHora');
+            const hojeStr = obterChaveDiaLocal();
+
+            if (inputData) {
+                inputData.min = hojeStr;
+                if (!inputData.value || inputData.value < hojeStr) {
+                    inputData.value = hojeStr;
+                }
+            }
+
+            if (inputHora && !inputHora.value) {
                 const agora = new Date();
-                agora.setMinutes(0, 0, 0);
-                agora.setHours(agora.getHours() + 1);
-                const tzOffset = agora.getTimezoneOffset() * 60000;
-                inputData.value = new Date(agora.getTime() - tzOffset).toISOString().slice(0, 16);
+                const proxHora = Math.min(agora.getHours() + 1, 22);
+                inputHora.value = `${String(proxHora).padStart(2, '0')}:00`;
             }
 
             selecionarModalidade('Online');
@@ -1934,8 +1997,8 @@
             const freqEl = document.getElementById('agendarFrequencia');
             const contQtd = document.getElementById('containerQtdSessoes');
             if (freqEl && contQtd) {
-             contQtd.classList.toggle('hidden', freqEl.value === 'unica');
-         }
+                contQtd.classList.toggle('hidden', freqEl.value === 'unica');
+            }
             const select = document.getElementById('agendarClienteSelect');
             if (!select || !select.value) return;
 
@@ -1946,9 +2009,8 @@
             document.getElementById('resumoTel').textContent = p.whatsapp || 'Sem WhatsApp';
             document.getElementById('resumoIniciais').textContent = p.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 
-            const inputData = document.getElementById('agendarDataHora').value;
-            if (inputData) {
-                const dt = new Date(inputData);
+            const dt = montarDataLocalAgendamento();
+            if (dt && !isNaN(dt.getTime())) {
                 const diaExt = dt.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
                 const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                 document.getElementById('resumoData').textContent = `${diaExt.charAt(0).toUpperCase() + diaExt.slice(1)}`;
@@ -1962,11 +2024,22 @@
 
         document.getElementById('formAgendamentoTela').addEventListener('submit', async (e) => {
             e.preventDefault();
+            const dataBase = montarDataLocalAgendamento();
+            if (!dataBase || isNaN(dataBase.getTime())) {
+                alert("Selecione uma data e um horário válidos.");
+                return;
+            }
+
+            const agora = new Date();
+            if (dataBase.getTime() < agora.getTime() - 60000) {
+                alert("⚠️ Não é possível agendar uma sessão para uma data ou horário que já passou!");
+                return;
+            }
+
             const btn = document.getElementById('btnSalvarAgendamento');
             btn.disabled = true; btn.textContent = "Agendando...";
 
             const paciente_id = document.getElementById('agendarClienteSelect').value;
-            const dataHoraValue = document.getElementById('agendarDataHora').value;
             const modalidade = modalidadeSelecionadaAgendamento;
             const isento = document.getElementById('agendarIsento').checked;
             const valor = isento ? 0 : (parseFloat(document.getElementById('agendarValor').value) || 0);
@@ -1977,15 +2050,13 @@
 
             try {
                 const datasParaCriar = [];
-                const dataBase = new Date(dataHoraValue);
-
                 for (let i = 0; i < qtdSessoes; i++) {
                     const dt = new Date(dataBase);
                     dt.setDate(dataBase.getDate() + (i * diasIntervalo));
                     datasParaCriar.push(dt);
                 }
 
-                const isosParaChecar = datasParaCriar.map(d => d.toISOString());
+                const isosParaChecar = datasParaCriar.map(d => formatarIsoComFusoLocal(d));
                 const { data: conflitos, error: erroConflito } = await client
                     .from('atendimentos')
                     .select('data_hora, pacientes(nome)')
@@ -2004,7 +2075,7 @@
 
                 const novosAtendimentos = datasParaCriar.map(dt => ({
                     paciente_id,
-                    data_hora: dt.toISOString(),
+                    data_hora: formatarIsoComFusoLocal(dt),
                     modalidade,
                     status: 'Agendada'
                 }));
