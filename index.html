@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kairós | Gestão Clínica</title>
+    <title>Gnoth | Gestão Clínica</title>
     <meta name="robots" content="noindex, nofollow">
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -88,40 +88,41 @@
 <body class="min-h-screen">
 
     <!-- 1. TELA DE AUTENTICAÇÃO -->
-            <div id="loginScreen" class="min-h-screen flex items-center justify-center p-6 bg-[#141019]">
-                <div class="bg-[#1D1724] p-8 rounded-3xl shadow-2xl max-w-sm w-full border border-[#2E2538]">
-                    <div class="flex flex-col items-center justify-center mb-6">
-                        <div class="w-12 h-12 rounded-2xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center mb-3 shadow-inner">
-                            <svg class="w-6 h-6 text-[#D8B4FE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 3h12" />
-                                <path d="M6 21h12" />
-                                <path d="M7 3c0 4.5 5 5.5 5 9s-5 4.5-5 9" />
-                                <path d="M17 3c0 4.5-5 5.5-5 9s5 4.5 5 9" />
-                                <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-                            </svg>
-                        </div>
-                        <h1 class="text-3xl font-bold font-serif text-[#F3EEF6] tracking-wide">Kairós</h1>
-                        <p class="text-[10px] uppercase tracking-[0.22em] text-[#9C8EAD] font-bold mt-1">Gestão Clínica</p>
-                    </div>
-                    <form id="loginForm" class="space-y-4">
-                        <div>
-                            <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">E-mail</label>
-                            <input type="email" id="loginEmail" required class="w-full px-4 py-2.5 input-dark rounded-xl text-sm outline-none">
-                        </div>
-                        <div>
-                            <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Senha</label>
-                            <input type="password" id="loginPassword" required class="w-full px-4 py-2.5 input-dark rounded-xl text-sm outline-none">
-                        </div>
-                        <div class="text-right">
-                            <button type="button" onclick="solicitarRecuperacaoSenha()" class="text-[11px] font-semibold text-[#C2ADC9] hover:text-white hover:underline">
-                                Esqueci minha senha
-                            </button>
-                        </div>
-                        <button type="submit" id="loginSubmitBtn" class="w-full py-3 btn-plum rounded-xl font-semibold text-sm shadow-md">Entrar no Painel</button>
-                        <p id="loginError" class="text-xs text-red-400 text-center font-medium min-h-[16px]"></p>
-                    </form>
+    <div id="loginScreen" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#141019]">
+        <div class="bg-[#1D1724] p-8 rounded-3xl shadow-2xl max-w-sm w-full border border-[#2E2538]">
+            <div class="flex flex-col items-center justify-center mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center mb-3 shadow-inner">
+                    <svg class="w-6 h-6 text-[#D8B4FE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                    <circle cx="12" cy="12" r="3" />
+                    <circle cx="12" cy="12" r="1" fill="currentColor" />
+                </svg>
                 </div>
+                <h1 class="text-3xl font-bold font-serif text-[#F3EEF6] tracking-wide">Gnoth</h1>
+                <p class="text-[10px] uppercase tracking-[0.22em] text-[#9C8EAD] font-bold mt-1">Gestão Clínica</p>
             </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">E-mail</label>
+                    <input type="email" id="loginEmail" required class="w-full px-4 py-2.5 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Senha</label>
+                    <input type="password" id="loginPassword" required class="w-full px-4 py-2.5 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div class="text-right">
+                    <button type="button" onclick="solicitarRecuperacaoSenha()" class="text-[11px] font-semibold text-[#C2ADC9] hover:text-white hover:underline">
+                        Esqueci minha senha
+                    </button>
+                </div>
+                <button type="submit" id="loginSubmitBtn" class="w-full py-3 btn-plum rounded-xl font-semibold text-sm shadow-md">Entrar no Painel</button>
+                <p id="loginError" class="text-xs text-red-400 text-center font-medium min-h-[16px]"></p>
+            </form>
+        </div>
+        <p class="text-[10px] text-center text-[#9C8EAD]/70 mt-4">
+            <strong class="font-serif text-[#C2ADC9]">Gnoth</strong> • Do grego <em>Gnóthi seautón</em> (Conhece-te a ti mesmo)
+        </p>
+    </div>
 
     <!-- 1.5 TELA DE REDEFINIÇÃO DE SENHA -->
     <div id="recoveryScreen" class="hidden min-h-screen flex items-center justify-center p-6 bg-[#141019]">
@@ -149,13 +150,14 @@
             <div class="md:hidden flex items-center justify-between p-4 sidebar-plum border-b border-[#261F30] sticky top-0 z-40">
          <div class="flex items-center gap-2.5">
              <div class="w-8 h-8 rounded-xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center text-[#D8B4FE]">
-                 <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                     <path d="M6 3h12M6 21h12M7 3c0 4.5 5 5.5 5 9s-5 4.5-5 9M17 3c0 4.5-5 5.5-5 9s5 4.5 5 9" />
-                     <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-                 </svg>
+                 <svg class="w-6 h-6 text-[#D8B4FE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                    <circle cx="12" cy="12" r="3" />
+                    <circle cx="12" cy="12" r="1" fill="currentColor" />
+                </svg>
              </div>
              <div>
-                 <h1 class="text-lg font-bold font-serif text-white leading-none">Kairós</h1>
+                 <h1 class="text-lg font-bold font-serif text-white leading-none">Gnoth</h1>
                  <p class="text-[9px] uppercase tracking-[0.2em] text-[#9C8EAD] mt-0.5">Gestão Clínica</p>
              </div>
          </div>
@@ -169,16 +171,14 @@
             <div>
                 <div class="hidden md:flex items-center gap-3 mb-8 px-2 pt-2">
                     <div class="w-10 h-10 rounded-2xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center text-[#D8B4FE] shrink-0 shadow-sm">
-                            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M6 3h12" />
-                                <path d="M6 21h12" />
-                                <path d="M7 3c0 4.5 5 5.5 5 9s-5 4.5-5 9" />
-                                <path d="M17 3c0 4.5-5 5.5-5 9s5 4.5 5 9" />
-                                <circle cx="12" cy="12" r="1.5" fill="currentColor" />
-                            </svg>
+                            <svg class="w-6 h-6 text-[#D8B4FE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                            <circle cx="12" cy="12" r="3" />
+                            <circle cx="12" cy="12" r="1" fill="currentColor" />
+                        </svg>
                         </div>
                         <div>
-                            <h1 class="text-2xl font-bold font-serif text-white tracking-wide leading-none">Kairós</h1>
+                            <h1 class="text-2xl font-bold font-serif text-white tracking-wide leading-none">Gnoth</h1>
                             <p class="text-[9px] uppercase tracking-[0.22em] text-[#9C8EAD] font-semibold mt-1">Gestão Clínica</p>
                         </div>
                     </div>
@@ -228,10 +228,16 @@
                 <div class="mb-3">
                     <span id="userRoleBadge" class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 text-white">Psicóloga</span>
                 </div>
-                <button onclick="sair()" class="flex items-center gap-2 hover:text-red-400 transition">
+               <button onclick="sair()" class="flex items-center gap-2 hover:text-red-400 transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Encerrar sessão</span>
                 </button>
+
+                <!-- Rodapé de Identidade Gnoth -->
+                <div class="mt-4 pt-3 border-t border-[#261F30]/80 text-[10px] text-[#9C8EAD]/75 leading-relaxed">
+                    <p class="font-serif font-semibold text-[#C2ADC9]">Gnoth · Gestão Clínica</p>
+                    <p class="italic text-[9px] mt-0.5">"Gnóthi seautón" — Conhece-te a ti mesmo.</p>
+                </div>
             </div>
         </aside>
 
