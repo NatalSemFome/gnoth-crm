@@ -933,9 +933,10 @@
                         </div>
                     </div>
                     <div id="listaHistoricoProntuarios" class="space-y-3 max-h-72 overflow-y-auto pr-1"></div>
-                </div>
+             </div>
+         </div>
 
-            <div class="pt-5 border-t border-[#2E2538] flex gap-3 mt-4">
+         <div class="pt-5 border-t border-[#2E2538] flex gap-3 mt-4">
                 <button onclick="fecharDetalhesPaciente()" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] hover:text-white rounded-xl text-xs font-semibold">Fechar</button>
                 <button onclick="salvarNovaEvolucaoEAtualizar()" id="btnSalvarProntuario" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-md">Salvar Evolução</button>
             </div>
@@ -2041,12 +2042,14 @@
                 .order('criado_em', { ascending: false });
 
             if (error || !historico || historico.length === 0) {
-                container.innerHTML = `
-                    <div class="p-4 bg-[#141019] rounded-xl border border-dashed border-[#2E2538] text-center text-xs text-[#9C8EAD]">
-                        Nenhum prontuário anterior gravado para este paciente.
-                    </div>`;
-                return;
-            }
+             historicoProntuarioAtualCache = [];
+             atualizarContadorSelecaoEvolucoes();
+             container.innerHTML = `
+                 <div class="p-4 bg-[#141019] rounded-xl border border-dashed border-[#2E2538] text-center text-xs text-[#9C8EAD]">
+                     Nenhum prontuário anterior gravado para este paciente.
+                 </div>`;
+             return;
+         }
 
             historicoProntuarioAtualCache = historico;
 
