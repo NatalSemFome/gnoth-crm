@@ -86,6 +86,57 @@
     </style>
 </head>
 <body class="min-h-screen">
+<!-- 0. TELA PÚBLICA DE TRIAGEM (LINK DA BIO DA PSICÓLOGA) -->
+    <div id="publicTriagemScreen" class="hidden min-h-screen flex flex-col items-center justify-center p-6 bg-[#141019]">
+        <div class="bg-[#1D1724] p-7 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full border border-[#2E2538]">
+            <div class="text-center mb-6">
+                <span class="px-3 py-1 rounded-full bg-purple-500/15 border border-purple-500/30 text-[10px] uppercase tracking-widest text-purple-300 font-bold">Agendamento & Triagem</span>
+                <h1 id="publicPsiNome" class="text-2xl font-bold font-serif text-[#F3EEF6] mt-3">Atendimento Psicológico</h1>
+                <p id="publicPsiInfo" class="text-xs text-[#9C8EAD] mt-1">Preencha seus dados abaixo para solicitar um horário.</p>
+            </div>
+
+            <form id="formTriagemPublica" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Seu Nome Completo *</label>
+                    <input type="text" id="pubNome" required placeholder="Como gostaria de ser chamado(a)?" class="w-full px-4 py-2.5 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">WhatsApp com DDD *</label>
+                    <input type="text" id="pubWhatsapp" required placeholder="(11) 99999-9999" class="w-full px-4 py-2.5 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Modalidade</label>
+                        <select id="pubModalidade" class="w-full px-3 py-2.5 input-dark rounded-xl text-sm outline-none">
+                            <option value="Online">Online</option>
+                            <option value="Presencial">Presencial</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Período Preferido</label>
+                        <select id="pubPeriodo" class="w-full px-3 py-2.5 input-dark rounded-xl text-sm outline-none">
+                            <option value="Manhã">Manhã</option>
+                            <option value="Tarde">Tarde</option>
+                            <option value="Noite">Noite</option>
+                            <option value="Flexível">Flexível</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Motivo ou breve resumo (opcional)</label>
+                    <textarea id="pubMotivo" rows="3" placeholder="Conte brevemente o que te traz à terapia..." class="w-full p-3 input-dark rounded-xl text-xs outline-none"></textarea>
+                </div>
+                <button type="submit" id="btnEnviarTriagemPub" class="w-full py-3 btn-plum rounded-xl font-semibold text-sm shadow-md">Enviar Solicitação</button>
+            </form>
+
+            <div id="publicTriagemSucesso" class="hidden text-center py-6 space-y-3">
+                <div class="w-12 h-12 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl mx-auto">✓</div>
+                <h3 class="text-lg font-bold font-serif text-white">Solicitação enviada!</h3>
+                <p class="text-xs text-[#9C8EAD] leading-relaxed">Seus dados já foram encaminhados. Em breve entrarei em contato pelo WhatsApp para combinarmos o melhor horário.</p>
+            </div>
+        </div>
+        <p class="text-[10px] text-center text-[#9C8EAD]/60 mt-4">Tecnologia por <strong class="font-serif text-[#C2ADC9]">Gnoth</strong></p>
+    </div>
 
     <!-- 1. TELA DE AUTENTICAÇÃO & ONBOARDING (TRIAL 7 DIAS) -->
     <div id="loginScreen" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#141019]">
@@ -273,6 +324,10 @@
                     <span>🪪 Dados CRP & Pix</span>
                     <span>›</span>
                 </button>
+                <button onclick="copiarLinkTriagem()" class="w-full mb-2.5 py-1.5 px-2.5 rounded-lg bg-[#1D1724] hover:bg-[#2B2138] border border-[#2E2538] text-[11px] text-purple-300 font-semibold text-left flex items-center justify-between transition">
+                    <span>🔗 Link Triagem (Bio)</span>
+                    <span id="statusCopiaLink">Copiar</span>
+                </button>
                 <button onclick="sair()" class="flex items-center gap-2 hover:text-red-400 transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Encerrar sessão</span>
@@ -452,7 +507,25 @@
                                 </div>
                             </div>
                         </div>
-
+                        <!-- RECORRÊNCIA DE SESSÕES -->
+                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label class="block text-xs font-semibold uppercase mb-1.5 text-[#C2ADC9]">Frequência / Repetição</label>
+                                                        <select id="agendarFrequencia" onchange="atualizarResumoAgendamento()" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                                                            <option value="unica">Sessão única (não repetir)</option>
+                                                            <option value="semanal">Repetir semanalmente</option>
+                                                            <option value="quinzenal">Repetir quinzenalmente</option>
+                                                        </select>
+                                                    </div>
+                                                    <div id="containerQtdSessoes" class="hidden">
+                                                        <label class="block text-xs font-semibold uppercase mb-1.5 text-[#C2ADC9]">Quantidade de sessões</label>
+                                                        <select id="agendarQtdSessoes" onchange="atualizarResumoAgendamento()" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                                                            <option value="4">4 sessões (1 mês)</option>
+                                                            <option value="8">8 sessões (2 meses)</option>
+                                                            <option value="12">12 sessões (3 meses)</option>
+                                                        </select>
+                                                    </div>
+                                                </div>
                         <div class="p-4 bg-[#141019] rounded-2xl border border-[#2E2538] space-y-3">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -794,6 +867,10 @@
                             <label class="block text-[#9C8EAD] mb-1 font-semibold">CPF do Responsável (Recibo)</label>
                             <input type="text" id="editResponsavelCpf" placeholder="000.000.000-00" class="w-full p-2 input-dark rounded-xl outline-none">
                         </div>
+                        <div class="sm:col-span-2">
+                            <label class="block text-[#9C8EAD] mb-1 font-semibold">🎥 Link Fixo da Sala Online (Google Meet / Zoom)</label>
+                            <input type="url" id="editPacienteLinkSala" placeholder="https://meet.google.com/xxx-xxxx-xxx" class="w-full p-2 input-dark rounded-xl outline-none">
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
@@ -945,8 +1022,27 @@
             if (dataHojeEl) dataHojeEl.textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
         }
 
+        let psicologaTriagemPublicaId = null;
+
         window.addEventListener('DOMContentLoaded', async () => {
             diaSelecionadoAgendaIso = obterChaveDiaLocal();
+
+            // Verifica se é acesso ao Link Público de Triagem (?triagem=ID)
+            const params = new URLSearchParams(window.location.search);
+            const triagemPsiId = params.get('triagem');
+            if (triagemPsiId) {
+                psicologaTriagemPublicaId = triagemPsiId;
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('publicTriagemScreen').classList.remove('hidden');
+                const { data: psi } = await client.from('usuarios_perfis').select('nome, crp, abordagem').eq('id', triagemPsiId).single();
+                if (psi) {
+                    document.getElementById('publicPsiNome').textContent = psi.nome || 'Atendimento Psicológico';
+                    const detalhes = [psi.crp ? 'CRP ' + psi.crp : '', psi.abordagem || ''].filter(Boolean).join(' · ');
+                    if (detalhes) document.getElementById('publicPsiInfo').textContent = detalhes;
+                }
+                return;
+            }
+
             if (window.location.hash.includes('type=recovery')) {
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('recoveryScreen').classList.remove('hidden');
@@ -961,6 +1057,48 @@
                 mostrarApp();
             }
         });
+
+        document.getElementById('formTriagemPublica').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('btnEnviarTriagemPub');
+            btn.disabled = true;
+            btn.textContent = "Enviando...";
+
+            const payload = {
+                nome: document.getElementById('pubNome').value.trim(),
+                whatsapp: document.getElementById('pubWhatsapp').value.trim(),
+                modalidade: document.getElementById('pubModalidade').value,
+                periodo_preferencia: document.getElementById('pubPeriodo').value,
+                motivo_consulta: document.getElementById('pubMotivo').value.trim() || null,
+                status: 'Novo Contato',
+                psicologa_id: psicologaTriagemPublicaId
+            };
+
+            const { error } = await client.from('pacientes').insert([payload]);
+            btn.disabled = false;
+            btn.textContent = "Enviar Solicitação";
+
+            if (error) {
+                alert("Erro ao enviar solicitação: " + error.message);
+            } else {
+                document.getElementById('formTriagemPublica').classList.add('hidden');
+                document.getElementById('publicTriagemSucesso').classList.remove('hidden');
+            }
+        });
+
+        function copiarLinkTriagem() {
+            if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
+            const urlBase = window.location.origin + window.location.pathname;
+            const linkExclusivo = `${urlBase}?triagem=${usuarioAtualPerfil.id}`;
+            navigator.clipboard.writeText(linkExclusivo).then(() => {
+                const statusEl = document.getElementById('statusCopiaLink');
+                if (statusEl) {
+                    statusEl.textContent = "✓ Copiado!";
+                    setTimeout(() => { statusEl.textContent = "Copiar"; }, 2500);
+                }
+                alert("Link exclusivo copiado!\n\nCole na bio do seu Instagram:\n" + linkExclusivo);
+            });
+        }
 
         // RECUPERAÇÃO E DEFINIÇÃO DE NOVA SENHA
         client.auth.onAuthStateChange((event) => {
@@ -1222,6 +1360,24 @@
             return u.nome || u.email || 'Sem nome';
         }
 
+        function gerarUrlLembreteWhatsApp(pacienteId, dataHoraIso, modalidade) {
+         const pac = todosPacientesCache.find(p => p.id === pacienteId) || {};
+         const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
+         if (!numLimpo) return null;
+
+         const dt = new Date(dataHoraIso);
+         const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+         const hojeStr = obterChaveDiaLocal();
+         const diaSessaoStr = dataHoraIso.slice(0, 10);
+         const quando = diaSessaoStr === hojeStr ? 'hoje' : `no dia ${dt.toLocaleDateString('pt-BR')}`;
+
+         let msg = `Olá ${pac.nome}, passando para confirmar nossa sessão ${quando} às ${hora}.`;
+         if (modalidade === 'Online' && pac.link_sala && pac.link_sala.trim() !== '') {
+             msg += ` Segue o link da sala: ${pac.link_sala.trim()}`;
+         }
+         return `https://wa.me/55${numLimpo}?text=${encodeURIComponent(msg)}`;
+     }
+
         // 1. TELA: HOJE
         function renderizarCronogramaHoje(atendimentos) {
             const container = document.getElementById('listaCronogramaHoje');
@@ -1251,33 +1407,42 @@
             }
 
             container.innerHTML = deHoje.map(a => {
-                const hora = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                const nome = a.pacientes ? a.pacientes.nome : 'Paciente';
-                const iniciais = nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-                const modIcon = a.modalidade === 'Presencial' ? '📍 Presencial' : '🎥 Online';
+             const hora = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+             const nome = a.pacientes ? a.pacientes.nome : 'Paciente';
+             const iniciais = nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+             const modIcon = a.modalidade === 'Presencial' ? '📍 Presencial' : '🎥 Online';
+             const pacObj = todosPacientesCache.find(p => p.id === a.paciente_id) || {};
+             const linkSalaHtml = (a.modalidade !== 'Presencial' && pacObj.link_sala)
+                 ? ` · <a href="${escapeHtml(pacObj.link_sala)}" target="_blank" class="text-purple-300 hover:underline font-semibold">Entrar na sala ↗</a>`
+                 : '';
+             const urlLembrete = gerarUrlLembreteWhatsApp(a.paciente_id, a.data_hora, a.modalidade);
+             const btnLembrete = urlLembrete
+                 ? `<a href="${urlLembrete}" target="_blank" title="Enviar lembrete no WhatsApp" class="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-xl text-[11px] font-semibold transition">💬 Lembrar</a>`
+                 : '';
 
-                return `
-                    <div class="flex items-center justify-between p-4 hover:bg-white/[0.03] transition">
-                        <div class="flex items-center gap-3.5">
-                            <span class="font-serif text-base font-bold text-[#C2ADC9]">${hora}</span>
-                            <div class="w-8 h-8 rounded-full bg-[#2B2138] text-[#C2ADC9] font-bold text-xs flex items-center justify-center shrink-0">${iniciais}</div>
-                            <div>
-                                <p onclick="abrirDetalhesPaciente('${a.paciente_id}')" class="font-semibold text-xs text-[#F3EEF6] hover:underline cursor-pointer">${escapeHtml(nome)}</p>
-                                <p class="text-[11px] text-[#9C8EAD]">${modIcon}</p>
-                            </div>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <select onchange="atualizarStatusAtendimento('${a.id}', this.value)" class="text-xs input-dark rounded-xl px-2.5 py-1 font-semibold">
-                                <option value="Agendada" ${a.status === 'Agendada' ? 'selected' : ''}>Agendada</option>
-                                <option value="Realizada" ${a.status === 'Realizada' ? 'selected' : ''}>Realizada</option>
-                                <option value="Falta" ${a.status === 'Falta' ? 'selected' : ''}>Falta</option>
-                                <option value="Cancelada" ${a.status === 'Cancelada' ? 'selected' : ''}>Cancelada</option>
-                            </select>
-                            <button onclick="excluirSessao('${a.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg">🗑️</button>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+             return `
+                 <div class="flex flex-wrap items-center justify-between gap-2 p-4 hover:bg-white/[0.03] transition">
+                     <div class="flex items-center gap-3.5">
+                         <span class="font-serif text-base font-bold text-[#C2ADC9]">${hora}</span>
+                         <div class="w-8 h-8 rounded-full bg-[#2B2138] text-[#C2ADC9] font-bold text-xs flex items-center justify-center shrink-0">${iniciais}</div>
+                         <div>
+                             <p onclick="abrirDetalhesPaciente('${a.paciente_id}')" class="font-semibold text-xs text-[#F3EEF6] hover:underline cursor-pointer">${escapeHtml(nome)}</p>
+                             <p class="text-[11px] text-[#9C8EAD]">${modIcon}${linkSalaHtml}</p>
+                         </div>
+                     </div>
+                     <div class="flex items-center gap-2">
+                         ${btnLembrete}
+                         <select onchange="atualizarStatusAtendimento('${a.id}', this.value)" class="text-xs input-dark rounded-xl px-2.5 py-1 font-semibold">
+                             <option value="Agendada" ${a.status === 'Agendada' ? 'selected' : ''}>Agendada</option>
+                             <option value="Realizada" ${a.status === 'Realizada' ? 'selected' : ''}>Realizada</option>
+                             <option value="Falta" ${a.status === 'Falta' ? 'selected' : ''}>Falta</option>
+                             <option value="Cancelada" ${a.status === 'Cancelada' ? 'selected' : ''}>Cancelada</option>
+                         </select>
+                         <button onclick="excluirSessao('${a.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg">🗑️</button>
+                     </div>
+                 </div>
+             `;
+         }).join('');
         }
 
         function renderizarProximosEAlertas(atendimentos) {
@@ -1415,20 +1580,22 @@
                 corpo.innerHTML = `
                     <div class="w-full space-y-2 text-left">
                         ${sessoesDoDia.map(s => {
-                            const hora = new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                            const nome = s.pacientes ? s.pacientes.nome : 'Paciente';
-                            return `
-                            <div class="p-3 bg-[#141019] rounded-xl border border-[#2E2538] flex justify-between items-center">
-                                <div>
-                                    <p class="font-bold text-xs text-[#F3EEF6]">${hora} - ${escapeHtml(nome)}</p>
-                                    <p class="text-[10px] text-[#9C8EAD]">${s.modalidade || 'Online'} · ${s.status}</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <button onclick="abrirDetalhesPaciente('${s.paciente_id}')" class="text-xs text-[#C2ADC9] font-semibold hover:underline">Ficha</button>
-                                    <button onclick="excluirSessao('${s.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1 hover:bg-red-500/15 rounded">🗑️</button>
-                                </div>
-                            </div>`;
-                        }).join('')}
+                         const hora = new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                         const nome = s.pacientes ? s.pacientes.nome : 'Paciente';
+                         const urlLembrete = gerarUrlLembreteWhatsApp(s.paciente_id, s.data_hora, s.modalidade);
+                         return `
+                         <div class="p-3 bg-[#141019] rounded-xl border border-[#2E2538] flex justify-between items-center gap-2">
+                             <div>
+                                 <p class="font-bold text-xs text-[#F3EEF6]">${hora} - ${escapeHtml(nome)}</p>
+                                 <p class="text-[10px] text-[#9C8EAD]">${s.modalidade || 'Online'} · ${s.status}</p>
+                             </div>
+                             <div class="flex items-center gap-2">
+                                 ${urlLembrete ? `<a href="${urlLembrete}" target="_blank" title="Confirmar no WhatsApp" class="text-xs text-emerald-400 hover:underline font-semibold">💬</a>` : ''}
+                                 <button onclick="abrirDetalhesPaciente('${s.paciente_id}')" class="text-xs text-[#C2ADC9] font-semibold hover:underline">Ficha</button>
+                                 <button onclick="excluirSessao('${s.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1 hover:bg-red-500/15 rounded">🗑️</button>
+                             </div>
+                         </div>`;
+                     }).join('')}
                         <button onclick="abrirAgendamentoComData('${diaSelecionadoAgendaIso}')" class="w-full mt-3 py-2 border border-[#32283D] text-xs font-semibold rounded-xl text-[#C2ADC9] hover:bg-[#2B2138]">+ Adicionar horário</button>
                     </div>
                 `;
@@ -1496,6 +1663,11 @@
         }
 
         function atualizarResumoAgendamento() {
+            const freqEl = document.getElementById('agendarFrequencia');
+            const contQtd = document.getElementById('containerQtdSessoes');
+            if (freqEl && contQtd) {
+             contQtd.classList.toggle('hidden', freqEl.value === 'unica');
+         }
             const select = document.getElementById('agendarClienteSelect');
             if (!select || !select.value) return;
 
@@ -1523,47 +1695,67 @@
         document.getElementById('formAgendamentoTela').addEventListener('submit', async (e) => {
             e.preventDefault();
             const btn = document.getElementById('btnSalvarAgendamento');
-            btn.disabled = true; btn.textContent = "Verificando...";
+            btn.disabled = true; btn.textContent = "Agendando...";
 
             const paciente_id = document.getElementById('agendarClienteSelect').value;
             const dataHoraValue = document.getElementById('agendarDataHora').value;
-            const data_hora = new Date(dataHoraValue).toISOString();
             const modalidade = modalidadeSelecionadaAgendamento;
             const isento = document.getElementById('agendarIsento').checked;
             const valor = isento ? 0 : (parseFloat(document.getElementById('agendarValor').value) || 0);
 
+            const frequencia = document.getElementById('agendarFrequencia').value;
+            const qtdSessoes = frequencia === 'unica' ? 1 : (parseInt(document.getElementById('agendarQtdSessoes').value, 10) || 4);
+            const diasIntervalo = frequencia === 'quinzenal' ? 14 : 7;
+
             try {
+                const datasParaCriar = [];
+                const dataBase = new Date(dataHoraValue);
+
+                for (let i = 0; i < qtdSessoes; i++) {
+                    const dt = new Date(dataBase);
+                    dt.setDate(dataBase.getDate() + (i * diasIntervalo));
+                    datasParaCriar.push(dt);
+                }
+
+                const isosParaChecar = datasParaCriar.map(d => d.toISOString());
                 const { data: conflitos, error: erroConflito } = await client
                     .from('atendimentos')
-                    .select('id, data_hora, status, pacientes(nome)')
-                    .eq('data_hora', data_hora)
+                    .select('data_hora, pacientes(nome)')
+                    .in('data_hora', isosParaChecar)
                     .neq('status', 'Cancelada');
 
                 if (erroConflito) throw erroConflito;
 
                 if (conflitos && conflitos.length > 0) {
-                    const pacConflito = conflitos[0].pacientes ? conflitos[0].pacientes.nome : 'outro paciente';
-                    alert(`⚠️ Horário Indisponível!\nJá existe uma sessão marcada neste mesmo dia e horário com ${pacConflito}. Por favor, escolha outro horário.`);
+                    const dtConf = new Date(conflitos[0].data_hora).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                    const pacConf = conflitos[0].pacientes ? conflitos[0].pacientes.nome : 'outro paciente';
+                    alert(`⚠️ Conflito de Horário!\nJá existe sessão em ${dtConf} com ${pacConf}. Ajuste a data/horário inicial.`);
                     btn.disabled = false; btn.textContent = "Confirmar agendamento";
                     return;
                 }
 
-                const { error: erroAtend } = await client.from('atendimentos').insert([{
+                const novosAtendimentos = datasParaCriar.map(dt => ({
                     paciente_id,
-                    data_hora,
+                    data_hora: dt.toISOString(),
                     modalidade,
                     status: 'Agendada'
-                }]);
+                }));
+
+                const { error: erroAtend } = await client.from('atendimentos').insert(novosAtendimentos);
                 if (erroAtend) throw erroAtend;
 
-                const dataVencimento = dataHoraValue.slice(0, 10);
-                await client.from('pagamentos').insert([{
-                    paciente_id,
-                    valor,
-                    data_vencimento: dataVencimento,
-                    status: isento ? 'Pago' : 'Pendente',
-                    data_pagamento: isento ? dataVencimento : null
-                }]);
+                const novosPagamentos = datasParaCriar.map(dt => {
+                    const venc = obterChaveDiaLocal(dt);
+                    return {
+                        paciente_id,
+                        valor,
+                        data_vencimento: venc,
+                        status: isento ? 'Pago' : 'Pendente',
+                        data_pagamento: isento ? venc : null
+                    };
+                });
+
+                await client.from('pagamentos').insert(novosPagamentos);
 
                 await carregarDados();
                 trocarAba('agenda');
@@ -1767,6 +1959,7 @@
             document.getElementById('editPacienteCpf').value = p.cpf || '';
             document.getElementById('editResponsavelNome').value = p.responsavel_nome || '';
             document.getElementById('editResponsavelCpf').value = p.responsavel_cpf || '';
+            document.getElementById('editPacienteLinkSala').value = p.link_sala || '';
             document.getElementById('detalheStatusFinanceiro').value = p.status_financeiro || 'Em dia';
 
             const containerPsi = document.getElementById('containerEditPsicologaDrawer');
@@ -1868,6 +2061,7 @@
             const updatePayload = {
             whatsapp,
             data_nascimento,
+            link_sala: document.getElementById('editPacienteLinkSala').value.trim() || null,
             cpf: document.getElementById('editPacienteCpf').value.trim() || null,
             responsavel_nome: document.getElementById('editResponsavelNome').value.trim() || null,
             responsavel_cpf: document.getElementById('editResponsavelCpf').value.trim() || null,
