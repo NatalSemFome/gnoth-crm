@@ -1478,9 +1478,10 @@
              const iniciais = nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
              const modIcon = a.modalidade === 'Presencial' ? '📍 Presencial' : '🎥 Online';
              const pacObj = todosPacientesCache.find(p => p.id === a.paciente_id) || {};
-             const linkSalaHtml = (a.modalidade !== 'Presencial' && pacObj.link_sala)
-                 ? ` · <a href="${escapeHtml(pacObj.link_sala)}" target="_blank" class="text-purple-300 hover:underline font-semibold">Entrar na sala ↗</a>`
-                 : '';
+             const linkValido = pacObj.link_sala && /^https?:\/\//i.test(pacObj.link_sala.trim());
+             const linkSalaHtml = (a.modalidade !== 'Presencial' && linkValido)
+                    ? ` · <a href="${escapeHtml(pacObj.link_sala.trim())}" target="_blank" rel="noopener noreferrer" class="text-purple-300 hover:underline font-semibold">Entrar na sala ↗</a>`
+                    : '';
              const urlLembrete = gerarUrlLembreteWhatsApp(a.paciente_id, a.data_hora, a.modalidade);
              const btnLembrete = urlLembrete
                  ? `<a href="${urlLembrete}" target="_blank" title="Enviar lembrete no WhatsApp" class="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-xl text-[11px] font-semibold transition">💬 Lembrar</a>`
@@ -2058,7 +2059,7 @@
             if (campoNovoTexto) campoNovoTexto.value = '';
 
             await carregarHistoricoProntuarios(id);
-            
+
             const SpeechRecSuportado = window.SpeechRecognition || window.webkitSpeechRecognition;
                         const btnVoz = document.getElementById('btnVozDrawer');
                         if (btnVoz) {
