@@ -668,7 +668,7 @@
             <h3 class="text-xl font-bold font-serif mb-4 text-[#F3EEF6]">Novo Paciente</h3>
             <form id="formNovoCliente" class="space-y-4">
                 <div>
-                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Nome Completo *</label>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Nome Completo do Paciente *</label>
                     <input type="text" id="clienteNome" required class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -677,11 +677,15 @@
                         <input type="text" id="clienteWhatsapp" required placeholder="(11) 99999-9999" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Data de Aniversário</label>
-                        <input type="date" id="clienteDataNascimento" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">CPF do Paciente</label>
+                        <input type="text" id="clienteCpf" placeholder="000.000.000-00" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
                     </div>
                 </div>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Nascimento</label>
+                        <input type="date" id="clienteDataNascimento" class="w-full px-3 py-2 input-dark rounded-xl text-sm outline-none">
+                    </div>
                     <div>
                         <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Modalidade</label>
                         <select id="clienteModalidade" class="w-full px-3 py-2 input-dark rounded-xl text-sm outline-none">
@@ -690,16 +694,26 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Valor Sessão (R$)</label>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Valor (R$)</label>
                         <input type="number" step="0.01" id="clienteValor" value="150.00" class="w-full px-3 py-2 input-dark rounded-xl text-sm outline-none">
                     </div>
                 </div>
+
+                <!-- BLOCO OPCIONAL PARA RESPONSÁVEL FINANCEIRO -->
+                <div class="p-3.5 bg-[#141019] rounded-2xl border border-[#2E2538] space-y-2.5">
+                    <span class="text-[10px] font-bold uppercase tracking-wider text-[#C2ADC9] block">Responsável Financeiro (se diferente do paciente)</span>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                        <input type="text" id="clienteResponsavelNome" placeholder="Nome do Responsável" class="w-full px-3 py-2 input-dark rounded-xl text-xs outline-none">
+                        <input type="text" id="clienteResponsavelCpf" placeholder="CPF do Responsável" class="w-full px-3 py-2 input-dark rounded-xl text-xs outline-none">
+                    </div>
+                </div>
+
                 <!-- SE FOR ADMIN, PODE ESCOLHER A PSICÓLOGA RESPONSÁVEL -->
                 <div id="containerSelectPsicologaNovoPaciente" class="hidden">
                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Psicóloga Responsável *</label>
                     <select id="clientePsicologaSelect" class="w-full px-3 py-2 input-dark rounded-xl text-sm outline-none"></select>
                 </div>
-                <div class="flex gap-2 pt-3">
+                <div class="flex gap-2 pt-2">
                     <button type="button" onclick="fecharModal('modalCliente')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
                     <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Paciente</button>
                 </div>
@@ -771,6 +785,14 @@
                         <div>
                             <label class="block text-[#9C8EAD] mb-1 font-semibold">CPF do Paciente (para Recibo)</label>
                             <input type="text" id="editPacienteCpf" placeholder="000.000.000-00" class="w-full p-2 input-dark rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[#9C8EAD] mb-1 font-semibold">Nome do Responsável (Recibo)</label>
+                            <input type="text" id="editResponsavelNome" placeholder="Opcional (se menor/dependente)" class="w-full p-2 input-dark rounded-xl outline-none">
+                        </div>
+                        <div>
+                            <label class="block text-[#9C8EAD] mb-1 font-semibold">CPF do Responsável (Recibo)</label>
+                            <input type="text" id="editResponsavelCpf" placeholder="000.000.000-00" class="w-full p-2 input-dark rounded-xl outline-none">
                         </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
@@ -1743,6 +1765,8 @@
             document.getElementById('editPacienteWhatsapp').value = p.whatsapp || '';
             document.getElementById('editPacienteNascimento').value = p.data_nascimento || '';
             document.getElementById('editPacienteCpf').value = p.cpf || '';
+            document.getElementById('editResponsavelNome').value = p.responsavel_nome || '';
+            document.getElementById('editResponsavelCpf').value = p.responsavel_cpf || '';
             document.getElementById('detalheStatusFinanceiro').value = p.status_financeiro || 'Em dia';
 
             const containerPsi = document.getElementById('containerEditPsicologaDrawer');
@@ -1842,10 +1866,12 @@
             const status_financeiro = document.getElementById('detalheStatusFinanceiro').value;
 
             const updatePayload = {
-                whatsapp,
-                data_nascimento,
-                cpf: document.getElementById('editPacienteCpf').value.trim(),
-                status_financeiro
+            whatsapp,
+            data_nascimento,
+            cpf: document.getElementById('editPacienteCpf').value.trim() || null,
+            responsavel_nome: document.getElementById('editResponsavelNome').value.trim() || null,
+            responsavel_cpf: document.getElementById('editResponsavelCpf').value.trim() || null,
+            status_financeiro
             };
 
             if (ehAdmin()) {
@@ -1898,36 +1924,42 @@
         }
 
         document.getElementById('formNovoCliente').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const nome = document.getElementById('clienteNome').value.trim();
-            const whatsapp = document.getElementById('clienteWhatsapp').value.trim();
-            const data_nascimento = document.getElementById('clienteDataNascimento').value || null;
-            const modalidade = document.getElementById('clienteModalidade').value;
-            const valor = parseFloat(document.getElementById('clienteValor').value) || 150.00;
+         e.preventDefault();
+         const nome = document.getElementById('clienteNome').value.trim();
+         const whatsapp = document.getElementById('clienteWhatsapp').value.trim();
+         const cpf = document.getElementById('clienteCpf').value.trim() || null;
+         const data_nascimento = document.getElementById('clienteDataNascimento').value || null;
+         const modalidade = document.getElementById('clienteModalidade').value;
+         const valor = parseFloat(document.getElementById('clienteValor').value) || 150.00;
+         const responsavel_nome = document.getElementById('clienteResponsavelNome').value.trim() || null;
+         const responsavel_cpf = document.getElementById('clienteResponsavelCpf').value.trim() || null;
 
-            let psicologa_id = usuarioAtualPerfil ? usuarioAtualPerfil.id : null;
-            if (ehAdmin()) {
-                const selectPsi = document.getElementById('clientePsicologaSelect');
-                if (selectPsi && selectPsi.value) psicologa_id = selectPsi.value;
-            }
+         let psicologa_id = usuarioAtualPerfil ? usuarioAtualPerfil.id : null;
+         if (ehAdmin()) {
+             const selectPsi = document.getElementById('clientePsicologaSelect');
+             if (selectPsi && selectPsi.value) psicologa_id = selectPsi.value;
+         }
 
-            const { error } = await client.from('pacientes').insert([{
-                nome,
-                whatsapp,
-                data_nascimento,
-                modalidade,
-                valor_padrao_sessao: valor,
-                status: 'Em Atendimento',
-                status_financeiro: 'Em dia',
-                psicologa_id
-            }]);
+         const { error } = await client.from('pacientes').insert([{
+             nome,
+             whatsapp,
+             cpf,
+             data_nascimento,
+             modalidade,
+             valor_padrao_sessao: valor,
+             responsavel_nome,
+             responsavel_cpf,
+             status: 'Em Atendimento',
+             status_financeiro: 'Em dia',
+             psicologa_id
+         }]);
 
-            if (error) return alert("Erro ao criar paciente: " + error.message);
+         if (error) return alert("Erro ao criar paciente: " + error.message);
 
-            document.getElementById('formNovoCliente').reset();
-            fecharModal('modalCliente');
-            carregarDados();
-        });
+         document.getElementById('formNovoCliente').reset();
+         fecharModal('modalCliente');
+         carregarDados();
+     });
 
         // 5. GESTÃO DE EQUIPE & NÍVEIS DE USUÁRIO (EXCLUSIVO ADMIN)
         async function carregarEquipe() {
@@ -2499,54 +2531,64 @@
         // GERADOR DE RECIBO EM PDF (1 CLIQUE)
         // ==========================================
         function gerarReciboPDF(pagamentoId) {
-            const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
-            if (!pg) return;
+         const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
+         if (!pg) return;
 
-            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
-            const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
+         const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+         const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
 
-            const nomePsi = psi.nome || obterNomeExibicaoUsuario();
-            const crpPsi = psi.crp || 'Não informado (preencha em Dados CRP & Pix)';
-            const nomePac = pac.nome || 'Paciente';
-            const cpfPac = pac.cpf ? 'CPF: ' + pac.cpf : 'CPF não informado';
-            const valorFormatado = formatarBRL(pg.valor);
-            const dataRecibo = pg.data_pagamento
-                ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
-                : new Date().toLocaleDateString('pt-BR');
+         const nomePsi = psi.nome || obterNomeExibicaoUsuario();
+         const crpPsi = psi.crp || 'Não informado (preencha em Dados CRP & Pix)';
+         const nomePac = pac.nome || 'Paciente';
+         const temResponsavel = pac.responsavel_nome && pac.responsavel_nome.trim() !== '';
 
-            const htmlRecibo = [
-                '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">',
-                '<title>Recibo - ' + escapeHtml(nomePac) + '</title>',
-                '<style>',
-                'body{font-family:Georgia,serif;color:#1f1a24;padding:48px;max-width:700px;margin:0 auto;}',
-                '.box{border:1.5px solid #3f3152;border-radius:12px;padding:36px;}',
-                '.header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;padding-bottom:16px;margin-bottom:24px;}',
-                '.title{font-size:22px;font-weight:bold;color:#3f3152;letter-spacing:1px;}',
-                '.valor{font-size:20px;font-weight:bold;background:#f5f0fa;padding:8px 16px;border-radius:8px;color:#3f3152;}',
-                '.texto{font-size:15px;line-height:1.8;margin-bottom:36px;text-align:justify;}',
-                '.assinatura{margin-top:48px;text-align:center;}',
-                '.linha{border-top:1px solid #333;width:280px;margin:0 auto 8px auto;}',
-                '.meta{font-size:12px;color:#666;margin-top:32px;text-align:center;}',
-                '@media print{.no-print{display:none;}}',
-                '</style></head><body>',
-                '<div class="no-print" style="text-align:right;margin-bottom:16px;">',
-                '<button onclick="window.print()" style="background:#5F4A78;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:bold;">🖨️ Imprimir / Salvar PDF</button>',
-                '</div><div class="box"><div class="header"><div>',
-                '<div class="title">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>',
-                '<div style="font-size:12px;color:#666;margin-top:4px;">Emitido via Gnoth · Gestão Clínica</div>',
-                '</div><div class="valor">' + valorFormatado + '</div></div>',
-                '<p class="texto">Recebi de <strong>' + escapeHtml(nomePac) + '</strong> (' + escapeHtml(cpfPac) + ') a importância de <strong>' + valorFormatado + '</strong>, referente a sessões de psicoterapia / atendimento psicológico realizadas até a presente data.</p>',
-                '<p style="font-size:14px;">Data de quitação: <strong>' + dataRecibo + '</strong></p>',
-                '<div class="assinatura"><div class="linha"></div><strong>' + escapeHtml(nomePsi) + '</strong><br>',
-                '<span style="font-size:13px;color:#444;">Psicóloga(o) · CRP: ' + escapeHtml(crpPsi) + '</span></div>',
-                '<div class="meta">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>',
-                '</div></body></html>'
-            ].join('');
+         const pagadorNome = temResponsavel ? pac.responsavel_nome.trim() : nomePac;
+         const pagadorCpf = temResponsavel
+             ? (pac.responsavel_cpf ? 'CPF: ' + pac.responsavel_cpf : 'CPF não informado')
+             : (pac.cpf ? 'CPF: ' + pac.cpf : 'CPF não informado');
 
-            const janela = window.open('', '_blank', 'width=800,height=650');
-            janela.document.write(htmlRecibo);
-            janela.document.close();
-        }
+         const detalheBeneficiario = temResponsavel
+             ? ', referente a sessões de psicoterapia / atendimento psicológico prestadas a <strong>' + escapeHtml(nomePac) + '</strong>' + (pac.cpf ? ' (CPF: ' + escapeHtml(pac.cpf) + ')' : '')
+             : ', referente a sessões de psicoterapia / atendimento psicológico';
+
+         const valorFormatado = formatarBRL(pg.valor);
+         const dataRecibo = pg.data_pagamento
+             ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
+             : new Date().toLocaleDateString('pt-BR');
+
+         const htmlRecibo = [
+             '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">',
+             '<title>Recibo - ' + escapeHtml(pagadorNome) + '</title>',
+             '<style>',
+             'body{font-family:Georgia,serif;color:#1f1a24;padding:48px;max-width:700px;margin:0 auto;}',
+             '.box{border:1.5px solid #3f3152;border-radius:12px;padding:36px;}',
+             '.header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;padding-bottom:16px;margin-bottom:24px;}',
+             '.title{font-size:22px;font-weight:bold;color:#3f3152;letter-spacing:1px;}',
+             '.valor{font-size:20px;font-weight:bold;background:#f5f0fa;padding:8px 16px;border-radius:8px;color:#3f3152;}',
+             '.texto{font-size:15px;line-height:1.8;margin-bottom:36px;text-align:justify;}',
+             '.assinatura{margin-top:48px;text-align:center;}',
+             '.linha{border-top:1px solid #333;width:280px;margin:0 auto 8px auto;}',
+             '.meta{font-size:12px;color:#666;margin-top:32px;text-align:center;}',
+             '@media print{.no-print{display:none;}}',
+             '</style></head><body>',
+             '<div class="no-print" style="text-align:right;margin-bottom:16px;">',
+             '<button onclick="window.print()" style="background:#5F4A78;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:bold;">🖨️ Imprimir / Salvar PDF</button>',
+             '</div><div class="box"><div class="header"><div>',
+             '<div class="title">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>',
+             '<div style="font-size:12px;color:#666;margin-top:4px;">Emitido via Gnoth · Gestão Clínica</div>',
+             '</div><div class="valor">' + valorFormatado + '</div></div>',
+             '<p class="texto">Recebi de <strong>' + escapeHtml(pagadorNome) + '</strong> (' + escapeHtml(pagadorCpf) + ') a importância de <strong>' + valorFormatado + '</strong>' + detalheBeneficiario + ' realizadas até a presente data.</p>',
+             '<p style="font-size:14px;">Data de quitação: <strong>' + dataRecibo + '</strong></p>',
+             '<div class="assinatura"><div class="linha"></div><strong>' + escapeHtml(nomePsi) + '</strong><br>',
+             '<span style="font-size:13px;color:#444;">Psicóloga(o) · CRP: ' + escapeHtml(crpPsi) + '</span></div>',
+             '<div class="meta">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>',
+             '</div></body></html>'
+         ].join('');
+
+         const janela = window.open('', '_blank', 'width=800,height=650');
+         janela.document.write(htmlRecibo);
+         janela.document.close();
+     }
     </script>
 </body>
 </html>
