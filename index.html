@@ -126,6 +126,12 @@
                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Motivo ou breve resumo (opcional)</label>
                     <textarea id="pubMotivo" rows="3" placeholder="Conte brevemente o que te traz à terapia..." class="w-full p-3 input-dark rounded-xl text-xs outline-none"></textarea>
                 </div>
+                <div class="p-3 bg-[#141019] rounded-xl border border-[#2E2538]">
+                    <label class="flex items-start gap-2.5 cursor-pointer text-[11px] text-[#C2ADC9] leading-relaxed">
+                        <input type="checkbox" id="pubLgpdCheck" required class="mt-0.5 accent-[#8E73AD] rounded">
+                        <span>Concordo com o tratamento dos meus dados pessoais e sensíveis para fins de triagem e atendimento psicológico, conforme a Lei Geral de Proteção de Dados (LGPD) e o Código de Ética Profissional do Psicólogo. *</span>
+                    </label>
+                </div>
                 <button type="submit" id="btnEnviarTriagemPub" class="w-full py-3 btn-plum rounded-xl font-semibold text-sm shadow-md">Enviar Solicitação</button>
             </form>
 
@@ -782,6 +788,12 @@
                 </div>
 
                 <!-- SE FOR ADMIN, PODE ESCOLHER A PSICÓLOGA RESPONSÁVEL -->
+                 <div class="p-3 bg-[#141019] rounded-xl border border-[#2E2538]">
+                    <label class="flex items-start gap-2.5 cursor-pointer text-[11px] text-[#C2ADC9] leading-relaxed">
+                        <input type="checkbox" id="clienteLgpdCheck" required checked class="mt-0.5 accent-[#8E73AD] rounded">
+                        <span>Confirmo que o paciente (ou responsável) foi informado e consentiu com o registro de dados clínicos sob sigilo profissional (LGPD / CFP). *</span>
+                    </label>
+                </div>
                 <div id="containerSelectPsicologaNovoPaciente" class="hidden">
                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Psicóloga Responsável *</label>
                     <select id="clientePsicologaSelect" class="w-full px-3 py-2 input-dark rounded-xl text-sm outline-none"></select>
@@ -902,10 +914,17 @@
 
                 <!-- Histórico de Prontuários Antigos -->
                 <div class="space-y-3">
-                    <h4 class="text-xs font-bold uppercase tracking-wider text-[#F3EEF6]">Histórico de Prontuários Salvos</h4>
+                    <div class="flex flex-wrap items-center justify-between gap-2">
+                        <div>
+                            <h4 class="text-xs font-bold uppercase tracking-wider text-[#F3EEF6]">Histórico Cronológico (Imutável · CFP)</h4>
+                            <p id="statusLgpdDrawer" class="text-[10px] text-emerald-400 mt-0.5"></p>
+                        </div>
+                        <button type="button" onclick="exportarProntuarioPDF()" class="px-3 py-1.5 bg-[#2B2138] hover:bg-[#3F3152] border border-[#5F4A78] text-[#E9DDF5] rounded-xl text-[11px] font-semibold flex items-center gap-1.5 transition shadow-sm">
+                            <span>📄</span> Exportar Prontuário (PDF)
+                        </button>
+                    </div>
                     <div id="listaHistoricoProntuarios" class="space-y-3 max-h-72 overflow-y-auto pr-1"></div>
                 </div>
-            </div>
 
             <div class="pt-5 border-t border-[#2E2538] flex gap-3 mt-4">
                 <button onclick="fecharDetalhesPaciente()" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] hover:text-white rounded-xl text-xs font-semibold">Fechar</button>
@@ -1065,13 +1084,15 @@
             btn.textContent = "Enviando...";
 
             const payload = {
-                nome: document.getElementById('pubNome').value.trim(),
-                whatsapp: document.getElementById('pubWhatsapp').value.trim(),
-                modalidade: document.getElementById('pubModalidade').value,
-                periodo_preferencia: document.getElementById('pubPeriodo').value,
-                motivo_consulta: document.getElementById('pubMotivo').value.trim() || null,
-                status: 'Novo Contato',
-                psicologa_id: psicologaTriagemPublicaId
+            nome: document.getElementById('pubNome').value.trim(),
+             whatsapp: document.getElementById('pubWhatsapp').value.trim(),
+             modalidade: document.getElementById('pubModalidade').value,
+             periodo_preferencia: document.getElementById('pubPeriodo').value,
+             motivo_consulta: document.getElementById('pubMotivo').value.trim() || null,
+             lgpd_aceito: true,
+             lgpd_aceito_em: new Date().toISOString(),
+             status: 'Novo Contato',
+             psicologa_id: psicologaTriagemPublicaId
             };
 
             const { error } = await client.from('pacientes').insert([payload]);
@@ -1960,6 +1981,17 @@
             document.getElementById('editResponsavelNome').value = p.responsavel_nome || '';
             document.getElementById('editResponsavelCpf').value = p.responsavel_cpf || '';
             document.getElementById('editPacienteLinkSala').value = p.link_sala || '';
+            const lgpdEl = document.getElementById('statusLgpdDrawer');
+                if (lgpdEl) {
+                if (p.lgpd_aceito_em) {
+                 const dtLgpd = new Date(p.lgpd_aceito_em).toLocaleString('pt-BR');
+                 lgpdEl.textContent = `✓ Consentimento LGPD registrado em ${dtLgpd}`;
+                 lgpdEl.className = "text-[10px] text-emerald-400 mt-0.5";
+                 } else {
+                 lgpdEl.textContent = "⚠️ Consentimento LGPD pendente de registro";
+                 lgpdEl.className = "text-[10px] text-amber-400 mt-0.5";
+                }
+             }
             document.getElementById('detalheStatusFinanceiro').value = p.status_financeiro || 'Em dia';
 
             const containerPsi = document.getElementById('containerEditPsicologaDrawer');
@@ -1985,7 +2017,8 @@
             if (gravando) alternarGravacaoVoz();
             document.getElementById('drawerPaciente').classList.add('hidden');
         }
-
+            
+        let historicoProntuarioAtualCache = [];
         async function carregarHistoricoProntuarios(pacienteId) {
             const container = document.getElementById('listaHistoricoProntuarios');
             if (!container) return;
@@ -2005,25 +2038,29 @@
                 return;
             }
 
-            container.innerHTML = historico.map(reg => {
-                const dataReg = new Date(reg.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
-                const horaReg = new Date(reg.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            historicoProntuarioAtualCache = historico;
 
-                return `
-                    <div class="p-3.5 bg-[#141019] rounded-2xl border border-[#2E2538] space-y-1.5 relative group">
-                        <div class="flex items-center justify-between text-[11px] text-[#9C8EAD]">
-                            <span class="font-bold text-[#C2ADC9]">📅 ${dataReg} às ${horaReg}</span>
-                            <div class="flex items-center gap-2">
-                                <span class="text-[10px] bg-[#1D1724] px-2 py-0.5 rounded-md border border-[#32283D] font-medium">${escapeHtml(reg.autor_email || 'Psicologia')}</span>
-                                <button onclick="excluirProntuario('${reg.id}')" title="Excluir este prontuário" class="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/15 rounded-lg transition text-xs">
-                                    🗑️
-                                </button>
-                            </div>
-                        </div>
-                        <p class="text-xs text-[#E5DCED] whitespace-pre-wrap leading-relaxed pr-6">${escapeHtml(reg.conteudo)}</p>
-                    </div>
-                `;
-            }).join('');
+       container.innerHTML = historico.map((reg, index) => {
+           const dataReg = new Date(reg.criado_em).toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+           const horaReg = new Date(reg.criado_em).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+           const numeroRegistro = historico.length - index;
+           const btnExcluirAudit = ehAdmin()
+               ? `<button onclick="excluirProntuario('${reg.id}')" title="Remover registro (Admin)" class="text-red-400 hover:text-red-300 p-1 hover:bg-red-500/15 rounded-lg transition text-xs">🗑️</button>`
+               : '';
+
+           return `
+               <div class="p-3.5 bg-[#141019] rounded-2xl border border-[#2E2538] space-y-1.5 relative">
+                   <div class="flex flex-wrap items-center justify-between gap-2 text-[11px] text-[#9C8EAD]">
+                       <span class="font-bold text-[#C2ADC9]">🔒 Registro #${numeroRegistro} · ${dataReg} às ${horaReg}</span>
+                       <div class="flex items-center gap-2">
+                           <span class="text-[10px] bg-[#1D1724] px-2 py-0.5 rounded-md border border-[#32283D] font-medium">${escapeHtml(reg.autor_email || 'Psicologia')}</span>
+                           ${btnExcluirAudit}
+                       </div>
+                   </div>
+                   <p class="text-xs text-[#E5DCED] whitespace-pre-wrap leading-relaxed">${escapeHtml(reg.conteudo)}</p>
+               </div>
+           `;
+       }).join('');
         }
 
         async function excluirProntuario(prontuarioId) {
@@ -2134,6 +2171,7 @@
              if (selectPsi && selectPsi.value) psicologa_id = selectPsi.value;
          }
 
+         const lgpdAceito = document.getElementById('clienteLgpdCheck').checked;
          const { error } = await client.from('pacientes').insert([{
              nome,
              whatsapp,
@@ -2143,6 +2181,8 @@
              valor_padrao_sessao: valor,
              responsavel_nome,
              responsavel_cpf,
+             lgpd_aceito: lgpdAceito,
+             lgpd_aceito_em: lgpdAceito ? new Date().toISOString() : null,
              status: 'Em Atendimento',
              status_financeiro: 'Em dia',
              psicologa_id
@@ -2783,6 +2823,82 @@
          janela.document.write(htmlRecibo);
          janela.document.close();
      }
+     // ==========================================
+        // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
+        // ==========================================
+        function exportarProntuarioPDF() {
+            if (!pacienteSelecionadoId) return;
+            const pac = todosPacientesCache.find(p => p.id === pacienteSelecionadoId);
+            if (!pac) return;
+
+            const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
+            const nomePsi = psi.nome || obterNomeExibicaoUsuario();
+            const crpPsi = psi.crp || 'Não informado';
+            const abordagemPsi = psi.abordagem || 'Não informada';
+
+            const nascFormatado = pac.data_nascimento
+                ? new Date(pac.data_nascimento + 'T00:00:00').toLocaleDateString('pt-BR')
+                : 'Não informada';
+            const lgpdTexto = pac.lgpd_aceito_em
+                ? 'Consentimento registrado em ' + new Date(pac.lgpd_aceito_em).toLocaleString('pt-BR')
+                : 'Consentimento pendente de registro digital';
+
+            // Ordena do mais antigo para o mais recente (ordem cronológica documental)
+            const evolucoesCronologicas = [...historicoProntuarioAtualCache].reverse();
+
+            const blocosEvolucao = evolucoesCronologicas.length === 0
+                ? '<p style="color:#666; font-style:italic;">Nenhuma evolução clínica registrada até a presente data.</p>'
+                : evolucoesCronologicas.map((reg, idx) => {
+                    const dt = new Date(reg.criado_em).toLocaleString('pt-BR');
+                    return '<div class="evolucao">' +
+                        '<div class="evo-header"><strong>Evolução #' + (idx + 1) + '</strong> · ' + dt + ' · Responsável: ' + escapeHtml(reg.autor_email || nomePsi) + '</div>' +
+                        '<div class="evo-body">' + escapeHtml(reg.conteudo).replace(/\n/g, '<br>') + '</div>' +
+                    '</div>';
+                }).join('');
+
+            const htmlProntuario = [
+                '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">',
+                '<title>Prontuário Psicológico - ' + escapeHtml(pac.nome) + '</title>',
+                '<style>',
+                'body{font-family:Georgia,serif;color:#1f1a24;padding:40px;max-width:800px;margin:0 auto;line-height:1.6;}',
+                '.header{border-bottom:2px solid #3f3152;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end;}',
+                '.title{font-size:20px;font-weight:bold;color:#3f3152;}',
+                '.sub{font-size:11px;color:#666;text-transform:uppercase;letter-spacing:1px;}',
+                '.ficha{background:#f8f6fa;border:1px solid #e2d9eb;border-radius:10px;padding:18px;margin-bottom:24px;font-size:13px;}',
+                '.ficha-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}',
+                '.evolucao{border:1px solid #ddd;border-left:4px solid #5F4A78;border-radius:8px;padding:14px 18px;margin-bottom:14px;page-break-inside:avoid;}',
+                '.evo-header{font-size:12px;color:#4a3b5c;border-bottom:1px solid #eee;padding-bottom:6px;margin-bottom:8px;}',
+                '.evo-body{font-size:13.5px;color:#222;text-align:justify;}',
+                '.footer{margin-top:40px;padding-top:16px;border-top:1px solid #ccc;font-size:11px;color:#555;text-align:center;}',
+                '@media print{.no-print{display:none;}}',
+                '</style></head><body>',
+                '<div class="no-print" style="text-align:right;margin-bottom:16px;">',
+                '<button onclick="window.print()" style="background:#5F4A78;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:bold;">🖨️ Imprimir / Salvar PDF (CFP)</button>',
+                '</div>',
+                '<div class="header"><div>',
+                '<div class="sub">Documento Sigiloso · Resolução CFP nº 01/2009</div>',
+                '<div class="title">PRONTUÁRIO DE ATENDIMENTO PSICOLÓGICO</div>',
+                '</div><div style="text-align:right;font-size:12px;">Emitido em: ' + new Date().toLocaleDateString('pt-BR') + '</div></div>',
+                '<div class="ficha"><div class="ficha-grid">',
+                '<div><strong>Paciente:</strong> ' + escapeHtml(pac.nome) + '</div>',
+                '<div><strong>CPF:</strong> ' + escapeHtml(pac.cpf || 'Não informado') + '</div>',
+                '<div><strong>Nascimento:</strong> ' + nascFormatado + '</div>',
+                '<div><strong>Contato:</strong> ' + escapeHtml(pac.whatsapp || 'Não informado') + '</div>',
+                (pac.responsavel_nome ? '<div><strong>Responsável:</strong> ' + escapeHtml(pac.responsavel_nome) + '</div><div><strong>CPF Responsável:</strong> ' + escapeHtml(pac.responsavel_cpf || '—') + '</div>' : ''),
+                '<div><strong>Profissional:</strong> ' + escapeHtml(nomePsi) + ' (CRP: ' + escapeHtml(crpPsi) + ')</div>',
+                '<div><strong>Abordagem:</strong> ' + escapeHtml(abordagemPsi) + '</div>',
+                '<div style="grid-column:1/-1;margin-top:6px;padding-top:6px;border-top:1px dashed #ccc;"><strong>LGPD:</strong> ' + escapeHtml(lgpdTexto) + '</div>',
+                '</div></div>',
+                '<h3 style="font-size:15px;color:#3f3152;margin-bottom:14px;">Registro Cronológico de Evoluções Clínicas</h3>',
+                blocosEvolucao,
+                '<div class="footer">Documento confidencial protegido por sigilo profissional (Código de Ética Profissional do Psicólogo).<br>Gerado via Gnoth · Gestão Clínica</div>',
+                '</body></html>'
+            ].join('');
+
+            const janela = window.open('', '_blank', 'width=850,height=700');
+            janela.document.write(htmlProntuario);
+            janela.document.close();
+        }
     </script>
 </body>
 </html>
