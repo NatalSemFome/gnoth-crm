@@ -941,6 +941,14 @@
                             </div>
                         </div>
                     </div>
+                    <!-- Histórico de Sessões do Paciente -->
+                    <div class="pt-4 border-t border-[#2E2538] space-y-2.5">
+                        <div class="flex items-center justify-between">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-[#C2ADC9]">🗓️ Sessões do Paciente</span>
+                            <span id="contadorSessoesPaciente" class="text-[10px] px-2 py-0.5 rounded-full bg-[#2B2138] text-[#D8B4FE] font-semibold">0</span>
+                        </div>
+                        <div id="listaSessoesPacienteDrawer" class="space-y-2 max-h-60 overflow-y-auto pr-1 text-xs"></div>
+                    </div>
                 </div>
 
                 <!-- COLUNA DIREITA (8 colunas): Nova Evolução + Histórico Escalável -->
@@ -1681,10 +1689,11 @@
                      <div class="flex items-center gap-2">
                          ${btnLembrete}
                          <select onchange="atualizarStatusAtendimento('${a.id}', this.value)" class="text-xs input-dark rounded-xl px-2.5 py-1 font-semibold">
-                             <option value="Agendada" ${a.status === 'Agendada' ? 'selected' : ''}>Agendada</option>
-                             <option value="Realizada" ${a.status === 'Realizada' ? 'selected' : ''}>Realizada</option>
-                             <option value="Falta" ${a.status === 'Falta' ? 'selected' : ''}>Falta</option>
-                             <option value="Cancelada" ${a.status === 'Cancelada' ? 'selected' : ''}>Cancelada</option>
+                             <option value="Agendada" ${a.status === 'Agendada' ? 'selected' : ''}>🕒 Agendada</option>
+                             <option value="Confirmada" ${a.status === 'Confirmada' ? 'selected' : ''}>✅ Confirmada</option>
+                             <option value="Realizada" ${a.status === 'Realizada' ? 'selected' : ''}>✔️ Realizada</option>
+                             <option value="Falta" ${a.status === 'Falta' ? 'selected' : ''}>⚠️ Falta</option>
+                             <option value="Cancelada" ${a.status === 'Cancelada' ? 'selected' : ''}>❌ Cancelada</option>
                          </select>
                          <button onclick="excluirSessao('${a.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg">🗑️</button>
                      </div>
@@ -1826,24 +1835,35 @@
                 `;
             } else {
                 corpo.innerHTML = `
-                    <div class="w-full space-y-2 text-left">
+                    <div class="w-full space-y-2.5 text-left">
                         ${sessoesDoDia.map(s => {
-                         const hora = new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                         const nome = s.pacientes ? s.pacientes.nome : 'Paciente';
-                         const urlLembrete = gerarUrlLembreteWhatsApp(s.paciente_id, s.data_hora, s.modalidade);
-                         return `
-                         <div class="p-3 bg-[#141019] rounded-xl border border-[#2E2538] flex justify-between items-center gap-2">
-                             <div>
-                                 <p class="font-bold text-xs text-[#F3EEF6]">${hora} - ${escapeHtml(nome)}</p>
-                                 <p class="text-[10px] text-[#9C8EAD]">${s.modalidade || 'Online'} · ${s.status}</p>
-                             </div>
-                             <div class="flex items-center gap-2">
-                                 ${urlLembrete ? `<a href="${urlLembrete}" target="_blank" title="Confirmar no WhatsApp" class="text-xs text-emerald-400 hover:underline font-semibold">💬</a>` : ''}
-                                 <button onclick="abrirDetalhesPaciente('${s.paciente_id}')" class="text-xs text-[#C2ADC9] font-semibold hover:underline">Ficha</button>
-                                 <button onclick="excluirSessao('${s.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1 hover:bg-red-500/15 rounded">🗑️</button>
-                             </div>
-                         </div>`;
-                     }).join('')}
+                            const hora = new Date(s.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                            const nome = s.pacientes ? s.pacientes.nome : 'Paciente';
+                            const urlLembrete = gerarUrlLembreteWhatsApp(s.paciente_id, s.data_hora, s.modalidade);
+                            return `
+                            <div class="p-3 bg-[#141019] rounded-xl border border-[#2E2538] space-y-2">
+                                <div class="flex justify-between items-start gap-2">
+                                    <div>
+                                        <p class="font-bold text-xs text-[#F3EEF6]">${hora} - ${escapeHtml(nome)}</p>
+                                        <p class="text-[10px] text-[#9C8EAD]">${s.modalidade || 'Online'}</p>
+                                    </div>
+                                    <div class="flex items-center gap-2">
+                                        ${urlLembrete ? `<a href="${urlLembrete}" target="_blank" title="Confirmar no WhatsApp" class="text-xs text-emerald-400 hover:underline font-semibold">💬</a>` : ''}
+                                        <button onclick="abrirDetalhesPaciente('${s.paciente_id}')" class="text-xs text-[#C2ADC9] font-semibold hover:underline">Ficha</button>
+                                        <button onclick="excluirSessao('${s.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1 hover:bg-red-500/15 rounded">🗑️</button>
+                                    </div>
+                                </div>
+                                <div>
+                                    <select onchange="atualizarStatusAtendimento('${s.id}', this.value)" class="w-full text-xs input-dark rounded-lg px-2.5 py-1.5 font-semibold outline-none">
+                                        <option value="Agendada" ${s.status === 'Agendada' ? 'selected' : ''}>🕒 Agendada</option>
+                                        <option value="Confirmada" ${s.status === 'Confirmada' ? 'selected' : ''}>✅ Confirmada</option>
+                                        <option value="Realizada" ${s.status === 'Realizada' ? 'selected' : ''}>✔️ Realizada</option>
+                                        <option value="Falta" ${s.status === 'Falta' ? 'selected' : ''}>⚠️ Falta</option>
+                                        <option value="Cancelada" ${s.status === 'Cancelada' ? 'selected' : ''}>❌ Cancelada</option>
+                                    </select>
+                                </div>
+                            </div>`;
+                        }).join('')}
                         <button onclick="abrirAgendamentoComData('${diaSelecionadoAgendaIso}')" class="w-full mt-3 py-2 border border-[#32283D] text-xs font-semibold rounded-xl text-[#C2ADC9] hover:bg-[#2B2138]">+ Adicionar horário</button>
                     </div>
                 `;
@@ -2240,6 +2260,7 @@
             if (campoNovoTexto) campoNovoTexto.value = '';
 
             await carregarHistoricoProntuarios(id);
+            renderizarSessoesDoPacienteNaFicha(id);
 
             const SpeechRecSuportado = window.SpeechRecognition || window.webkitSpeechRecognition;
                         const btnVoz = document.getElementById('btnVozDrawer');
@@ -2278,6 +2299,44 @@
         function fecharDetalhesPaciente() {
             if (gravando) alternarGravacaoVoz();
             document.getElementById('drawerPaciente').classList.add('hidden');
+        }
+
+        function renderizarSessoesDoPacienteNaFicha(pacienteId) {
+            const container = document.getElementById('listaSessoesPacienteDrawer');
+            const badge = document.getElementById('contadorSessoesPaciente');
+            if (!container) return;
+
+            const sessoes = todosAtendimentosCache
+                .filter(a => a.paciente_id === pacienteId)
+                .sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+
+            if (badge) badge.textContent = sessoes.length;
+
+            if (sessoes.length === 0) {
+                container.innerHTML = `<p class="text-[11px] text-[#9C8EAD] italic py-2">Nenhuma sessão registrada para este paciente.</p>`;
+                return;
+            }
+
+            container.innerHTML = sessoes.map(s => {
+                const dt = new Date(s.data_hora);
+                const dataStr = dt.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: '2-digit' });
+                const horaStr = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                return `
+                    <div class="p-2.5 bg-[#141019] rounded-xl border border-[#2E2538] flex items-center justify-between gap-2">
+                        <div>
+                            <p class="font-bold text-[#F3EEF6]">${dataStr} · ${horaStr}</p>
+                            <p class="text-[10px] text-[#9C8EAD]">${s.modalidade || 'Online'}</p>
+                        </div>
+                        <select onchange="atualizarStatusAtendimento('${s.id}', this.value)" class="text-[11px] input-dark rounded-lg px-2 py-1 font-semibold outline-none">
+                            <option value="Agendada" ${s.status === 'Agendada' ? 'selected' : ''}>🕒 Agendada</option>
+                            <option value="Confirmada" ${s.status === 'Confirmada' ? 'selected' : ''}>✅ Confirmada</option>
+                            <option value="Realizada" ${s.status === 'Realizada' ? 'selected' : ''}>✔️ Realizada</option>
+                            <option value="Falta" ${s.status === 'Falta' ? 'selected' : ''}>⚠️ Falta</option>
+                            <option value="Cancelada" ${s.status === 'Cancelada' ? 'selected' : ''}>❌ Cancelada</option>
+                        </select>
+                    </div>
+                `;
+            }).join('');
         }
             
         let historicoProntuarioAtualCache = [];
@@ -2468,6 +2527,9 @@
 
                 await carregarDados();
                 await carregarHistoricoProntuarios(pacienteSelecionadoId);
+                renderizarSessoesDoPacienteNaFicha(pacienteSelecionadoId);
+
+                document.getElementById('detalheTelefone').textContent = whatsapp ? `WhatsApp: ${whatsapp}` : "Sem WhatsApp";
                 alert("Prontuário salvo com sucesso!");
             } catch (err) {
                 alert("Erro ao salvar: " + err.message);
@@ -2532,7 +2594,7 @@
 
          document.getElementById('formNovoCliente').reset();
          fecharModal('modalCliente');
-         carregarDados();
+        await carregarDados();
      });
 
         // 5. GESTÃO DE EQUIPE & NÍVEIS DE USUÁRIO (EXCLUSIVO ADMIN)
@@ -2586,8 +2648,8 @@
                     atualizarSaudacao();
                 }
                 alert("Nome atualizado com sucesso!");
-                carregarEquipe();
-                carregarDados();
+                await carregarEquipe();
+                await carregarDados();
             }
         }
 
@@ -2728,8 +2790,41 @@
         }
 
         async function atualizarStatusAtendimento(id, status) {
-            await client.from('atendimentos').update({ status }).eq('id', id);
+            const sessao = todosAtendimentosCache.find(a => a.id === id);
+
+            const { error } = await client.from('atendimentos').update({ status }).eq('id', id);
+            if (error) {
+                alert("Erro ao atualizar status da sessão: " + error.message);
+                return;
+            }
+
+            // Se marcou como "Realizada", garante que exista uma cobrança correspondente
+            if (status === 'Realizada' && sessao && sessao.paciente_id) {
+                const pac = todosPacientesCache.find(p => p.id === sessao.paciente_id) || {};
+                const valorSessao = parseFloat(pac.valor_padrao_sessao ?? 150);
+                const dataSessaoStr = sessao.data_hora ? sessao.data_hora.slice(0, 10) : obterChaveDiaLocal();
+
+                if (valorSessao > 0) {
+                    const jaTemCobranca = todosPagamentosCache.some(pg =>
+                        pg.paciente_id === sessao.paciente_id &&
+                        pg.data_vencimento === dataSessaoStr
+                    );
+
+                    if (!jaTemCobranca) {
+                        await client.from('pagamentos').insert([{
+                            paciente_id: sessao.paciente_id,
+                            valor: valorSessao,
+                            data_vencimento: dataSessaoStr,
+                            status: 'Pendente'
+                        }]);
+                    }
+                }
+            }
+
             await carregarDados();
+            if (pacienteSelecionadoId) {
+                renderizarSessoesDoPacienteNaFicha(pacienteSelecionadoId);
+            }
         }
 
         async function excluirSessao(atendimentoId) {
@@ -2756,7 +2851,7 @@
 
             await client.from('pagamentos').insert([{ paciente_id, valor, data_vencimento, status: 'Pendente' }]);
             fecharModal('modalCobranca');
-            carregarDados();
+            await carregarDados();
         });
 
         function renderizarTriagensCards(leads) {
