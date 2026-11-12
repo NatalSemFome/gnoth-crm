@@ -921,7 +921,12 @@
                     <div class="flex flex-wrap items-center justify-between gap-2">
                         <div>
                             <h4 class="text-xs font-bold uppercase tracking-wider text-[#F3EEF6]">Histórico Cronológico (Imutável · CFP)</h4>
-                            <p id="statusLgpdDrawer" class="text-[10px] text-emerald-400 mt-0.5"></p>
+                            <div class="flex items-center gap-2 mt-0.5">
+                                <p id="statusLgpdDrawer" class="text-[10px] text-emerald-400"></p>
+                                <button type="button" id="btnRegistrarLgpdDrawer" onclick="registrarConsentimentoLgpdManual()" class="hidden px-2 py-0.5 bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 text-amber-300 rounded text-[10px] font-semibold transition">
+                                    Registrar aceite agora
+                                </button>
+                            </div>
                         </div>
                         <div class="flex flex-wrap items-center gap-2">
                             <button type="button" onclick="alternarSelecionarTodasEvolucoes()" id="btnToggleSelecionarTodas" class="px-2.5 py-1.5 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] text-[#C2ADC9] rounded-xl text-[11px] font-semibold transition">
@@ -1992,16 +1997,19 @@
             document.getElementById('editResponsavelCpf').value = p.responsavel_cpf || '';
             document.getElementById('editPacienteLinkSala').value = p.link_sala || '';
             const lgpdEl = document.getElementById('statusLgpdDrawer');
-                if (lgpdEl) {
+            const btnLgpd = document.getElementById('btnRegistrarLgpdDrawer');
+            if (lgpdEl) {
                 if (p.lgpd_aceito_em) {
-                 const dtLgpd = new Date(p.lgpd_aceito_em).toLocaleString('pt-BR');
-                 lgpdEl.textContent = `✓ Consentimento LGPD registrado em ${dtLgpd}`;
-                 lgpdEl.className = "text-[10px] text-emerald-400 mt-0.5";
-                 } else {
-                 lgpdEl.textContent = "⚠️ Consentimento LGPD pendente de registro";
-                 lgpdEl.className = "text-[10px] text-amber-400 mt-0.5";
+                    const dtLgpd = new Date(p.lgpd_aceito_em).toLocaleString('pt-BR');
+                    lgpdEl.textContent = `✓ Consentimento LGPD registrado em ${dtLgpd}`;
+                    lgpdEl.className = "text-[10px] text-emerald-400";
+                    if (btnLgpd) btnLgpd.classList.add('hidden');
+                } else {
+                    lgpdEl.textContent = "⚠️ Consentimento LGPD pendente de registro";
+                    lgpdEl.className = "text-[10px] text-amber-400";
+                    if (btnLgpd) btnLgpd.classList.remove('hidden');
                 }
-             }
+            }
             document.getElementById('editPacienteAbordagem').value = p.abordagem || (usuarioAtualPerfil ? (usuarioAtualPerfil.abordagem || '') : '');
             document.getElementById('detalheStatusFinanceiro').value = p.status_financeiro || 'Em dia';
 
@@ -2022,6 +2030,24 @@
             await carregarHistoricoProntuarios(id);
 
             document.getElementById('drawerPaciente').classList.remove('hidden');
+        }
+
+        async function registrarConsentimentoLgpdManual() {
+            if (!pacienteSelecionadoId) return;
+            if (!confirm("Confirma que a(o) paciente ou responsável concedeu consentimento para o tratamento de dados clínicos (LGPD / CFP)?")) return;
+
+            const agoraIso = new Date().toISOString();
+            const { error } = await client
+                .from('pacientes')
+                .update({ lgpd_aceito: true, lgpd_aceito_em: agoraIso })
+                .eq('id', pacienteSelecionadoId);
+
+            if (error) {
+                alert("Erro ao registrar consentimento: " + error.message);
+            } else {
+                await carregarDados();
+                await abrirDetalhesPaciente(pacienteSelecionadoId);
+            }
         }
 
         function fecharDetalhesPaciente() {
