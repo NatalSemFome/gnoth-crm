@@ -87,20 +87,22 @@
 </head>
 <body class="min-h-screen">
 
-    <!-- 1. TELA DE AUTENTICAÇÃO -->
+    <!-- 1. TELA DE AUTENTICAÇÃO & ONBOARDING (TRIAL 7 DIAS) -->
     <div id="loginScreen" class="min-h-screen flex flex-col items-center justify-center p-6 bg-[#141019]">
         <div class="bg-[#1D1724] p-8 rounded-3xl shadow-2xl max-w-sm w-full border border-[#2E2538]">
             <div class="flex flex-col items-center justify-center mb-6">
-                <div class="w-12 h-12 rounded-2xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center mb-3 shadow-inner">
-                    <svg class="w-6 h-6 text-[#D8B4FE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
-                    <circle cx="12" cy="12" r="3" />
-                    <circle cx="12" cy="12" r="1" fill="currentColor" />
-                </svg>
+                <div class="w-12 h-12 rounded-2xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center mb-3 shadow-inner text-[#D8B4FE]">
+                    <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 3v18" />
+                        <path d="M6 7c0 4.5 2.5 7 6 7s6-2.5 6-7" />
+                        <path d="M9 21h6" />
+                    </svg>
                 </div>
                 <h1 class="text-3xl font-bold font-serif text-[#F3EEF6] tracking-wide">Gnoth</h1>
                 <p class="text-[10px] uppercase tracking-[0.22em] text-[#9C8EAD] font-bold mt-1">Gestão Clínica</p>
             </div>
+
+            <!-- FORMULÁRIO DE LOGIN -->
             <form id="loginForm" class="space-y-4">
                 <div>
                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">E-mail</label>
@@ -117,6 +119,44 @@
                 </div>
                 <button type="submit" id="loginSubmitBtn" class="w-full py-3 btn-plum rounded-xl font-semibold text-sm shadow-md">Entrar no Painel</button>
                 <p id="loginError" class="text-xs text-red-400 text-center font-medium min-h-[16px]"></p>
+
+                <div class="pt-3 border-t border-[#2E2538] text-center">
+                    <p class="text-xs text-[#9C8EAD] mb-2">Ainda não tem conta?</p>
+                    <button type="button" onclick="alternarTelaAuth('cadastro')" class="w-full py-2.5 bg-[#141019] hover:bg-[#2B2138] border border-[#3F3152] text-[#E9DDF5] rounded-xl font-semibold text-xs transition">
+                        ✨ Criar conta grátis (7 dias de teste)
+                    </button>
+                </div>
+            </form>
+
+            <!-- FORMULÁRIO DE CADASTRO GRÁTIS (TRIAL 7 DIAS) -->
+            <form id="signupForm" class="hidden space-y-3.5">
+                <div class="p-2.5 rounded-xl bg-purple-500/10 border border-purple-500/25 text-center">
+                    <span class="text-[11px] font-semibold text-purple-300">🎁 Teste grátis por 7 dias · Sem cartão</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Seu Nome Profissional *</label>
+                    <input type="text" id="signupNome" required placeholder="Ex: Dra. Helena Costa" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Número do CRP (opcional)</label>
+                    <input type="text" id="signupCrp" placeholder="Ex: 06/123456" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">E-mail *</label>
+                    <input type="email" id="signupEmail" required placeholder="voce@email.com" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Crie uma Senha (mín. 6 dígitos) *</label>
+                    <input type="password" id="signupPassword" minlength="6" required class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <button type="submit" id="signupSubmitBtn" class="w-full py-3 btn-plum rounded-xl font-semibold text-sm shadow-md">Começar meus 7 dias grátis</button>
+                <p id="signupFeedback" class="text-xs text-center font-medium min-h-[16px]"></p>
+
+                <div class="pt-2 border-t border-[#2E2538] text-center">
+                    <button type="button" onclick="alternarTelaAuth('login')" class="text-xs font-semibold text-[#C2ADC9] hover:text-white hover:underline">
+                        ← Já tenho conta, fazer login
+                    </button>
+                </div>
             </form>
         </div>
         <p class="text-[10px] text-center text-[#9C8EAD]/70 mt-4">
@@ -222,13 +262,18 @@
             <div class="px-2 pt-4 border-t border-[#261F30] text-[11px] text-[#9C8EAD]">
                 <div class="flex items-center justify-between gap-1 mb-0.5">
                     <p id="userNameNav" class="truncate font-bold text-white text-xs">Carregando...</p>
-                    <button onclick="editarMeuNome()" title="Alterar meu nome" class="text-[#9C8EAD] hover:text-white p-1 rounded transition">✏️</button>
+                    <button onclick="abrirModalPerfilProfissional()" title="Configurar CRP, Abordagem e Pix" class="text-[#9C8EAD] hover:text-white p-1 rounded transition">⚙️</button>
                 </div>
                 <p id="userEmailNav" class="truncate text-[10px] text-[#9C8EAD]/70 mb-2"></p>
-                <div class="mb-3">
+                <div class="flex flex-wrap items-center gap-1.5 mb-3">
                     <span id="userRoleBadge" class="px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 text-white">Psicóloga</span>
+                    <span id="trialBadgeNav" class="hidden px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30">Trial</span>
                 </div>
-               <button onclick="sair()" class="flex items-center gap-2 hover:text-red-400 transition">
+                <button onclick="abrirModalPerfilProfissional()" class="w-full mb-2.5 py-1.5 px-2.5 rounded-lg bg-[#1D1724] hover:bg-[#2B2138] border border-[#2E2538] text-[11px] text-[#C2ADC9] font-semibold text-left flex items-center justify-between transition">
+                    <span>🪪 Dados CRP & Pix</span>
+                    <span>›</span>
+                </button>
+                <button onclick="sair()" class="flex items-center gap-2 hover:text-red-400 transition">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Encerrar sessão</span>
                 </button>
@@ -525,6 +570,7 @@
             </section>
 
             <!-- 6. TELA: COBRANÇAS -->
+            <!-- 6. TELA: COBRANÇAS -->
             <section id="aba-pagamentos" class="hidden">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
@@ -532,9 +578,15 @@
                         <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Cobranças</h2>
                         <p class="text-xs text-[#9C8EAD] mt-0.5">Controle de recebimentos e histórico.</p>
                     </div>
-                    <button onclick="abrirModalCobranca()" class="px-5 py-2.5 btn-plum rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm">
-                        <span>+</span> Lançar cobrança
-                    </button>
+                    <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+                        <!-- SELETOR EXCLUSIVO PARA ADMINISTRADOR FILTRAR POR PSICÓLOGA -->
+                        <select id="filtroPsicologaCobranca" onchange="aoMudarFiltroPsicologaCobranca()" class="hidden px-3.5 py-2.5 input-dark rounded-xl text-xs font-semibold outline-none">
+                            <option value="Todas">Todas as Psicólogas</option>
+                        </select>
+                        <button onclick="abrirModalCobranca()" class="px-5 py-2.5 btn-plum rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm">
+                            <span>+</span> Lançar cobrança
+                        </button>
+                    </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
@@ -554,15 +606,31 @@
                     </div>
                 </div>
 
+                <!-- BARRA DE FILTROS DE STATUS + BUSCA -->
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
+                    <div class="flex flex-wrap items-center gap-1.5 p-1 bg-[#1D1724] border border-[#2E2538] rounded-2xl text-xs font-semibold w-full sm:w-auto">
+                        <button onclick="filtrarStatusCobranca('Todas')" id="cob-todas" class="px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm">Todas</button>
+                        <button onclick="filtrarStatusCobranca('A receber')" id="cob-areceber" class="px-3 py-1.5 rounded-xl text-[#9C8EAD] hover:text-white">A receber</button>
+                        <button onclick="filtrarStatusCobranca('Em atraso')" id="cob-atraso" class="px-3 py-1.5 rounded-xl text-[#9C8EAD] hover:text-white">Em atraso</button>
+                        <button onclick="filtrarStatusCobranca('Pagas')" id="cob-pagas" class="px-3 py-1.5 rounded-xl text-[#9C8EAD] hover:text-white">Pagas</button>
+                    </div>
+
+                    <div class="relative w-full sm:w-72">
+                        <span class="absolute inset-y-0 left-3 flex items-center text-[#9C8EAD] text-xs">🔍</span>
+                        <input type="text" id="buscaCobranca" oninput="aplicarFiltrosCobrancas()" placeholder="Buscar paciente..." class="w-full pl-8 pr-4 py-2 input-dark rounded-xl text-xs outline-none">
+                    </div>
+                </div>
+
                 <div class="card-surface overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="border-b border-[#2E2538] text-[11px] font-bold text-[#9C8EAD] uppercase tracking-wider">
                             <tr>
                                 <th class="p-4">Paciente</th>
+                                <th id="thPsiCobranca" class="p-4 hidden">Psicóloga</th>
                                 <th class="p-4">Valor</th>
                                 <th class="p-4">Vencimento</th>
                                 <th class="p-4">Situação</th>
-                                <th class="p-4 text-center">Ação</th>
+                                <th class="p-4 text-center">Ações</th>
                             </tr>
                         </thead>
                         <tbody id="tabelaPagamentos" class="divide-y divide-[#2E2538]"></tbody>
@@ -700,6 +768,10 @@
                             <label class="block text-[#9C8EAD] mb-1 font-semibold">Data de Aniversário</label>
                             <input type="date" id="editPacienteNascimento" class="w-full p-2 input-dark rounded-xl outline-none">
                         </div>
+                        <div>
+                            <label class="block text-[#9C8EAD] mb-1 font-semibold">CPF do Paciente (para Recibo)</label>
+                            <input type="text" id="editPacienteCpf" placeholder="000.000.000-00" class="w-full p-2 input-dark rounded-xl outline-none">
+                        </div>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                         <div>
@@ -742,7 +814,42 @@
             </div>
         </div>
     </div>
-
+    <!-- MODAL: DADOS PROFISSIONAIS (CRP, ABORDAGEM, PIX) -->
+ <div id="modalPerfilProfissional" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+     <div class="bg-[#1D1724] p-6 sm:p-8 rounded-3xl max-w-md w-full border border-[#32283D] shadow-2xl">
+         <div class="flex justify-between items-center mb-4">
+             <div>
+                 <h3 class="text-xl font-bold font-serif text-[#F3EEF6]">Perfil Profissional</h3>
+                 <p class="text-[11px] text-[#9C8EAD]">Usado automaticamente nos recibos e mensagens.</p>
+             </div>
+             <button onclick="fecharModal('modalPerfilProfissional')" class="text-[#9C8EAD] hover:text-white text-xl">✕</button>
+         </div>
+         <form id="formPerfilProfissional" class="space-y-4">
+             <div>
+                 <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Nome Completo *</label>
+                 <input type="text" id="perfilNome" required class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+             </div>
+             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                 <div>
+                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Número do CRP</label>
+                     <input type="text" id="perfilCrp" placeholder="Ex: 06/123456" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                 </div>
+                 <div>
+                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Abordagem</label>
+                     <input type="text" id="perfilAbordagem" placeholder="Ex: TCC, Junguiana..." class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                 </div>
+             </div>
+             <div>
+                 <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Chave Pix (para cobranças)</label>
+                 <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+             </div>
+             <div class="flex gap-2 pt-3">
+                 <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
+                 <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Dados</button>
+             </div>
+         </form>
+     </div>
+ </div>
     <!-- JAVASCRIPT GERAL -->
     <script>
         const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
@@ -913,15 +1020,21 @@
             const btn = document.getElementById('loginSubmitBtn');
             erroEl.textContent = ""; btn.textContent = "Validando..."; btn.disabled = true;
 
-            const { data, error } = await client.auth.signInWithPassword({ email, password });
-            btn.textContent = "Entrar no Painel"; btn.disabled = false;
-            if (error) {
+            try {
+                const { data, error } = await client.auth.signInWithPassword({ email, password });
+                btn.textContent = "Entrar no Painel"; btn.disabled = false;
+                if (error) {
+                    erroEl.className = "text-xs text-red-400 text-center font-medium min-h-[16px]";
+                    erroEl.textContent = "Dados incorretos: " + error.message;
+                } else {
+                    document.getElementById('userEmailNav').textContent = data.user.email;
+                    await checarPerfilUsuario(data.user.id, data.user.email);
+                    mostrarApp();
+                }
+            } catch (err) {
+                btn.textContent = "Entrar no Painel"; btn.disabled = false;
                 erroEl.className = "text-xs text-red-400 text-center font-medium min-h-[16px]";
-                erroEl.textContent = "Dados incorretos: " + error.message;
-            } else {
-                document.getElementById('userEmailNav').textContent = data.user.email;
-                await checarPerfilUsuario(data.user.id, data.user.email);
-                mostrarApp();
+                erroEl.textContent = "Falha na conexão: " + err.message;
             }
         });
 
@@ -934,13 +1047,14 @@
             }
             
             atualizarSaudacao();
+            atualizarBadgeTrial();
 
             const badge = document.getElementById('userRoleBadge');
             const btnEquipe = document.getElementById('btn-equipe');
             const thPsicologa = document.getElementById('thPsicologaResponsavel');
 
             if (ehAdmin()) {
-                badge.textContent = "Administradora";
+                badge.textContent = "Administrador";
                 badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30";
                 if (btnEquipe) btnEquipe.classList.remove('hidden');
                 if (thPsicologa) thPsicologa.classList.remove('hidden');
@@ -1628,6 +1742,7 @@
             document.getElementById('detalheAvatar').textContent = p.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
             document.getElementById('editPacienteWhatsapp').value = p.whatsapp || '';
             document.getElementById('editPacienteNascimento').value = p.data_nascimento || '';
+            document.getElementById('editPacienteCpf').value = p.cpf || '';
             document.getElementById('detalheStatusFinanceiro').value = p.status_financeiro || 'Em dia';
 
             const containerPsi = document.getElementById('containerEditPsicologaDrawer');
@@ -1729,6 +1844,7 @@
             const updatePayload = {
                 whatsapp,
                 data_nascimento,
+                cpf: document.getElementById('editPacienteCpf').value.trim(),
                 status_financeiro
             };
 
@@ -2082,12 +2198,80 @@
         }
 
         // 6. COBRANÇAS
+        // 6. COBRANÇAS (COM FILTRO POR PSICÓLOGA PARA ADMIN E EXCLUSÃO)
+        let filtroPsicologaCobrancaAtivo = 'Todas';
+        filtroCobrancaAtivo = 'Todas';
+
+        function prepararFiltroPsicologaCobranca() {
+            const select = document.getElementById('filtroPsicologaCobranca');
+            const thPsi = document.getElementById('thPsiCobranca');
+            if (!select) return;
+
+            if (ehAdmin()) {
+                select.classList.remove('hidden');
+                if (thPsi) thPsi.classList.remove('hidden');
+
+                // Lista apenas psicólogas (ou todos os perfis que tenham pacientes)
+                const psicologas = todosUsuariosCache.filter(u => u.role === 'psicologo' || todosPacientesCache.some(p => p.psicologa_id === u.id));
+                const valorAnterior = select.value;
+
+                select.innerHTML = `<option value="Todas">Todas as Psicólogas</option>` +
+                    psicologas.map(u => `<option value="${u.id}">${escapeHtml(u.nome || u.email)}</option>`).join('');
+
+                if ([...select.options].some(opt => opt.value === valorAnterior)) {
+                    select.value = valorAnterior;
+                }
+            } else {
+                select.classList.add('hidden');
+                if (thPsi) thPsi.classList.add('hidden');
+            }
+        }
+
+        function aoMudarFiltroPsicologaCobranca() {
+            const select = document.getElementById('filtroPsicologaCobranca');
+            filtroPsicologaCobrancaAtivo = select ? select.value : 'Todas';
+            aplicarFiltrosCobrancas();
+        }
+
+        function filtrarStatusCobranca(status) {
+            filtroCobrancaAtivo = status;
+            ['todas', 'areceber', 'atraso', 'pagas'].forEach(id => {
+                const el = document.getElementById(`cob-${id}`);
+                if (el) el.className = "px-3 py-1.5 rounded-xl text-[#9C8EAD] hover:text-white";
+            });
+
+            if (status === 'Todas') document.getElementById('cob-todas').className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
+            if (status === 'A receber') document.getElementById('cob-areceber').className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
+            if (status === 'Em atraso') document.getElementById('cob-atraso').className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
+            if (status === 'Pagas') document.getElementById('cob-pagas').className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
+
+            aplicarFiltrosCobrancas();
+        }
+
+        function obterPagamentosFiltradosPorPsicologa() {
+            if (!ehAdmin() || filtroPsicologaCobrancaAtivo === 'Todas') {
+                return todosPagamentosCache;
+            }
+            const idsPacientesDaPsi = new Set(
+                todosPacientesCache
+                    .filter(p => p.psicologa_id === filtroPsicologaCobrancaAtivo)
+                    .map(p => p.id)
+            );
+            return todosPagamentosCache.filter(pg => idsPacientesDaPsi.has(pg.paciente_id));
+        }
+
         function aplicarFiltrosCobrancas() {
+            prepararFiltroPsicologaCobranca();
+
+            const pagamentosBase = obterPagamentosFiltradosPorPsicologa();
+            atualizarKpisFinanceiros(pagamentosBase);
+
             const buscaEl = document.getElementById('buscaCobranca');
             const busca = (buscaEl ? buscaEl.value : '').toLowerCase();
             const hojeStr = obterChaveDiaLocal();
+            const isAdmin = ehAdmin();
 
-            const filtrados = todosPagamentosCache.filter(p => {
+            const filtrados = pagamentosBase.filter(p => {
                 const isPago = p.status === 'Pago';
                 const isAtrasado = !isPago && p.data_vencimento && p.data_vencimento < hojeStr;
 
@@ -2104,12 +2288,16 @@
             if (!tbody) return;
 
             if (filtrados.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-6 text-center text-[#9C8EAD]">Nenhuma cobrança encontrada.</td></tr>`;
+                const cols = isAdmin ? 6 : 5;
+                tbody.innerHTML = `<tr><td colspan="${cols}" class="p-6 text-center text-[#9C8EAD]">Nenhuma cobrança encontrada neste filtro.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = filtrados.map(pg => {
                 const pac = pg.pacientes;
+                const pacObj = todosPacientesCache.find(item => item.id === pg.paciente_id);
+                const nomePsi = pacObj ? obterNomePsicologa(pacObj.psicologa_id) : '—';
+
                 const isPago = pg.status === 'Pago';
                 const isAtrasado = !isPago && pg.data_vencimento && pg.data_vencimento < hojeStr;
 
@@ -2118,16 +2306,24 @@
                     : (isAtrasado ? 'bg-red-500/15 text-red-400 border border-red-500/30' : 'bg-amber-500/15 text-amber-300 border border-amber-500/30');
                 const sitText = isPago ? '● Pago' : (isAtrasado ? '● Em atraso' : '● Pendente');
 
+                const colPsi = isAdmin ? `<td class="p-4 text-xs text-[#9C8EAD]">${escapeHtml(nomePsi)}</td>` : '';
+
                 return `
                     <tr class="hover:bg-white/[0.03]">
                         <td class="p-4 font-bold text-xs text-[#F3EEF6]">${escapeHtml(pac ? pac.nome : 'Paciente')}</td>
+                        ${colPsi}
                         <td class="p-4 text-xs font-bold text-white">${formatarBRL(pg.valor)}</td>
-                        <td class="p-4 text-xs text-[#9C8EAD]">${pg.data_vencimento || '—'}</td>
+                        <td class="p-4 text-xs text-[#9C8EAD]">${pg.data_vencimento ? new Date(pg.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
                         <td class="p-4">
                             <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${sitPill}">${sitText}</span>
                         </td>
-                        <td class="p-4 text-center">
-                            ${!isPago ? `<button onclick="marcarComoPago('${pg.id}')" class="px-3 py-1 btn-plum rounded-lg text-xs font-semibold shadow-sm">Confirmar</button>` : `<span class="text-xs text-emerald-400 font-semibold">Quitado</span>`}
+                        <td class="p-4">
+                            <div class="flex items-center justify-center gap-2">
+                                ${!isPago 
+                                    ? `<button onclick="marcarComoPago('${pg.id}')" class="px-3 py-1 btn-plum rounded-lg text-xs font-semibold shadow-sm">Confirmar</button>` 
+                                    : `<button onclick="gerarReciboPDF('${pg.id}')" class="px-2.5 py-1 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-lg text-xs font-semibold transition">📄 Recibo</button>`}
+                                <button onclick="excluirCobranca('${pg.id}')" title="Excluir cobrança" class="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg transition">🗑️</button>
+                            </div>
                         </td>
                     </tr>
                 `;
@@ -2140,6 +2336,16 @@
             await carregarDados();
         }
 
+        async function excluirCobranca(id) {
+            if (!confirm("Deseja realmente excluir esta cobrança? Essa ação não pode ser desfeita.")) return;
+            const { error } = await client.from('pagamentos').delete().eq('id', id);
+            if (error) {
+                alert("Erro ao excluir cobrança: " + error.message);
+            } else {
+                await carregarDados();
+            }
+        }
+
         function atualizarKpisFinanceiros(pagamentos) {
             const hoje = new Date();
             const mesAtual = hoje.getMonth() + 1;
@@ -2150,6 +2356,7 @@
             let totalAReceber = 0;
             let totalAtraso = 0;
             let countAbertas = 0;
+            let countAtrasadas = 0;
 
             pagamentos.forEach(pg => {
                 const val = parseFloat(pg.valor || 0);
@@ -2160,8 +2367,13 @@
                         totalRecebidoMes += val;
                     }
                 } else {
-                    if (venc && venc < hojeChave) totalAtraso += val;
-                    else { totalAReceber += val; countAbertas++; }
+                    if (venc && venc < hojeChave) {
+                        totalAtraso += val;
+                        countAtrasadas++;
+                    } else {
+                        totalAReceber += val;
+                        countAbertas++;
+                    }
                 }
             });
 
@@ -2169,7 +2381,171 @@
             document.getElementById('cardAReceberMes').textContent = formatarBRL(totalAReceber);
             document.getElementById('kpiAReceber').textContent = formatarBRL(totalAReceber);
             document.getElementById('cardAtraso').textContent = formatarBRL(totalAtraso);
-            document.getElementById('subAReceberContagem').textContent = `${countAbertas} cobranças abertas`;
+            document.getElementById('subAReceberContagem').textContent = `${countAbertas} ${countAbertas === 1 ? 'aberta' : 'abertas'}`;
+            document.getElementById('subAtrasoContagem').textContent = countAtrasadas > 0 ? `${countAtrasadas} ${countAtrasadas === 1 ? 'vencida' : 'vencidas'}` : 'nada vencido';
+        }
+        // ==========================================
+        // ONBOARDING (TRIAL 7 DIAS) & PERFIL CRP/PIX
+        // ==========================================
+        function alternarTelaAuth(modo) {
+            const loginF = document.getElementById('loginForm');
+            const signupF = document.getElementById('signupForm');
+            if (modo === 'cadastro') {
+                loginF.classList.add('hidden');
+                signupF.classList.remove('hidden');
+            } else {
+                signupF.classList.add('hidden');
+                loginF.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('signupForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = document.getElementById('signupNome').value.trim();
+            const crp = document.getElementById('signupCrp').value.trim();
+            const email = document.getElementById('signupEmail').value.trim();
+            const password = document.getElementById('signupPassword').value;
+            const feedback = document.getElementById('signupFeedback');
+            const btn = document.getElementById('signupSubmitBtn');
+
+            btn.disabled = true;
+            btn.textContent = "Criando sua clínica...";
+            feedback.textContent = "";
+
+            const { data, error } = await client.auth.signUp({
+                email,
+                password,
+                options: { data: { nome, crp } }
+            });
+
+            btn.disabled = false;
+            btn.textContent = "Começar meus 7 dias grátis";
+
+            if (error) {
+                feedback.className = "text-xs text-red-400 text-center font-medium min-h-[16px]";
+                feedback.textContent = "Erro ao criar conta: " + error.message;
+                return;
+            }
+
+            if (data.session) {
+                document.getElementById('userEmailNav').textContent = data.user.email;
+                await checarPerfilUsuario(data.user.id, data.user.email);
+                mostrarApp();
+            } else {
+                feedback.className = "text-xs text-emerald-400 text-center font-medium min-h-[16px]";
+                feedback.textContent = "✓ Conta criada! Verifique seu e-mail ou faça login.";
+            }
+        });
+
+        function atualizarBadgeTrial() {
+            const badge = document.getElementById('trialBadgeNav');
+            if (!badge || !usuarioAtualPerfil) return;
+
+            if (usuarioAtualPerfil.plano === 'trial' && usuarioAtualPerfil.trial_ends_at) {
+                const fim = new Date(usuarioAtualPerfil.trial_ends_at);
+                const agora = new Date();
+                const diasRestantes = Math.ceil((fim - agora) / (1000 * 60 * 60 * 24));
+
+                badge.classList.remove('hidden');
+                if (diasRestantes > 0) {
+                    badge.textContent = `Trial: ${diasRestantes}d`;
+                    badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30";
+                } else {
+                    badge.textContent = "Trial expirado";
+                    badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-red-500/20 text-red-300 border border-red-500/30";
+                }
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function abrirModalPerfilProfissional() {
+            if (!usuarioAtualPerfil) return;
+            document.getElementById('perfilNome').value = obterNomeExibicaoUsuario();
+            document.getElementById('perfilCrp').value = usuarioAtualPerfil.crp || '';
+            document.getElementById('perfilAbordagem').value = usuarioAtualPerfil.abordagem || '';
+            document.getElementById('perfilPix').value = usuarioAtualPerfil.chave_pix || '';
+            document.getElementById('modalPerfilProfissional').classList.remove('hidden');
+        }
+
+        document.getElementById('formPerfilProfissional').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
+
+            const nome = document.getElementById('perfilNome').value.trim();
+            const crp = document.getElementById('perfilCrp').value.trim();
+            const abordagem = document.getElementById('perfilAbordagem').value.trim();
+            const chave_pix = document.getElementById('perfilPix').value.trim();
+
+            const { error } = await client
+                .from('usuarios_perfis')
+                .update({ nome, crp, abordagem, chave_pix })
+                .eq('id', usuarioAtualPerfil.id);
+
+            if (error) {
+                alert("Erro ao salvar perfil: " + error.message);
+            } else {
+                usuarioAtualPerfil.nome = nome;
+                usuarioAtualPerfil.crp = crp;
+                usuarioAtualPerfil.abordagem = abordagem;
+                usuarioAtualPerfil.chave_pix = chave_pix;
+                atualizarSaudacao();
+                fecharModal('modalPerfilProfissional');
+                alert("Dados profissionais salvos com sucesso!");
+            }
+        });
+
+        // ==========================================
+        // GERADOR DE RECIBO EM PDF (1 CLIQUE)
+        // ==========================================
+        function gerarReciboPDF(pagamentoId) {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
+            if (!pg) return;
+
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+            const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
+
+            const nomePsi = psi.nome || obterNomeExibicaoUsuario();
+            const crpPsi = psi.crp || 'Não informado (preencha em Dados CRP & Pix)';
+            const nomePac = pac.nome || 'Paciente';
+            const cpfPac = pac.cpf ? 'CPF: ' + pac.cpf : 'CPF não informado';
+            const valorFormatado = formatarBRL(pg.valor);
+            const dataRecibo = pg.data_pagamento
+                ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
+                : new Date().toLocaleDateString('pt-BR');
+
+            const htmlRecibo = [
+                '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">',
+                '<title>Recibo - ' + escapeHtml(nomePac) + '</title>',
+                '<style>',
+                'body{font-family:Georgia,serif;color:#1f1a24;padding:48px;max-width:700px;margin:0 auto;}',
+                '.box{border:1.5px solid #3f3152;border-radius:12px;padding:36px;}',
+                '.header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;padding-bottom:16px;margin-bottom:24px;}',
+                '.title{font-size:22px;font-weight:bold;color:#3f3152;letter-spacing:1px;}',
+                '.valor{font-size:20px;font-weight:bold;background:#f5f0fa;padding:8px 16px;border-radius:8px;color:#3f3152;}',
+                '.texto{font-size:15px;line-height:1.8;margin-bottom:36px;text-align:justify;}',
+                '.assinatura{margin-top:48px;text-align:center;}',
+                '.linha{border-top:1px solid #333;width:280px;margin:0 auto 8px auto;}',
+                '.meta{font-size:12px;color:#666;margin-top:32px;text-align:center;}',
+                '@media print{.no-print{display:none;}}',
+                '</style></head><body>',
+                '<div class="no-print" style="text-align:right;margin-bottom:16px;">',
+                '<button onclick="window.print()" style="background:#5F4A78;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:bold;">🖨️ Imprimir / Salvar PDF</button>',
+                '</div><div class="box"><div class="header"><div>',
+                '<div class="title">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>',
+                '<div style="font-size:12px;color:#666;margin-top:4px;">Emitido via Gnoth · Gestão Clínica</div>',
+                '</div><div class="valor">' + valorFormatado + '</div></div>',
+                '<p class="texto">Recebi de <strong>' + escapeHtml(nomePac) + '</strong> (' + escapeHtml(cpfPac) + ') a importância de <strong>' + valorFormatado + '</strong>, referente a sessões de psicoterapia / atendimento psicológico realizadas até a presente data.</p>',
+                '<p style="font-size:14px;">Data de quitação: <strong>' + dataRecibo + '</strong></p>',
+                '<div class="assinatura"><div class="linha"></div><strong>' + escapeHtml(nomePsi) + '</strong><br>',
+                '<span style="font-size:13px;color:#444;">Psicóloga(o) · CRP: ' + escapeHtml(crpPsi) + '</span></div>',
+                '<div class="meta">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>',
+                '</div></body></html>'
+            ].join('');
+
+            const janela = window.open('', '_blank', 'width=800,height=650');
+            janela.document.write(htmlRecibo);
+            janela.document.close();
         }
     </script>
 </body>
