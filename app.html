@@ -258,6 +258,15 @@
                  <p class="text-[9px] uppercase tracking-[0.2em] text-[#9C8EAD] mt-0.5">Gestão Clínica</p>
              </div>
          </div>
+         <div class="flex items-center gap-2">
+             <button type="button" onclick="alternarPainelNotificacoes()" class="relative p-2 text-white hover:bg-white/10 rounded-xl">
+                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                 <span id="badgeNotificacoesMobile" class="hidden absolute top-0.5 right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+             </button>
+             <button type="button" onclick="alternarMenuMobile()" class="p-2 text-white hover:bg-white/10 rounded-xl focus:outline-none">
+                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+             </button>
+         </div>
          <button type="button" onclick="alternarMenuMobile()" class="p-2 text-white hover:bg-white/10 rounded-xl focus:outline-none">
              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
          </button>
@@ -266,19 +275,27 @@
         <!-- SIDEBAR FIXA NA ESQUERDA -->
         <aside id="sidebarPrincipal" class="hidden md:flex w-full md:w-64 sidebar-plum flex-col justify-between shrink-0 md:min-h-screen p-5 border-r border-[#261F30] z-30 fixed md:relative top-16 md:top-0 left-0 bottom-0 md:bottom-auto">
             <div>
-                <div class="hidden md:flex items-center gap-3 mb-8 px-2 pt-2">
-                    <div class="w-10 h-10 rounded-2xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center text-[#D8B4FE] shrink-0 shadow-sm">
+                <div class="hidden md:flex items-center justify-between mb-8 px-2 pt-2">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-2xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center text-[#D8B4FE] shrink-0 shadow-sm">
                             <svg class="w-6 h-6 text-[#D8B4FE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
-                            <circle cx="12" cy="12" r="3" />
-                            <circle cx="12" cy="12" r="1" fill="currentColor" />
-                        </svg>
+                                <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                                <circle cx="12" cy="12" r="3" />
+                                <circle cx="12" cy="12" r="1" fill="currentColor" />
+                            </svg>
                         </div>
                         <div>
                             <h1 class="text-2xl font-bold font-serif text-white tracking-wide leading-none">Gnoth</h1>
                             <p class="text-[9px] uppercase tracking-[0.22em] text-[#9C8EAD] font-semibold mt-1">Gestão Clínica</p>
                         </div>
                     </div>
+
+                    <!-- BOTÃO SININHO DE NOTIFICAÇÕES -->
+                    <button type="button" onclick="alternarPainelNotificacoes()" title="Central de Notificações e Pendências" class="relative p-2 rounded-xl bg-[#1D1724] hover:bg-[#2B2138] border border-[#32283D] text-[#E5DCED] transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        <span id="badgeNotificacoesDesktop" class="hidden absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-red-500 text-white text-[10px] font-bold flex items-center justify-center shadow">0</span>
+                    </button>
+                </div>
 
                 <nav class="space-y-1.5">
                     <button id="btn-dashboard" onclick="trocarAbaMobile('dashboard')" class="sidebar-link ativo w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
@@ -1010,6 +1027,21 @@
          </form>
      </div>
  </div>
+ <!-- PAINEL FLUTUANTE: CENTRAL DE NOTIFICAÇÕES INTELIGENTES -->
+    <div id="painelNotificacoes" class="hidden fixed inset-0 bg-black/50 backdrop-blur-[1px] z-50 flex items-start justify-start p-4 md:pl-72 md:pt-8" onclick="if(event.target === this) alternarPainelNotificacoes()">
+        <div class="bg-[#1D1724] border border-[#3F3152] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
+            <div class="p-5 border-b border-[#2E2538] flex items-center justify-between bg-[#141019]">
+                <div>
+                    <h3 class="font-serif text-lg font-bold text-[#F3EEF6] flex items-center gap-2">
+                        <span>🔔</span> Central de Lembretes
+                    </h3>
+                    <p class="text-[11px] text-[#9C8EAD]">Alertas automáticos de prontuários, sessões e pacotes.</p>
+                </div>
+                <button type="button" onclick="alternarPainelNotificacoes()" class="text-[#9C8EAD] hover:text-white text-xl leading-none p-1">✕</button>
+            </div>
+            <div id="listaNotificacoesInteligentes" class="p-4 space-y-3 overflow-y-auto flex-1"></div>
+        </div>
+    </div>
     <!-- JAVASCRIPT GERAL -->
     <script>
         const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
@@ -1409,7 +1441,12 @@
 
             const { data: pagamentos } = await client.from('pagamentos').select('*, pacientes(nome, whatsapp)').order('data_vencimento', { ascending: false });
             todosPagamentosCache = (pagamentos || []).filter(pg => ehAdmin() || idsPacientesVisiveis.has(pg.paciente_id));
+                const { data: prontuariosRecentes } = await client
+             .from('prontuarios_historico')
+             .select('paciente_id, criado_em')
+             .order('criado_em', { ascending: false });
 
+            gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes || []);
             renderizarCronogramaHoje(todosAtendimentosCache);
             renderizarProximosEAlertas(todosAtendimentosCache);
             aplicarFiltrosClientes();
@@ -1443,7 +1480,153 @@
          }
          return `https://wa.me/55${numLimpo}?text=${encodeURIComponent(msg)}`;
      }
+        let notificacoesAtuaisCache = [];
 
+        function alternarPainelNotificacoes() {
+            const painel = document.getElementById('painelNotificacoes');
+            if (painel) painel.classList.toggle('hidden');
+        }
+
+        function gerarNotificacoesInteligentes(pacientes, atendimentos, prontuarios) {
+            const alertas = [];
+            const agora = new Date();
+            const hojeStr = obterChaveDiaLocal(agora);
+            const amanhaObj = new Date(agora);
+            amanhaObj.setDate(agora.getDate() + 1);
+            const amanhaStr = obterChaveDiaLocal(amanhaObj);
+
+            const clientesAtivos = pacientes.filter(p => p.status === 'Em Atendimento');
+
+            // 1. ALERTA DE PRONTUÁRIO PENDENTE (Sessões realizadas ou passadas nos últimos 7 dias sem evolução)
+            const seteDiasAtras = new Date(agora);
+            seteDiasAtras.setDate(agora.getDate() - 7);
+
+            atendimentos.forEach(a => {
+                if (!a.data_hora || a.status === 'Cancelada' || a.status === 'Falta') return;
+                const dtSessao = new Date(a.data_hora);
+                const jaPassou = dtSessao < agora && dtSessao >= seteDiasAtras;
+
+                if (a.status === 'Realizada' || jaPassou) {
+                    const temProntuarioApos = prontuarios.some(pr => {
+                        if (pr.paciente_id !== a.paciente_id) return false;
+                        const dtPront = new Date(pr.criado_em);
+                        return dtPront >= new Date(dtSessao.getTime() - (2 * 60 * 60 * 1000));
+                    });
+
+                    if (!temProntuarioApos) {
+                        const nomePac = a.pacientes ? a.pacientes.nome : 'Paciente';
+                        const dataFormatada = dtSessao.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                        const horaFormatada = dtSessao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                        alertas.push({
+                            icone: '📝',
+                            titulo: `Prontuário pendente: ${nomePac}`,
+                            descricao: `Sessão de ${dataFormatada} às ${horaFormatada} ainda não possui evolução registrada.`,
+                            acaoHtml: `<button onclick="alternarPainelNotificacoes(); abrirDetalhesPaciente('${a.paciente_id}')" class="px-3 py-1.5 btn-plum rounded-xl text-[11px] font-semibold">Escrever prontuário</button>`
+                        });
+                    }
+                }
+            });
+
+            // 2. LEMBRETE DE SESSÃO (Hoje ou Amanhã)
+            atendimentos.forEach(a => {
+                if (!a.data_hora || a.status !== 'Agendada') return;
+                const diaIso = a.data_hora.slice(0, 10);
+                const dtSessao = new Date(a.data_hora);
+                if (dtSessao < agora) return;
+
+                if (diaIso === hojeStr || diaIso === amanhaStr) {
+                    const nomePac = a.pacientes ? a.pacientes.nome : 'Paciente';
+                    const hora = dtSessao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    const quando = diaIso === hojeStr ? 'hoje' : 'amanhã';
+                    const urlWpp = gerarUrlLembreteWhatsApp(a.paciente_id, a.data_hora, a.modalidade);
+
+                    alertas.push({
+                        icone: '💬',
+                        titulo: `Confirmar sessão (${quando} às ${hora})`,
+                        descricao: `Paciente: ${nomePac} · ${a.modalidade || 'Online'}`,
+                        acaoHtml: urlWpp
+                            ? `<a href="${urlWpp}" target="_blank" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-xl text-[11px] font-semibold inline-block">Enviar WhatsApp</a>`
+                            : `<span class="text-[10px] text-[#9C8EAD]">Sem WhatsApp</span>`
+                    });
+                }
+            });
+
+            // 3. PACOTE DE SESSÕES ACABANDO (Paciente ativo com 0 ou 1 sessão futura agendada)
+            clientesAtivos.forEach(pac => {
+                const sessoesFuturas = atendimentos.filter(a =>
+                    a.paciente_id === pac.id &&
+                    a.status === 'Agendada' &&
+                    new Date(a.data_hora) > agora
+                );
+
+                if (sessoesFuturas.length <= 1) {
+                    const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
+                    const textoSituacao = sessoesFuturas.length === 0
+                        ? 'Nenhuma próxima sessão agendada na agenda.'
+                        : 'Resta apenas 1 sessão agendada no ciclo atual.';
+                    const msgRenovacao = encodeURIComponent(`Olá ${pac.nome}, tudo bem? Passando para avisar que nosso ciclo atual de sessões está chegando ao fim. Vamos já reservar seus horários para as próximas semanas?`);
+
+                    alertas.push({
+                        icone: '🔄',
+                        titulo: `Pacote acabando: ${pac.nome}`,
+                        descricao: textoSituacao,
+                        acaoHtml: `
+                            <div class="flex items-center gap-2">
+                                ${numLimpo ? `<a href="https://wa.me/55${numLimpo}?text=${msgRenovacao}" target="_blank" class="px-2.5 py-1.5 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-xl text-[11px] font-semibold">💬 Avisar no WhatsApp</a>` : ''}
+                                <button onclick="alternarPainelNotificacoes(); trocarAba('agendar')" class="px-2.5 py-1.5 bg-[#2B2138] text-[#E5DCED] border border-[#3F3152] rounded-xl text-[11px] font-semibold">Agendar</button>
+                            </div>`
+                    });
+                }
+            });
+
+            notificacoesAtuaisCache = alertas;
+            renderizarNotificacoesInteligentes();
+        }
+
+        function renderizarNotificacoesInteligentes() {
+            const listaEl = document.getElementById('listaNotificacoesInteligentes');
+            const badgeDesk = document.getElementById('badgeNotificacoesDesktop');
+            const badgeMob = document.getElementById('badgeNotificacoesMobile');
+
+            const qtd = notificacoesAtuaisCache.length;
+            [badgeDesk, badgeMob].forEach(badge => {
+                if (!badge) return;
+                if (qtd > 0) {
+                    badge.textContent = qtd > 9 ? '9+' : qtd;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+            });
+
+            if (!listaEl) return;
+
+            if (qtd === 0) {
+                listaEl.innerHTML = `
+                    <div class="py-10 text-center space-y-2">
+                        <span class="text-2xl block">✨</span>
+                        <p class="font-serif text-sm font-bold text-[#F3EEF6]">Tudo em dia!</p>
+                        <p class="text-xs text-[#9C8EAD]">Nenhum prontuário pendente ou lembrete urgente no momento.</p>
+                    </div>`;
+                return;
+            }
+
+            listaEl.innerHTML = notificacoesAtuaisCache.map(n => `
+                <div class="p-3.5 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-2.5">
+                    <div class="flex items-start gap-2.5">
+                        <span class="text-base mt-0.5">${n.icone}</span>
+                        <div class="flex-1 min-w-0">
+                            <p class="text-xs font-bold text-[#F3EEF6]">${escapeHtml(n.titulo)}</p>
+                            <p class="text-[11px] text-[#9C8EAD] mt-0.5 leading-relaxed">${escapeHtml(n.descricao)}</p>
+                        </div>
+                    </div>
+                    <div class="flex justify-end">
+                        ${n.acaoHtml}
+                    </div>
+                </div>
+            `).join('');
+        }
         // 1. TELA: HOJE
         function renderizarCronogramaHoje(atendimentos) {
             const container = document.getElementById('listaCronogramaHoje');
