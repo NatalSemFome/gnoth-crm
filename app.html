@@ -1118,11 +1118,6 @@
                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Chave Pix (para cobranças)</label>
                     <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
                 </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Imagem da Assinatura (PNG transparente)</label>
-                    <input type="file" id="perfilAssinaturaFile" accept="image/png, image/jpeg" class="w-full px-3 py-2 input-dark rounded-xl text-xs outline-none cursor-pointer">
-                    <p id="statusUploadAssinatura" class="text-[10px] text-[#9C8EAD] mt-1">Selecione uma imagem para enviar ao salvar o perfil.</p>
-                </div>
                 <div class="flex gap-2 pt-3">
                     <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
                     <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Dados</button>
@@ -3423,39 +3418,10 @@
             const crp = document.getElementById('perfilCrp').value.trim();
             const abordagem = document.getElementById('perfilAbordagem').value.trim();
             const chave_pix = document.getElementById('perfilPix').value.trim();
-            
-            let assinatura_url = usuarioAtualPerfil.assinatura_url || '';
-            const fileInput = document.getElementById('perfilAssinaturaFile');
-            const statusEl = document.getElementById('statusUploadAssinatura');
 
-            if (fileInput && fileInput.files && fileInput.files[0]) {
-                const file = fileInput.files[0];
-                const fileExt = file.name.split('.').pop();
-                const fileName = `${usuarioAtualPerfil.id}-${Date.now()}.${fileExt}`;
-
-                if (statusEl) statusEl.textContent = "Enviando imagem da assinatura...";
-
-                const { error: uploadError } = await client.storage
-                    .from('Assinaturas')
-                    .upload(fileName, file, { upsert: true });
-
-                if (uploadError) {
-                    alert("Erro ao fazer upload da assinatura: " + uploadError.message);
-                    if (statusEl) statusEl.textContent = "Erro no envio.";
-                    return;
-                }
-
-                const { data: publicURLData } = client.storage
-                    .from('Assinaturas')
-                    .getPublicUrl(fileName);
-
-                assinatura_url = publicURLData.publicUrl;
-            }
-
-            // SALVA NO BANCO DE DADOS
             const { error } = await client
                 .from('usuarios_perfis')
-                .update({ nome, crp, abordagem, chave_pix, assinatura_url })
+                .update({ nome, crp, abordagem, chave_pix })
                 .eq('id', usuarioAtualPerfil.id);
 
             if (error) {
@@ -3465,7 +3431,6 @@
                 usuarioAtualPerfil.crp = crp;
                 usuarioAtualPerfil.abordagem = abordagem;
                 usuarioAtualPerfil.chave_pix = chave_pix;
-                usuarioAtualPerfil.assinatura_url = assinatura_url;
                 
                 atualizarSaudacao();
                 fecharModal('modalPerfilProfissional');
@@ -3484,7 +3449,7 @@
             const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
 
             const nomePsi = psi.nome || obterNomeExibicaoUsuario();
-            const crpPsi = psi.crp || 'Não informado (preencha em Dados CRP & Pix)';
+            const crpPsi = psi.crp || 'Não informado';
             const nomePac = pac.nome || 'Paciente';
             const temResponsavel = pac.responsavel_nome && pac.responsavel_nome.trim() !== '';
 
@@ -3502,11 +3467,6 @@
                 ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
                 : new Date().toLocaleDateString('pt-BR');
 
-            // Insere a imagem da assinatura automaticamente se estiver cadastrada
-            const assinaturaImgHtml = psi.assinatura_url 
-                ? `<img src="${escapeHtml(psi.assinatura_url)}" alt="Assinatura" style="max-height: 55px; margin-bottom: -10px; display: block; margin-left: auto; margin-right: auto;">`
-                : '';
-
             const htmlRecibo = [
                 '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">',
                 '<title>Recibo - ' + escapeHtml(pagadorNome) + '</title>',
@@ -3517,7 +3477,7 @@
                 '.title{font-size:22px;font-weight:bold;color:#3f3152;letter-spacing:1px;}',
                 '.valor{font-size:20px;font-weight:bold;background:#f5f0fa;padding:8px 16px;border-radius:8px;color:#3f3152;}',
                 '.texto{font-size:15px;line-height:1.8;margin-bottom:36px;text-align:justify;}',
-                '.assinatura{margin-top:48px;text-align:center;}',
+                '.assinatura{margin-top:56px;text-align:center;}',
                 '.linha{border-top:1px solid #333;width:280px;margin:0 auto 8px auto;}',
                 '.meta{font-size:12px;color:#666;margin-top:32px;text-align:center;}',
                 '@media print{.no-print{display:none;}}',
@@ -3531,7 +3491,6 @@
                 '<p class="texto">Recebi de <strong>' + escapeHtml(pagadorNome) + '</strong> (' + escapeHtml(pagadorCpf) + ') a importância de <strong>' + valorFormatado + '</strong>' + detalheBeneficiario + ' realizadas até a presente data.</p>',
                 '<p style="font-size:14px;">Data de quitação: <strong>' + dataRecibo + '</strong></p>',
                 '<div class="assinatura">',
-                assinaturaImgHtml,
                 '<div class="linha"></div><strong>' + escapeHtml(nomePsi) + '</strong><br>',
                 '<span style="font-size:13px;color:#444;">Psicóloga(o) · CRP: ' + escapeHtml(crpPsi) + '</span></div>',
                 '<div class="meta">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>',
