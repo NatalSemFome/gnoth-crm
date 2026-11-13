@@ -3452,6 +3452,7 @@
                 assinatura_url = publicURLData.publicUrl;
             }
 
+            // SALVA NO BANCO DE DADOS
             const { error } = await client
                 .from('usuarios_perfis')
                 .update({ nome, crp, abordagem, chave_pix, assinatura_url })
@@ -3465,6 +3466,7 @@
                 usuarioAtualPerfil.abordagem = abordagem;
                 usuarioAtualPerfil.chave_pix = chave_pix;
                 usuarioAtualPerfil.assinatura_url = assinatura_url;
+                
                 atualizarSaudacao();
                 fecharModal('modalPerfilProfissional');
                 alert("Dados profissionais salvos com sucesso!");
