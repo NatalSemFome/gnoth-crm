@@ -1226,6 +1226,10 @@
             const saudacaoEl = document.getElementById('saudacaoHoje');
             if (saudacaoEl) saudacaoEl.textContent = saudacao;
 
+            // Protegido caso o elemento não exista no HTML
+            const navNameEl = document.getElementById('userNameNav');
+            if (navNameEl) navNameEl.textContent = nomeUsuario;
+
             const dataFormatada = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
             const dataHojeEl = document.getElementById('dataHojeFormatada');
             if (dataHojeEl) dataHojeEl.textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
@@ -3382,7 +3386,8 @@
             }
 
             if (data.session) {
-                document.getElementById('userEmailNav').textContent = data.user.email;
+                const emailNav = document.getElementById('userEmailNav');
+            if (emailNav) emailNav.textContent = data.user.email;
                 await checarPerfilUsuario(data.user.id, data.user.email);
                 mostrarApp();
             } else {
