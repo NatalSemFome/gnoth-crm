@@ -1088,8 +1088,8 @@
             </div>
         </div>
     </div>
-    <!-- MODAL: DADOS PROFISSIONAIS (CRP, ABORDAGEM, PIX) -->
-     <!-- MODAL: DADOS PROFISSIONAIS (CRP, ABORDAGEM, PIX E ASSINATURA) -->
+    
+    <!-- MODAL: DADOS PROFISSIONAIS (CRP, ABORDAGEM, PIX E ASSINATURA) -->
     <div id="modalPerfilProfissional" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#1D1724] p-6 sm:p-8 rounded-3xl max-w-md w-full border border-[#32283D] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -1119,8 +1119,9 @@
                     <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
                 </div>
                 <div>
-                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Link da Imagem da Assinatura (PNG transparente)</label>
-                    <input type="url" id="perfilAssinatura" placeholder="https://exemplo.com/sua-assinatura.png" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Imagem da Assinatura (PNG transparente)</label>
+                    <input type="file" id="perfilAssinaturaFile" accept="image/png, image/jpeg" class="w-full px-3 py-2 input-dark rounded-xl text-xs outline-none cursor-pointer">
+                    <p id="statusUploadAssinatura" class="text-[10px] text-[#9C8EAD] mt-1">Selecione uma imagem para enviar ao salvar o perfil.</p>
                 </div>
                 <div class="flex gap-2 pt-3">
                     <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
@@ -3411,11 +3412,38 @@
             const crp = document.getElementById('perfilCrp').value.trim();
             const abordagem = document.getElementById('perfilAbordagem').value.trim();
             const chave_pix = document.getElementById('perfilPix').value.trim();
-            const assinatura_url = document.getElementById('perfilAssinatura').value.trim(); // <- ADICIONADO
+            
+            let assinatura_url = usuarioAtualPerfil.assinatura_url || '';
+            const fileInput = document.getElementById('perfilAssinaturaFile');
+            const statusEl = document.getElementById('statusUploadAssinatura');
+
+            if (fileInput && fileInput.files && fileInput.files[0]) {
+                const file = fileInput.files[0];
+                const fileExt = file.name.split('.').pop();
+                const fileName = `${usuarioAtualPerfil.id}-${Date.now()}.${fileExt}`;
+
+                if (statusEl) statusEl.textContent = "Enviando imagem da assinatura...";
+
+                const { error: uploadError } = await client.storage
+                    .from('assinaturas')
+                    .upload(fileName, file, { upsert: true });
+
+                if (uploadError) {
+                    alert("Erro ao fazer upload da assinatura: " + uploadError.message);
+                    if (statusEl) statusEl.textContent = "Erro no envio.";
+                    return;
+                }
+
+                const { data: publicURLData } = client.storage
+                    .from('assinaturas')
+                    .getPublicUrl(fileName);
+
+                assinatura_url = publicURLData.publicUrl;
+            }
 
             const { error } = await client
                 .from('usuarios_perfis')
-                .update({ nome, crp, abordagem, chave_pix, assinatura_url }) // <- ADICIONADO
+                .update({ nome, crp, abordagem, chave_pix, assinatura_url })
                 .eq('id', usuarioAtualPerfil.id);
 
             if (error) {
@@ -3425,7 +3453,7 @@
                 usuarioAtualPerfil.crp = crp;
                 usuarioAtualPerfil.abordagem = abordagem;
                 usuarioAtualPerfil.chave_pix = chave_pix;
-                usuarioAtualPerfil.assinatura_url = assinatura_url; // <- ADICIONADO
+                usuarioAtualPerfil.assinatura_url = assinatura_url;
                 atualizarSaudacao();
                 fecharModal('modalPerfilProfissional');
                 alert("Dados profissionais salvos com sucesso!");
@@ -3500,6 +3528,7 @@
             const janela = window.open('', '_blank', 'width=800,height=650');
             janela.document.write(htmlRecibo);
             janela.document.close();
+            setTimeout(() => { janela.print(); }, 500);
         }
      // ==========================================
         // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
