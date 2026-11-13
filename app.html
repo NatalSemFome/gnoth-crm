@@ -1394,12 +1394,13 @@
             const btnEquipe = document.getElementById('btn-equipe');
             const thPsicologa = document.getElementById('thPsicologaResponsavel');
 
+            // Verifica se o usuário é administrador de forma segura
             if (ehAdmin()) {
                 if (badge) {
                     badge.textContent = "Administrador";
                     badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30";
                 }
-                if (btnEquipe) btnEquipe.classList.remove('hidden');
+                if (btnEquipe) btnEquipe.classList.remove('hidden'); // Exibe a aba Equipe & Níveis
                 if (thPsicologa) thPsicologa.classList.remove('hidden');
             } else {
                 if (badge) {
@@ -1408,6 +1409,11 @@
                 }
                 if (btnEquipe) btnEquipe.classList.add('hidden');
                 if (thPsicologa) thPsicologa.classList.add('hidden');
+            }
+
+            // Se o usuário estiver na aba de equipe e for admin, carrega os dados da equipe
+            if (ehAdmin() && typeof carregarEquipe === 'function') {
+                carregarEquipe();
             }
         }
 
