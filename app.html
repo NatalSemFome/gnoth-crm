@@ -3436,7 +3436,7 @@
                 if (statusEl) statusEl.textContent = "Enviando imagem da assinatura...";
 
                 const { error: uploadError } = await client.storage
-                    .from('assinaturas')
+                    .from('Assinaturas')
                     .upload(fileName, file, { upsert: true });
 
                 if (uploadError) {
@@ -3446,7 +3446,7 @@
                 }
 
                 const { data: publicURLData } = client.storage
-                    .from('assinaturas')
+                    .from('Assinaturas')
                     .getPublicUrl(fileName);
 
                 assinatura_url = publicURLData.publicUrl;
