@@ -1226,9 +1226,6 @@
             const saudacaoEl = document.getElementById('saudacaoHoje');
             if (saudacaoEl) saudacaoEl.textContent = saudacao;
 
-            const navNameEl = document.getElementById('userNameNav');
-            if (navNameEl) navNameEl.textContent = nomeUsuario;
-
             const dataFormatada = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
             const dataHojeEl = document.getElementById('dataHojeFormatada');
             if (dataHojeEl) dataHojeEl.textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
@@ -3343,9 +3340,11 @@
         function alternarTelaAuth(modo) {
             esconderTodasTelasAuth();
             if (modo === 'cadastro') {
-                document.getElementById('signupForm').classList.remove('hidden');
+                const signupForm = document.getElementById('signupForm');
+                if (signupForm) signupForm.classList.remove('hidden');
             } else {
-                document.getElementById('loginForm').classList.remove('hidden');
+                const loginForm = document.getElementById('loginForm');
+                if (loginForm) loginForm.classList.remove('hidden');
             }
         }
 
