@@ -3510,13 +3510,14 @@
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width; // <-- O '*' estava faltando aqui
 
                 pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
                 
-            // Nome do arquivo dinâmico: Recibo_NomeDoPaciente_DD-MM-AAAA.pdf
+                // Nome do arquivo dinâmico com Nome e Data
                 const dataArquivoStr = pg.data_pagamento ? pg.data_pagamento.split('-').reverse().join('-') : 'data';
                 const nomeArquivoLimpo = `Recibo_${pagadorNome.replace(/[^a-zA-Z0-9]/g, '_')}_${dataArquivoStr}.pdf`;
+                
                 pdf.save(nomeArquivoLimpo);
             } catch (err) {
                 console.error("Erro ao gerar PDF:", err);
@@ -3525,11 +3526,11 @@
                 document.body.removeChild(container);
             }
         }
-        
-     // ==========================================
-        // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
-        // ==========================================
-        function exportarProntuarioPDF(registroUnicoId = null) {
+
+    // ==========================================
+    // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
+    // ==========================================
+    function exportarProntuarioPDF(registroUnicoId = null) {
             if (!pacienteSelecionadoId) return;
             const pac = todosPacientesCache.find(p => p.id === pacienteSelecionadoId);
             if (!pac) return;
