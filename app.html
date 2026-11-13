@@ -3427,64 +3427,71 @@
         // GERADOR DE RECIBO EM PDF (1 CLIQUE)
         // ==========================================
         function gerarReciboPDF(pagamentoId) {
-         const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
-         if (!pg) return;
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
+            if (!pg) return;
 
-         const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
-         const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+            const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
 
-         const nomePsi = psi.nome || obterNomeExibicaoUsuario();
-         const crpPsi = psi.crp || 'Não informado (preencha em Dados CRP & Pix)';
-         const nomePac = pac.nome || 'Paciente';
-         const temResponsavel = pac.responsavel_nome && pac.responsavel_nome.trim() !== '';
+            const nomePsi = psi.nome || obterNomeExibicaoUsuario();
+            const crpPsi = psi.crp || 'Não informado (preencha em Dados CRP & Pix)';
+            const nomePac = pac.nome || 'Paciente';
+            const temResponsavel = pac.responsavel_nome && pac.responsavel_nome.trim() !== '';
 
-         const pagadorNome = temResponsavel ? pac.responsavel_nome.trim() : nomePac;
-         const pagadorCpf = temResponsavel
-             ? (pac.responsavel_cpf ? 'CPF: ' + pac.responsavel_cpf : 'CPF não informado')
-             : (pac.cpf ? 'CPF: ' + pac.cpf : 'CPF não informado');
+            const pagadorNome = temResponsavel ? pac.responsavel_nome.trim() : nomePac;
+            const pagadorCpf = temResponsavel
+                ? (pac.responsavel_cpf ? 'CPF: ' + pac.responsavel_cpf : 'CPF não informado')
+                : (pac.cpf ? 'CPF: ' + pac.cpf : 'CPF não informado');
 
-         const detalheBeneficiario = temResponsavel
-             ? ', referente a sessões de psicoterapia / atendimento psicológico prestadas a <strong>' + escapeHtml(nomePac) + '</strong>' + (pac.cpf ? ' (CPF: ' + escapeHtml(pac.cpf) + ')' : '')
-             : ', referente a sessões de psicoterapia / atendimento psicológico';
+            const detalheBeneficiario = temResponsavel
+                ? ', referente a sessões de psicoterapia / atendimento psicológico prestadas a <strong>' + escapeHtml(nomePac) + '</strong>' + (pac.cpf ? ' (CPF: ' + escapeHtml(pac.cpf) + ')' : '')
+                : ', referente a sessões de psicoterapia / atendimento psicológico';
 
-         const valorFormatado = formatarBRL(pg.valor);
-         const dataRecibo = pg.data_pagamento
-             ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
-             : new Date().toLocaleDateString('pt-BR');
+            const valorFormatado = formatarBRL(pg.valor);
+            const dataRecibo = pg.data_pagamento
+                ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
+                : new Date().toLocaleDateString('pt-BR');
 
-         const htmlRecibo = [
-             '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">',
-             '<title>Recibo - ' + escapeHtml(pagadorNome) + '</title>',
-             '<style>',
-             'body{font-family:Georgia,serif;color:#1f1a24;padding:48px;max-width:700px;margin:0 auto;}',
-             '.box{border:1.5px solid #3f3152;border-radius:12px;padding:36px;}',
-             '.header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;padding-bottom:16px;margin-bottom:24px;}',
-             '.title{font-size:22px;font-weight:bold;color:#3f3152;letter-spacing:1px;}',
-             '.valor{font-size:20px;font-weight:bold;background:#f5f0fa;padding:8px 16px;border-radius:8px;color:#3f3152;}',
-             '.texto{font-size:15px;line-height:1.8;margin-bottom:36px;text-align:justify;}',
-             '.assinatura{margin-top:48px;text-align:center;}',
-             '.linha{border-top:1px solid #333;width:280px;margin:0 auto 8px auto;}',
-             '.meta{font-size:12px;color:#666;margin-top:32px;text-align:center;}',
-             '@media print{.no-print{display:none;}}',
-             '</style></head><body>',
-             '<div class="no-print" style="text-align:right;margin-bottom:16px;">',
-             '<button onclick="window.print()" style="background:#5F4A78;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:bold;">🖨️ Imprimir / Salvar PDF</button>',
-             '</div><div class="box"><div class="header"><div>',
-             '<div class="title">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>',
-             '<div style="font-size:12px;color:#666;margin-top:4px;">Emitido via Gnoth · Gestão Clínica</div>',
-             '</div><div class="valor">' + valorFormatado + '</div></div>',
-             '<p class="texto">Recebi de <strong>' + escapeHtml(pagadorNome) + '</strong> (' + escapeHtml(pagadorCpf) + ') a importância de <strong>' + valorFormatado + '</strong>' + detalheBeneficiario + ' realizadas até a presente data.</p>',
-             '<p style="font-size:14px;">Data de quitação: <strong>' + dataRecibo + '</strong></p>',
-             '<div class="assinatura"><div class="linha"></div><strong>' + escapeHtml(nomePsi) + '</strong><br>',
-             '<span style="font-size:13px;color:#444;">Psicóloga(o) · CRP: ' + escapeHtml(crpPsi) + '</span></div>',
-             '<div class="meta">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>',
-             '</div></body></html>'
-         ].join('');
+            // Caso a psicóloga tenha cadastrado uma assinatura em imagem, ela aparece aqui automaticamente
+            const assinaturaImgHtml = psi.assinatura_url 
+                ? `<img src="${escapeHtml(psi.assinatura_url)}" alt="Assinatura" style="max-height: 55px; margin-bottom: -10px; display: block; margin-left: auto; margin-right: auto;">`
+                : '';
 
-         const janela = window.open('', '_blank', 'width=800,height=650');
-         janela.document.write(htmlRecibo);
-         janela.document.close();
-     }
+            const htmlRecibo = [
+                '<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8">',
+                '<title>Recibo - ' + escapeHtml(pagadorNome) + '</title>',
+                '<style>',
+                'body{font-family:Georgia,serif;color:#1f1a24;padding:48px;max-width:700px;margin:0 auto;}',
+                '.box{border:1.5px solid #3f3152;border-radius:12px;padding:36px;}',
+                '.header{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid #ddd;padding-bottom:16px;margin-bottom:24px;}',
+                '.title{font-size:22px;font-weight:bold;color:#3f3152;letter-spacing:1px;}',
+                '.valor{font-size:20px;font-weight:bold;background:#f5f0fa;padding:8px 16px;border-radius:8px;color:#3f3152;}',
+                '.texto{font-size:15px;line-height:1.8;margin-bottom:36px;text-align:justify;}',
+                '.assinatura{margin-top:48px;text-align:center;}',
+                '.linha{border-top:1px solid #333;width:280px;margin:0 auto 8px auto;}',
+                '.meta{font-size:12px;color:#666;margin-top:32px;text-align:center;}',
+                '@media print{.no-print{display:none;}}',
+                '</style></head><body>',
+                '<div class="no-print" style="text-align:right;margin-bottom:16px;">',
+                '<button onclick="window.print()" style="background:#5F4A78;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:bold;">🖨️ Imprimir / Salvar PDF</button>',
+                '</div><div class="box"><div class="header"><div>',
+                '<div class="title">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>',
+                '<div style="font-size:12px;color:#666;margin-top:4px;">Emitido via Gnoth · Gestão Clínica</div>',
+                '</div><div class="valor">' + valorFormatado + '</div></div>',
+                '<p class="texto">Recebi de <strong>' + escapeHtml(pagadorNome) + '</strong> (' + escapeHtml(pagadorCpf) + ') a importância de <strong>' + valorFormatado + '</strong>' + detalheBeneficiario + ' realizadas até a presente data.</p>',
+                '<p style="font-size:14px;">Data de quitação: <strong>' + dataRecibo + '</strong></p>',
+                '<div class="assinatura">',
+                assinaturaImgHtml,
+                '<div class="linha"></div><strong>' + escapeHtml(nomePsi) + '</strong><br>',
+                '<span style="font-size:13px;color:#444;">Psicóloga(o) · CRP: ' + escapeHtml(crpPsi) + '</span></div>',
+                '<div class="meta">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>',
+                '</div></body></html>'
+            ].join('');
+
+            const janela = window.open('', '_blank', 'width=800,height=650');
+            janela.document.write(htmlRecibo);
+            janela.document.close();
+        }
      // ==========================================
         // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
         // ==========================================
