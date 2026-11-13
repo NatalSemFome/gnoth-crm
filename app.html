@@ -1112,6 +1112,23 @@
                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Chave Pix (para cobranças)</label>
                     <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
                 </div>
+                    <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Chave Pix (para cobranças)</label>
+                    <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+
+                <!-- COLE EXATAMENTE AQUI -->
+                <div class="pt-2">
+                    <button type="button" onclick="copiarLinkTriagem()" class="w-full py-2.5 px-3 rounded-xl bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] text-purple-300 font-semibold text-xs flex items-center justify-between transition">
+                        <span>🔗 Copiar Link Exclusivo de Triagem (Bio)</span>
+                        <span id="statusCopiaLink">Copiar</span>
+                    </button>
+                </div>
+
+                <div class="flex gap-2 pt-3">
+                    <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
+                    <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Dados</button>
+                </div>
                 <div class="flex gap-2 pt-3">
                     <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
                     <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Dados</button>
@@ -2082,9 +2099,10 @@
             const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
             const select = document.getElementById('agendarClienteSelect');
 
+            if (!select) return;
+
             if (clientes.length === 0) {
-                alert("Nenhum paciente ativo. Cadastre um paciente primeiro.");
-                trocarAba('clientes');
+                select.innerHTML = '<option value="">Nenhum paciente cadastrado</option>';
                 return;
             }
 
@@ -2102,13 +2120,15 @@
             }
 
             if (inputHora && !inputHora.value) {
-                const agora = new Date();
-                const proxHora = Math.min(agora.getHours() + 1, 22);
-                inputHora.value = `${String(proxHora).padStart(2, '0')}:00`;
+                inputHora.value = '14:00';
             }
 
-            selecionarModalidade('Online');
-            atualizarResumoAgendamento();
+            if (typeof selecionarModalidade === 'function') {
+                selecionarModalidade('Online');
+            }
+            if (typeof atualizarResumoAgendamento === 'function') {
+                atualizarResumoAgendamento();
+            }
         }
 
         function selecionarModalidade(mod) {
