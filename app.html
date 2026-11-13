@@ -1089,40 +1089,46 @@
         </div>
     </div>
     <!-- MODAL: DADOS PROFISSIONAIS (CRP, ABORDAGEM, PIX) -->
- <div id="modalPerfilProfissional" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-     <div class="bg-[#1D1724] p-6 sm:p-8 rounded-3xl max-w-md w-full border border-[#32283D] shadow-2xl">
-         <div class="flex justify-between items-center mb-4">
-             <div>
-                 <h3 class="text-xl font-bold font-serif text-[#F3EEF6]">Perfil Profissional</h3>
-                 <p class="text-[11px] text-[#9C8EAD]">Usado automaticamente nos recibos e mensagens.</p>
-             </div>
-             <button onclick="fecharModal('modalPerfilProfissional')" class="text-[#9C8EAD] hover:text-white text-xl">✕</button>
-         </div>
-         <form id="formPerfilProfissional" class="space-y-4">
-             <div>
-                 <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Nome Completo *</label>
-                 <input type="text" id="perfilNome" required class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
-             </div>
-             <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                 <div>
-                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Número do CRP</label>
-                     <input type="text" id="perfilCrp" placeholder="Ex: 06/123456" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
-                 </div>
-                 <div>
-                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Abordagem</label>
-                     <input type="text" id="perfilAbordagem" placeholder="Ex: TCC, Junguiana..." class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
-                 </div>
-             </div>
-             <div>
-                 <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Chave Pix (para cobranças)</label>
-                 <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
-             </div>
-             <div class="flex gap-2 pt-3">
-                 <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
-                 <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Dados</button>
-             </div>
-         </form>
-     </div>
+     <!-- MODAL: DADOS PROFISSIONAIS (CRP, ABORDAGEM, PIX E ASSINATURA) -->
+    <div id="modalPerfilProfissional" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+        <div class="bg-[#1D1724] p-6 sm:p-8 rounded-3xl max-w-md w-full border border-[#32283D] shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <div>
+                    <h3 class="text-xl font-bold font-serif text-[#F3EEF6]">Perfil Profissional</h3>
+                    <p class="text-[11px] text-[#9C8EAD]">Usado automaticamente nos recibos e mensagens.</p>
+                </div>
+                <button onclick="fecharModal('modalPerfilProfissional')" class="text-[#9C8EAD] hover:text-white text-xl">✕</button>
+            </div>
+            <form id="formPerfilProfissional" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Nome Completo *</label>
+                    <input type="text" id="perfilNome" required class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Número do CRP</label>
+                        <input type="text" id="perfilCrp" placeholder="Ex: 06/123456" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Abordagem</label>
+                        <input type="text" id="perfilAbordagem" placeholder="Ex: TCC, Junguiana..." class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Chave Pix (para cobranças)</label>
+                    <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Link da Imagem da Assinatura (PNG transparente)</label>
+                    <input type="url" id="perfilAssinatura" placeholder="https://exemplo.com/sua-assinatura.png" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+                <div class="flex gap-2 pt-3">
+                    <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
+                    <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Dados</button>
+                </div>
+            </form>
+        </div>
+    </div>
  </div>
  <!-- PAINEL FLUTUANTE: CENTRAL DE NOTIFICAÇÕES INTELIGENTES -->
     <div id="painelNotificacoes" class="hidden fixed inset-0 bg-black/50 backdrop-blur-[1px] z-50 flex items-start justify-start p-4 md:pl-72 md:pt-8" onclick="if(event.target === this) alternarPainelNotificacoes()">
@@ -3393,6 +3399,7 @@
             document.getElementById('perfilCrp').value = usuarioAtualPerfil.crp || '';
             document.getElementById('perfilAbordagem').value = usuarioAtualPerfil.abordagem || '';
             document.getElementById('perfilPix').value = usuarioAtualPerfil.chave_pix || '';
+            document.getElementById('perfilAssinatura').value = usuarioAtualPerfil.assinatura_url || '';
             document.getElementById('modalPerfilProfissional').classList.remove('hidden');
         }
 
@@ -3404,10 +3411,11 @@
             const crp = document.getElementById('perfilCrp').value.trim();
             const abordagem = document.getElementById('perfilAbordagem').value.trim();
             const chave_pix = document.getElementById('perfilPix').value.trim();
+            const assinatura_url = document.getElementById('perfilAssinatura').value.trim(); // <- ADICIONADO
 
             const { error } = await client
                 .from('usuarios_perfis')
-                .update({ nome, crp, abordagem, chave_pix })
+                .update({ nome, crp, abordagem, chave_pix, assinatura_url }) // <- ADICIONADO
                 .eq('id', usuarioAtualPerfil.id);
 
             if (error) {
@@ -3417,6 +3425,7 @@
                 usuarioAtualPerfil.crp = crp;
                 usuarioAtualPerfil.abordagem = abordagem;
                 usuarioAtualPerfil.chave_pix = chave_pix;
+                usuarioAtualPerfil.assinatura_url = assinatura_url; // <- ADICIONADO
                 atualizarSaudacao();
                 fecharModal('modalPerfilProfissional');
                 alert("Dados profissionais salvos com sucesso!");
@@ -3452,7 +3461,7 @@
                 ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
                 : new Date().toLocaleDateString('pt-BR');
 
-            // Caso a psicóloga tenha cadastrado uma assinatura em imagem, ela aparece aqui automaticamente
+            // Insere a imagem da assinatura automaticamente se estiver cadastrada
             const assinaturaImgHtml = psi.assinatura_url 
                 ? `<img src="${escapeHtml(psi.assinatura_url)}" alt="Assinatura" style="max-height: 55px; margin-bottom: -10px; display: block; margin-left: auto; margin-right: auto;">`
                 : '';
