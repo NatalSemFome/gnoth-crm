@@ -2671,8 +2671,24 @@
             const tbody = document.getElementById('tabelaUsuarios');
             if (!tbody) return;
 
-            const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('created_at', { ascending: false });
+            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-[#9C8EAD]">Carregando equipe...</td></tr>`;
+
+            const { data: usuarios, error } = await client
+                .from('usuarios_perfis')
+                .select('*')
+                .order('created_at', { ascending: false });
+
+            if (error) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-400">Erro ao carregar equipe: ${escapeHtml(error.message)}</td></tr>`;
+                return;
+            }
+
             todosUsuariosCache = usuarios || [];
+
+            if (todosUsuariosCache.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-[#9C8EAD]">Nenhum usuário encontrado na tabela usuarios_perfis.</td></tr>`;
+                return;
+            }
 
             tbody.innerHTML = todosUsuariosCache.map(u => {
                 const isAdmin = u.role === 'admin';
@@ -2682,7 +2698,7 @@
                         <td class="p-4">
                             <div class="flex items-center gap-2">
                                 <input type="text" value="${escapeHtml(nomeAtual)}" id="nomeUser_${u.id}" class="text-xs font-bold input-dark rounded-lg px-2.5 py-1 outline-none">
-                                <button onclick="salvarNomeUsuarioEquipe('${u.id}')" class="px-2.5 py-1 bg-[#2B2138] text-[#C2ADC9] hover:bg-[#8E73AD] hover:text-white rounded-lg text-[11px] font-semibold transition">Salvar</button>
+                                <button type="button" onclick="salvarNomeUsuarioEquipe('${u.id}')" class="px-2.5 py-1 bg-[#2B2138] text-[#C2ADC9] hover:bg-[#8E73AD] hover:text-white rounded-lg text-[11px] font-semibold transition">Salvar</button>
                             </div>
                         </td>
                         <td class="p-4 text-xs text-[#9C8EAD]">${escapeHtml(u.email)}</td>
