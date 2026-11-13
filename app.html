@@ -3514,8 +3514,9 @@
 
                 pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
                 
-                // Nome do arquivo limpo para download
-                const nomeArquivoLimpo = `Recibo_${pagadorNome.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+            // Nome do arquivo dinâmico: Recibo_NomeDoPaciente_DD-MM-AAAA.pdf
+                const dataArquivoStr = pg.data_pagamento ? pg.data_pagamento.split('-').reverse().join('-') : 'data';
+                const nomeArquivoLimpo = `Recibo_${pagadorNome.replace(/[^a-zA-Z0-9]/g, '_')}_${dataArquivoStr}.pdf`;
                 pdf.save(nomeArquivoLimpo);
             } catch (err) {
                 console.error("Erro ao gerar PDF:", err);
