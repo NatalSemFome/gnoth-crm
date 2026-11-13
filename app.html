@@ -1429,7 +1429,8 @@
                     erroEl.className = "text-xs text-red-400 text-center font-medium min-h-[16px]";
                     erroEl.textContent = "Dados incorretos: " + error.message;
                 } else {
-                    document.getElementById('userEmailNav').textContent = data.user.email;
+                    const emailNav = document.getElementById('userEmailNav');
+                if (emailNav) emailNav.textContent = data.user.email;
                     await checarPerfilUsuario(data.user.id, data.user.email);
                     mostrarApp();
                 }
@@ -1456,13 +1457,17 @@
             const thPsicologa = document.getElementById('thPsicologaResponsavel');
 
             if (ehAdmin()) {
-                badge.textContent = "Administrador";
-                badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30";
+                if (badge) {
+                    badge.textContent = "Administrador";
+                    badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30";
+                }
                 if (btnEquipe) btnEquipe.classList.remove('hidden');
                 if (thPsicologa) thPsicologa.classList.remove('hidden');
             } else {
-                badge.textContent = "Psicóloga";
-                badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 text-[#E5DCED]";
+                if (badge) {
+                    badge.textContent = "Psicóloga";
+                    badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-white/10 text-[#E5DCED]";
+                }
                 if (btnEquipe) btnEquipe.classList.add('hidden');
                 if (thPsicologa) thPsicologa.classList.add('hidden');
             }
