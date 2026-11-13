@@ -84,7 +84,10 @@
         ::-webkit-scrollbar-thumb { background: #362B42; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #524263; }
     </style>
-</head>
+<!-- Biblioteca jsPDF para gerar PDF direto -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    </head>
 <body class="min-h-screen">
 <!-- 0. TELA PÚBLICA DE TRIAGEM (LINK DA BIO DA PSICÓLOGA) -->
     <div id="publicTriagemScreen" class="hidden min-h-screen flex flex-col items-center justify-center p-6 bg-[#141019]">
@@ -3441,7 +3444,7 @@
         // ==========================================
         // GERADOR DE RECIBO EM PDF (1 CLIQUE)
         // ==========================================
-        function gerarReciboPDF(pagamentoId) {
+        async function gerarReciboPDF(pagamentoId) {
             const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
             if (!pg) return;
 
@@ -3459,7 +3462,7 @@
                 : (pac.cpf ? 'CPF: ' + pac.cpf : 'CPF não informado');
 
             const detalheBeneficiario = temResponsavel
-                ? ', referente a sessões de psicoterapia / atendimento psicológico prestadas a <strong>' + escapeHtml(nomePac) + '</strong>' + (pac.cpf ? ' (CPF: ' + escapeHtml(pac.cpf) + ')' : '')
+                ? ', referente a sessões de psicoterapia / atendimento psicológico prestadas a ' + nomePac + (pac.cpf ? ' (CPF: ' + pac.cpf + ')' : '')
                 : ', referente a sessões de psicoterapia / atendimento psicológico';
 
             const valorFormatado = formatarBRL(pg.valor);
@@ -3467,64 +3470,61 @@
                 ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
                 : new Date().toLocaleDateString('pt-BR');
 
-            const htmlRecibo = `
-                <!DOCTYPE html>
-                <html lang="pt-BR">
-                <head>
-                    <meta charset="UTF-8">
-                    <title>Recibo - ${escapeHtml(pagadorNome)}</title>
-                    <style>
-                        body { font-family: Georgia, serif; color: #1f1a24; padding: 48px; max-width: 700px; margin: 0 auto; background: #fff; }
-                        .box { border: 1.5px solid #3f3152; border-radius: 12px; padding: 36px; }
-                        .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 16px; margin-bottom: 24px; }
-                        .title { font-size: 22px; font-weight: bold; color: #3f3152; letter-spacing: 1px; }
-                        .valor { font-size: 20px; font-weight: bold; background: #f5f0fa; padding: 8px 16px; border-radius: 8px; color: #3f3152; }
-                        .texto { font-size: 15px; line-height: 1.8; margin-bottom: 36px; text-align: justify; }
-                        .assinatura { margin-top: 56px; text-align: center; }
-                        .linha { border-top: 1px solid #333; width: 280px; margin: 0 auto 8px auto; }
-                        .meta { font-size: 12px; color: #666; margin-top: 32px; text-align: center; }
-                        @media print {
-                            body { padding: 0; }
-                            .box { border: none; padding: 0; }
-                        }
-                    </style>
-                </head>
-                <body>
-                    <div class="box">
-                        <div class="header">
-                            <div>
-                                <div class="title">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>
-                                <div style="font-size:12px;color:#666;margin-top:4px;">Emitido via Gnoth · Gestão Clínica</div>
-                            </div>
-                            <div class="valor">${valorFormatado}</div>
+            // Cria um elemento temporário invisível no DOM para o jsPDF ler
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.width = '700px';
+            container.style.background = '#ffffff';
+            container.style.padding = '40px';
+            container.style.fontFamily = 'Georgia, serif';
+            container.style.color = '#1f1a24';
+
+            container.innerHTML = `
+                <div style="border: 1.5px solid #3f3152; border-radius: 12px; padding: 36px;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; padding-bottom: 16px; margin-bottom: 24px;">
+                        <div>
+                            <div style="font-size: 22px; font-weight: bold; color: #3f3152; letter-spacing: 1px;">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>
+                            <div style="font-size: 12px; color: #666; margin-top: 4px;">Emitido via Gnoth · Gestão Clínica</div>
                         </div>
-                        <p class="texto">Recebi de <strong>${escapeHtml(pagadorNome)}</strong> (${escapeHtml(pagadorCpf)}) a importância de <strong>${valorFormatado}</strong>${detalheBeneficiario} realizadas até a presente data.</p>
-                        <p style="font-size:14px;">Data de quitação: <strong>${dataRecibo}</strong></p>
-                        <div class="assinatura">
-                            <div class="linha"></div><strong>${escapeHtml(nomePsi)}</strong><br>
-                            <span style="font-size:13px;color:#444;">Psicóloga(o) · CRP: ${escapeHtml(crpPsi)}</span>
-                        </div>
-                        <div class="meta">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>
+                        <div style="font-size: 20px; font-weight: bold; background: #f5f0fa; padding: 8px 16px; border-radius: 8px; color: #3f3152;">${valorFormatado}</div>
                     </div>
-                    <script>
-                        window.onload = function() {
-                            window.print();
-                        }
-                    <\/script>
-                </body>
-                </html>
+                    <p style="font-size: 15px; line-height: 1.8; margin-bottom: 36px; text-align: justify;">Recebi de <strong>${pagadorNome}</strong> (${pagadorCpf}) a importância de <strong>${valorFormatado}</strong>${detalheBeneficiario} realizadas até a presente data.</p>
+                    <p style="font-size: 14px;">Data de quitação: <strong>${dataRecibo}</strong></p>
+                    <div style="margin-top: 56px; text-align: center;">
+                        <div style="border-top: 1px solid #333; width: 280px; margin: 0 auto 8px auto;"></div>
+                        <strong>${nomePsi}</strong><br>
+                        <span style="font-size: 13px; color: #444;">Psicóloga(o) · CRP: ${crpPsi}</span>
+                    </div>
+                    <div style="font-size: 12px; color: #666; margin-top: 32px; text-align: center;">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>
+                </div>
             `;
 
-            // Abre uma janela isolada para disparar o motor de PDF nativo do navegador
-            const janela = window.open('', '_blank', 'width=800,height=700');
-            if (janela) {
-                janela.document.write(htmlRecibo);
-                janela.document.close();
-            } else {
-                alert("Por favor, permita os pop-ups para gerar o recibo em PDF.");
+            document.body.appendChild(container);
+
+            try {
+                // Converte o HTML em imagem de alta qualidade e gera o PDF via jsPDF
+                const canvas = await html2canvas(container, { scale: 2, useCORS: true });
+                const imgData = canvas.toDataURL('image/png');
+
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF('p', 'mm', 'a4');
+                const pdfWidth = pdf.internal.pageSize.getWidth();
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
+
+                pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
+                
+                // Nome do arquivo limpo para download
+                const nomeArquivoLimpo = `Recibo_${pagadorNome.replace(/[^a-zA-Z0-9]/g, '_')}.pdf`;
+                pdf.save(nomeArquivoLimpo);
+            } catch (err) {
+                console.error("Erro ao gerar PDF:", err);
+                alert("Erro ao gerar o PDF. Tente novamente.");
+            } finally {
+                document.body.removeChild(container);
             }
         }
-
+        
      // ==========================================
         // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
         // ==========================================
