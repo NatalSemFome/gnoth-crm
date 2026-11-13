@@ -3483,6 +3483,10 @@
                         .assinatura { margin-top: 56px; text-align: center; }
                         .linha { border-top: 1px solid #333; width: 280px; margin: 0 auto 8px auto; }
                         .meta { font-size: 12px; color: #666; margin-top: 32px; text-align: center; }
+                        @media print {
+                            body { padding: 0; }
+                            .box { border: none; padding: 0; }
+                        }
                     </style>
                 </head>
                 <body>
@@ -3503,7 +3507,6 @@
                         <div class="meta">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>
                     </div>
                     <script>
-                        // Dispara a impressão automaticamente assim que o arquivo é aberto para salvar como PDF
                         window.onload = function() {
                             window.print();
                         }
@@ -3512,22 +3515,13 @@
                 </html>
             `;
 
-            // Cria um Blob e abre em uma nova aba com trigger automático de impressão/PDF limpo
-            const blob = new Blob([htmlRecibo], { type: 'text/html;charset=utf-8' });
-            const url = URL.createObjectURL(blob);
-            
-            const a = document.createElement('a');
-            a.href = url;
-            a.target = '_blank';
-            a.download = `Recibo_${pagadorNome.replace(/[^a-zA-Z0-9]/g, '_')}.html`;
-            
-            // Abre de forma limpa sem poluir a interface principal
-            const novaJanela = window.open(url, '_blank');
-            if (!novaJanela) {
-                // Caso o bloqueador de pop-up impeça, força via clique do elemento
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            // Abre uma janela isolada para disparar o motor de PDF nativo do navegador
+            const janela = window.open('', '_blank', 'width=800,height=700');
+            if (janela) {
+                janela.document.write(htmlRecibo);
+                janela.document.close();
+            } else {
+                alert("Por favor, permita os pop-ups para gerar o recibo em PDF.");
             }
         }
 
