@@ -3480,11 +3480,8 @@
                 '.assinatura{margin-top:56px;text-align:center;}',
                 '.linha{border-top:1px solid #333;width:280px;margin:0 auto 8px auto;}',
                 '.meta{font-size:12px;color:#666;margin-top:32px;text-align:center;}',
-                '@media print{.no-print{display:none;}}',
                 '</style></head><body>',
-                '<div class="no-print" style="text-align:right;margin-bottom:16px;">',
-                '<button onclick="window.print()" style="background:#5F4A78;color:#fff;border:none;padding:10px 18px;border-radius:8px;cursor:pointer;font-weight:bold;">🖨️ Imprimir / Salvar PDF</button>',
-                '</div><div class="box"><div class="header"><div>',
+                '<div class="box"><div class="header"><div>',
                 '<div class="title">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>',
                 '<div style="font-size:12px;color:#666;margin-top:4px;">Emitido via Gnoth · Gestão Clínica</div>',
                 '</div><div class="valor">' + valorFormatado + '</div></div>',
@@ -3497,11 +3494,17 @@
                 '</div></body></html>'
             ].join('');
 
-            const janela = window.open('', '_blank', 'width=800,height=650');
-            janela.document.write(htmlRecibo);
-            janela.document.close();
-            setTimeout(() => { janela.print(); }, 500);
+            const blob = new Blob([htmlRecibo], { type: 'text/html;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `Recibo_${pagadorNome.replace(/[^a-zA-Z0-9]/g, '_')}.html`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         }
+        
      // ==========================================
         // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
         // ==========================================
