@@ -3400,7 +3400,18 @@
             document.getElementById('perfilCrp').value = usuarioAtualPerfil.crp || '';
             document.getElementById('perfilAbordagem').value = usuarioAtualPerfil.abordagem || '';
             document.getElementById('perfilPix').value = usuarioAtualPerfil.chave_pix || '';
-            document.getElementById('perfilAssinatura').value = usuarioAtualPerfil.assinatura_url || '';
+            
+            // Limpa o input de arquivo toda vez que abre o modal
+            const fileInput = document.getElementById('perfilAssinaturaFile');
+            if (fileInput) fileInput.value = '';
+            
+            const statusEl = document.getElementById('statusUploadAssinatura');
+            if (statusEl) {
+                statusEl.textContent = usuarioAtualPerfil.assinatura_url 
+                    ? "Assinatura cadastrada atual. Envie uma nova se desejar substituir." 
+                    : "Selecione uma imagem para enviar ao salvar o perfil.";
+            }
+
             document.getElementById('modalPerfilProfissional').classList.remove('hidden');
         }
 
