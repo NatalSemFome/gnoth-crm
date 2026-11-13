@@ -84,12 +84,12 @@
         ::-webkit-scrollbar-thumb { background: #362B42; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #524263; }
     </style>
-<!-- Biblioteca jsPDF para gerar PDF direto -->
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    </head>
+    <!-- Biblioteca jsPDF para gerar PDF direto -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
 <body class="min-h-screen">
-<!-- 0. TELA PÚBLICA DE TRIAGEM (LINK DA BIO DA PSICÓLOGA) -->
+    <!-- 0. TELA PÚBLICA DE TRIAGEM (LINK DA BIO DA PSICÓLOGA) -->
     <div id="publicTriagemScreen" class="hidden min-h-screen flex flex-col items-center justify-center p-6 bg-[#141019]">
         <div class="bg-[#1D1724] p-7 sm:p-8 rounded-3xl shadow-2xl max-w-md w-full border border-[#2E2538]">
             <div class="text-center mb-6">
@@ -185,7 +185,6 @@
                     </button>
                 </div>
             </form>
-            <!-- 1. TELA DEDICADA: SOLICITAR RECUPERAÇÃO DE SENHA -->
             
             <form id="recuperarSenhaForm" class="hidden space-y-4">
                 <div class="text-center space-y-1 pb-1">
@@ -208,7 +207,6 @@
                 </div>
             </form>
 
-            <!-- 2. TELA DEDICADA: CONFIRMAÇÃO DE E-MAIL ENVIADO -->
             <div id="recuperarEnviadoBox" class="hidden text-center space-y-4 py-2">
                 <div class="w-12 h-12 mx-auto rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xl">✉️</div>
                 <div class="space-y-1.5">
@@ -225,44 +223,6 @@
                     ← Voltar para a tela de login
                 </button>
             </div>
-
-            <!-- 2. TELA DEDICADA: CONFIRMAÇÃO DE E-MAIL ENVIADO -->
-            <div id="recuperarEnviadoBox" class="hidden text-center space-y-4 py-2">
-                <div class="w-12 h-12 mx-auto rounded-full bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-xl">✉️</div>
-                <div class="space-y-1.5">
-                    <h2 class="text-base font-bold text-[#F3EEF6]">Verifique sua caixa de entrada</h2>
-                    <p class="text-xs text-[#9C8EAD] leading-relaxed">
-                        Enviamos um link de redefinição de senha para:<br>
-                        <strong id="emailRecuperacaoDestino" class="text-[#D8B4FE]"></strong>
-                    </p>
-                </div>
-                <p class="text-[11px] text-[#9C8EAD] bg-[#141019] border border-[#2E2538] rounded-xl p-3 leading-relaxed">
-                    Não encontrou? Confira as pastas <strong>Spam</strong> ou <strong>Promoções</strong>. O link expira em 1 hora.
-                </p>
-                <button type="button" onclick="voltarParaLogin()" class="w-full py-2.5 border border-[#32283D] hover:bg-[#2B2138] text-[#F3EEF6] font-semibold rounded-xl text-xs transition">
-                    ← Voltar para a tela de login
-                </button>
-            </div>
-
-            <!-- 3. TELA DEDICADA: DEFINIR NOVA SENHA (QUANDO CLICA NO LINK DO E-MAIL) -->
-            <form id="novaSenhaForm" class="hidden space-y-4">
-                <div class="text-center space-y-1 pb-1">
-                    <div class="w-10 h-10 mx-auto rounded-full bg-[#2B2138] border border-[#32283D] flex items-center justify-center text-base mb-2">🛡️</div>
-                    <h2 class="text-base font-bold text-[#F3EEF6]">Criar nova senha</h2>
-                    <p class="text-xs text-[#9C8EAD]">Escolha uma senha forte com no mínimo 6 caracteres para sua conta clínica.</p>
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-[#C2ADC9]">Nova senha</label>
-                    <input type="password" id="novaSenhaInput" required minlength="6" placeholder="••••••••" class="w-full px-4 py-2.5 input-dark rounded-xl text-sm outline-none">
-                </div>
-                <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider mb-1.5 text-[#C2ADC9]">Confirmar nova senha</label>
-                    <input type="password" id="confirmarNovaSenhaInput" required minlength="6" placeholder="••••••••" class="w-full px-4 py-2.5 input-dark rounded-xl text-sm outline-none">
-                </div>
-                <button type="submit" id="btnSalvarNovaSenha" class="w-full py-3 btn-plum text-white font-semibold rounded-xl text-sm shadow-lg transition">
-                    Salvar nova senha e entrar
-                </button>
-            </form>
 
             <!-- FORMULÁRIO DE CADASTRO GRÁTIS (TRIAL 7 DIAS) -->
             <form id="signupForm" class="hidden space-y-3.5">
@@ -323,30 +283,30 @@
     <!-- 2. PAINEL PRINCIPAL -->
     <div id="appScreen" class="hidden min-h-screen flex flex-col md:flex-row relative">
         <!-- BARRA SUPERIOR MOBILE -->
-            <div class="md:hidden flex items-center justify-between p-4 sidebar-plum border-b border-[#261F30] sticky top-0 z-40">
-         <div class="flex items-center gap-2.5">
-             <div class="w-8 h-8 rounded-xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center text-[#D8B4FE]">
-                 <svg class="w-6 h-6 text-[#D8B4FE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
-                    <circle cx="12" cy="12" r="3" />
-                    <circle cx="12" cy="12" r="1" fill="currentColor" />
-                </svg>
-             </div>
-             <div>
-                 <h1 class="text-lg font-bold font-serif text-white leading-none">Gnoth</h1>
-                 <p class="text-[9px] uppercase tracking-[0.2em] text-[#9C8EAD] mt-0.5">Gestão Clínica</p>
-             </div>
-         </div>
-         <div class="flex items-center gap-2">
-             <button type="button" onclick="alternarPainelNotificacoes()" class="relative p-2 text-white hover:bg-white/10 rounded-xl">
-                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                 <span id="badgeNotificacoesMobile" class="hidden absolute top-0.5 right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
-             </button>
-         </div>
-         <button type="button" onclick="alternarMenuMobile()" class="p-2 text-white hover:bg-white/10 rounded-xl focus:outline-none">
-             <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
-         </button>
-     </div>
+        <div class="md:hidden flex items-center justify-between p-4 sidebar-plum border-b border-[#261F30] sticky top-0 z-40">
+            <div class="flex items-center gap-2.5">
+                <div class="w-8 h-8 rounded-xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center text-[#D8B4FE]">
+                    <svg class="w-6 h-6 text-[#D8B4FE]" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
+                        <circle cx="12" cy="12" r="3" />
+                        <circle cx="12" cy="12" r="1" fill="currentColor" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold font-serif text-white leading-none">Gnoth</h1>
+                    <p class="text-[9px] uppercase tracking-[0.2em] text-[#9C8EAD] mt-0.5">Gestão Clínica</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-2">
+                <button type="button" onclick="alternarPainelNotificacoes()" class="relative p-2 text-white hover:bg-white/10 rounded-xl">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                    <span id="badgeNotificacoesMobile" class="hidden absolute top-0.5 right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
+                </button>
+            </div>
+            <button type="button" onclick="alternarMenuMobile()" class="p-2 text-white hover:bg-white/10 rounded-xl focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
 
         <!-- SIDEBAR FIXA NA ESQUERDA -->
         <aside id="sidebarPrincipal" class="hidden md:flex w-full md:w-64 sidebar-plum flex-col justify-between shrink-0 md:min-h-screen p-5 border-r border-[#261F30] z-30 fixed md:relative top-16 md:top-0 left-0 bottom-0 md:bottom-auto">
@@ -415,11 +375,7 @@
             </div>
 
             <div class="px-2 pt-4 border-t border-[#261F30] text-[11px] text-[#9C8EAD]">
-                <button onclick="copiarLinkTriagem()" class="w-full mb-2.5 py-1.5 px-2.5 rounded-lg bg-[#1D1724] hover:bg-[#2B2138] border border-[#2E2538] text-[11px] text-purple-300 font-semibold text-left flex items-center justify-between transition">
-                    <span>🔗 Link Triagem (Bio)</span>
-                    <span id="statusCopiaLink">Copiar</span>
-                </button>
-                <button onclick="sair()" class="flex items-center gap-2 hover:text-red-400 transition">
+                <button onclick="sair()" class="flex items-center gap-2 hover:text-red-400 transition w-full">
                     <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"/></svg>
                     <span>Encerrar sessão</span>
                 </button>
@@ -443,7 +399,7 @@
                         <h2 id="saudacaoHoje" class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Olá</h2>
                         <p id="subtituloHoje" class="text-xs text-[#9C8EAD] mt-0.5">Nenhuma sessão marcada para hoje.</p>
                     </div>
-                    <button onclick="trocarAba('agendar')" class="px-4 py-2.5 btn-plum rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm">
+                    <button onclick="mudarAba('agendar')" class="px-4 py-2.5 btn-plum rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span>Agendar sessão</span>
                     </button>
@@ -491,7 +447,7 @@
                     <div class="card-surface lg:col-span-2 overflow-hidden flex flex-col justify-between">
                         <div class="flex items-center justify-between border-b border-[#2E2538] px-6 py-4">
                             <h3 class="font-bold text-base font-serif text-[#F3EEF6]">Cronograma do dia</h3>
-                            <button onclick="trocarAba('agenda')" class="text-xs font-semibold text-[#C2ADC9] hover:text-white hover:underline">Ver agenda</button>
+                            <button onclick="mudarAba('agenda')" class="text-xs font-semibold text-[#C2ADC9] hover:text-white hover:underline">Ver agenda</button>
                         </div>
                         <div id="listaCronogramaHoje" class="divide-y divide-[#2E2538] p-6 flex-1 flex flex-col justify-center"></div>
                     </div>
@@ -505,7 +461,7 @@
                         <div class="card-surface p-6">
                             <h4 class="font-bold text-base font-serif text-[#F3EEF6] mb-3">Pendências</h4>
                             <div id="cardAvisoPendencias">
-                                <button onclick="trocarAba('leads')" class="w-full flex items-center justify-between p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-300 text-xs font-medium hover:bg-amber-500/20 transition">
+                                <button onclick="mudarAba('leads')" class="w-full flex items-center justify-between p-3.5 bg-amber-500/10 border border-amber-500/25 rounded-xl text-amber-300 text-xs font-medium hover:bg-amber-500/20 transition">
                                     <span class="flex items-center gap-2">
                                         <span>✉️</span>
                                         <span id="textoAvisoTriagem">0 triagens novas</span>
@@ -526,7 +482,7 @@
                         <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Agenda</h2>
                         <p class="text-xs text-[#9C8EAD] mt-0.5">Toque em um dia para ver as sessões e atualizar o status de cada uma.</p>
                     </div>
-                    <button onclick="trocarAba('agendar')" class="px-4 py-2.5 btn-plum rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm">
+                    <button onclick="mudarAba('agendar')" class="px-4 py-2.5 btn-plum rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span>Agendar sessão</span>
                     </button>
@@ -559,7 +515,7 @@
                                 <span class="text-[10px] uppercase font-bold tracking-wider text-[#9C8EAD]">DIA SELECIONADO</span>
                                 <h3 id="detalheDiaTitulo" class="text-lg font-bold font-serif text-[#F3EEF6] capitalize"></h3>
                             </div>
-                            <button onclick="trocarAba('agendar')" class="w-8 h-8 rounded-full border border-[#32283D] flex items-center justify-center hover:bg-[#2B2138] text-base font-bold text-[#C2ADC9]">+</button>
+                            <button onclick="mudarAba('agendar')" class="w-8 h-8 rounded-full border border-[#32283D] flex items-center justify-center hover:bg-[#2B2138] text-base font-bold text-[#C2ADC9]">+</button>
                         </div>
                         <div id="corpoDiaSelecionado" class="space-y-3 min-h-[220px] flex flex-col justify-center items-center text-center"></div>
                     </div>
@@ -588,7 +544,6 @@
                                     <input type="date" id="agendarData" onchange="atualizarResumoAgendamento()" required class="w-full px-3.5 py-2.5 input-dark rounded-xl text-sm outline-none cursor-pointer">
                                     <input type="time" id="agendarHora" onchange="atualizarResumoAgendamento()" required class="w-full px-3.5 py-2.5 input-dark rounded-xl text-sm outline-none cursor-pointer">
                                 </div>
-                                <!-- Atalhos rápidos de horário -->
                                 <div class="flex flex-wrap gap-1.5 pt-0.5">
                                     <button type="button" onclick="selecionarHorarioRapido('08:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">08:00</button>
                                     <button type="button" onclick="selecionarHorarioRapido('09:00')" class="px-2.5 py-1 bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] rounded-lg text-[11px] text-[#C2ADC9] transition">09:00</button>
@@ -614,25 +569,26 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- RECORRÊNCIA DE SESSÕES -->
-                                                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                                    <div>
-                                                        <label class="block text-xs font-semibold uppercase mb-1.5 text-[#C2ADC9]">Frequência / Repetição</label>
-                                                        <select id="agendarFrequencia" onchange="atualizarResumoAgendamento()" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
-                                                            <option value="unica">Sessão única (não repetir)</option>
-                                                            <option value="semanal">Repetir semanalmente</option>
-                                                            <option value="quinzenal">Repetir quinzenalmente</option>
-                                                        </select>
-                                                    </div>
-                                                    <div id="containerQtdSessoes" class="hidden">
-                                                        <label class="block text-xs font-semibold uppercase mb-1.5 text-[#C2ADC9]">Quantidade de sessões</label>
-                                                        <select id="agendarQtdSessoes" onchange="atualizarResumoAgendamento()" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
-                                                            <option value="4">4 sessões (1 mês)</option>
-                                                            <option value="8">8 sessões (2 meses)</option>
-                                                            <option value="12">12 sessões (3 meses)</option>
-                                                        </select>
-                                                    </div>
-                                                </div>
+
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-semibold uppercase mb-1.5 text-[#C2ADC9]">Frequência / Repetição</label>
+                                <select id="agendarFrequencia" onchange="atualizarResumoAgendamento()" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                                    <option value="unica">Sessão única (não repetir)</option>
+                                    <option value="semanal">Repetir semanalmente</option>
+                                    <option value="quinzenal">Repetir quinzenalmente</option>
+                                </select>
+                            </div>
+                            <div id="containerQtdSessoes" class="hidden">
+                                <label class="block text-xs font-semibold uppercase mb-1.5 text-[#C2ADC9]">Quantidade de sessões</label>
+                                <select id="agendarQtdSessoes" onchange="atualizarResumoAgendamento()" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                                    <option value="4">4 sessões (1 mês)</option>
+                                    <option value="8">8 sessões (2 meses)</option>
+                                    <option value="12">12 sessões (3 meses)</option>
+                                </select>
+                            </div>
+                        </div>
+
                         <div class="p-4 bg-[#141019] rounded-2xl border border-[#2E2538] space-y-3">
                             <div class="flex items-center justify-between">
                                 <div>
@@ -651,7 +607,7 @@
                         </div>
 
                         <div class="flex justify-end gap-3 pt-4">
-                            <button type="button" onclick="trocarAba('agenda')" class="px-5 py-2.5 border border-[#32283D] rounded-xl text-xs font-semibold text-[#9C8EAD] hover:bg-[#2B2138] hover:text-white">Cancelar</button>
+                            <button type="button" onclick="mudarAba('agenda')" class="px-5 py-2.5 border border-[#32283D] rounded-xl text-xs font-semibold text-[#9C8EAD] hover:bg-[#2B2138] hover:text-white">Cancelar</button>
                             <button type="submit" id="btnSalvarAgendamento" class="px-6 py-2.5 btn-plum rounded-xl font-semibold text-xs flex items-center gap-2 shadow-sm">
                                 <span>Confirmar agendamento</span>
                             </button>
@@ -715,16 +671,13 @@
                     </div>
                 </div>
 
-                <!-- CARDS NO CELULAR -->
                 <div id="listaCardsClientesMobile" class="block md:hidden space-y-3"></div>
 
-                <!-- TABELA NO DESKTOP -->
                 <div class="hidden md:block card-surface overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="border-b border-[#2E2538] text-[11px] font-bold text-[#9C8EAD] uppercase tracking-wider">
                             <tr>
                                 <th class="p-4">Paciente</th>
-                                <!-- COLUNA VISÍVEL APENAS PARA ADMINISTRADOR -->
                                 <th id="thPsicologaResponsavel" class="p-4 hidden">Psicóloga</th>
                                 <th class="p-4">WhatsApp</th>
                                 <th class="p-4">Nascimento</th>
@@ -758,7 +711,6 @@
                         <p class="text-xs text-[#9C8EAD] mt-0.5">Controle de recebimentos e histórico.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
-                        <!-- SELETOR EXCLUSIVO PARA ADMINISTRADOR FILTRAR POR PSICÓLOGA -->
                         <select id="filtroPsicologaCobranca" onchange="aoMudarFiltroPsicologaCobranca()" class="hidden px-3.5 py-2.5 input-dark rounded-xl text-xs font-semibold outline-none">
                             <option value="Todas">Todas as Psicólogas</option>
                         </select>
@@ -785,7 +737,6 @@
                     </div>
                 </div>
 
-                <!-- BARRA DE FILTROS DE STATUS + BUSCA -->
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-5">
                     <div class="flex flex-wrap items-center gap-1.5 p-1 bg-[#1D1724] border border-[#2E2538] rounded-2xl text-xs font-semibold w-full sm:w-auto">
                         <button onclick="filtrarStatusCobranca('Todas')" id="cob-todas" class="px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm">Todas</button>
@@ -878,7 +829,6 @@
                     </div>
                 </div>
 
-                <!-- BLOCO OPCIONAL PARA RESPONSÁVEL FINANCEIRO -->
                 <div class="p-3.5 bg-[#141019] rounded-2xl border border-[#2E2538] space-y-2.5">
                     <span class="text-[10px] font-bold uppercase tracking-wider text-[#C2ADC9] block">Responsável Financeiro (se diferente do paciente)</span>
                     <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
@@ -887,8 +837,7 @@
                     </div>
                 </div>
 
-                <!-- SE FOR ADMIN, PODE ESCOLHER A PSICÓLOGA RESPONSÁVEL -->
-                 <div class="p-3 bg-[#141019] rounded-xl border border-[#2E2538]">
+                <div class="p-3 bg-[#141019] rounded-xl border border-[#2E2538]">
                     <label class="flex items-start gap-2.5 cursor-pointer text-[11px] text-[#C2ADC9] leading-relaxed">
                         <input type="checkbox" id="clienteLgpdCheck" required checked class="mt-0.5 accent-[#8E73AD] rounded">
                         <span>Confirmo que o paciente (ou responsável) foi informado e consentiu com o registro de dados clínicos sob sigilo profissional (LGPD / CFP). *</span>
@@ -934,11 +883,8 @@
     </div>
 
     <!-- DRAWER: FICHA DO PACIENTE & HISTÓRICO DE PRONTUÁRIOS -->
-    <!-- TELA CHEIA: FICHA DO PACIENTE & HISTÓRICO DE PRONTUÁRIOS -->
     <div id="drawerPaciente" class="hidden fixed inset-0 bg-[#141019] z-50 overflow-y-auto">
         <div class="max-w-7xl mx-auto p-4 sm:p-8 space-y-6">
-            
-            <!-- Barra Superior Fixa -->
             <div class="flex flex-wrap items-center justify-between gap-4 pb-5 border-b border-[#2E2538]">
                 <div class="flex items-center gap-4">
                     <button type="button" onclick="fecharDetalhesPaciente()" class="px-3.5 py-2 bg-[#1D1724] hover:bg-[#2B2138] border border-[#32283D] text-[#E5DCED] rounded-xl text-xs font-semibold flex items-center gap-2 transition">
@@ -973,10 +919,7 @@
                 </div>
             </div>
 
-            <!-- Grid Principal em 2 Colunas Amplas -->
             <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-                
-                <!-- COLUNA ESQUERDA (4 colunas): Dados Cadastrais -->
                 <div class="lg:col-span-4 card-surface p-6 space-y-4">
                     <span class="text-[11px] font-bold uppercase tracking-wider text-[#C2ADC9] block border-b border-[#2E2538] pb-2.5">Cadastro & Configurações</span>
                     
@@ -1027,7 +970,7 @@
                             </div>
                         </div>
                     </div>
-                    <!-- Histórico de Sessões do Paciente -->
+                    
                     <div class="pt-4 border-t border-[#2E2538] space-y-2.5">
                         <div class="flex items-center justify-between">
                             <span class="text-[11px] font-bold uppercase tracking-wider text-[#C2ADC9]">🗓️ Sessões do Paciente</span>
@@ -1037,10 +980,7 @@
                     </div>
                 </div>
 
-                <!-- COLUNA DIREITA (8 colunas): Nova Evolução + Histórico Escalável -->
                 <div class="lg:col-span-8 space-y-6">
-                    
-                    <!-- Box Nova Evolução -->
                     <div class="card-surface p-6 space-y-3">
                         <div class="flex justify-between items-center">
                             <label class="text-xs font-bold uppercase tracking-wider text-[#C2ADC9]">Nova Evolução / Anotação de Sessão</label>
@@ -1051,7 +991,6 @@
                         <textarea id="textoNovoProntuario" rows="5" placeholder="Fale ou digite as anotações da sessão atual com conforto..." class="w-full p-4 input-dark rounded-2xl text-sm leading-relaxed outline-none"></textarea>
                     </div>
 
-                    <!-- Box Histórico Completo com Busca e Acordeão -->
                     <div class="card-surface p-6 space-y-4">
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#2E2538]">
                             <div>
@@ -1068,22 +1007,19 @@
                             </div>
                         </div>
 
-                        <!-- Filtro de busca dentro do prontuário -->
                         <div class="relative">
                             <span class="absolute inset-y-0 left-3.5 flex items-center text-[#9C8EAD] text-xs">🔍</span>
                             <input type="text" id="buscaProntuarioInterno" oninput="filtrarHistoricoProntuarios()" placeholder="Pesquisar palavra-chave ou data nas evoluções deste paciente..." class="w-full pl-9 pr-4 py-2.5 input-dark rounded-xl text-xs outline-none">
                         </div>
 
-                        <!-- Lista sem altura travada (cresce naturalmente na página) -->
                         <div id="listaHistoricoProntuarios" class="space-y-3"></div>
                     </div>
-
                 </div>
             </div>
         </div>
     </div>
     
-    <!-- MODAL: DADOS PROFISSIONAIS (CRP, ABORDAGEM, PIX E ASSINATURA) -->
+    <!-- MODAL: DADOS PROFISSIONAIS (CRP, ABORDAGEM, PIX E LINK DE TRIAGEM) -->
     <div id="modalPerfilProfissional" class="hidden fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
         <div class="bg-[#1D1724] p-6 sm:p-8 rounded-3xl max-w-md w-full border border-[#32283D] shadow-2xl">
             <div class="flex justify-between items-center mb-4">
@@ -1112,15 +1048,12 @@
                     <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Chave Pix (para cobranças)</label>
                     <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
                 </div>
-                    <div>
-                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Chave Pix (para cobranças)</label>
-                    <input type="text" id="perfilPix" placeholder="CPF, E-mail, Telefone ou Chave Aleatória" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
-                </div>
 
-                <!-- COLE EXATAMENTE AQUI -->
-                <div class="pt-2">
+                <!-- LINK DE TRIAGEM NA PÁGINA DE PERFIL -->
+                <div class="pt-1">
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Link de Triagem (Bio do Instagram)</label>
                     <button type="button" onclick="copiarLinkTriagem()" class="w-full py-2.5 px-3 rounded-xl bg-[#141019] hover:bg-[#2B2138] border border-[#32283D] text-purple-300 font-semibold text-xs flex items-center justify-between transition">
-                        <span>🔗 Copiar Link Exclusivo de Triagem (Bio)</span>
+                        <span>🔗 Copiar Link Exclusivo</span>
                         <span id="statusCopiaLink">Copiar</span>
                     </button>
                 </div>
@@ -1129,15 +1062,11 @@
                     <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
                     <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Dados</button>
                 </div>
-                <div class="flex gap-2 pt-3">
-                    <button type="button" onclick="fecharModal('modalPerfilProfissional')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] rounded-xl text-xs font-semibold hover:text-white">Cancelar</button>
-                    <button type="submit" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Salvar Dados</button>
-                </div>
             </form>
         </div>
     </div>
- </div>
- <!-- PAINEL FLUTUANTE: CENTRAL DE NOTIFICAÇÕES INTELIGENTES -->
+
+    <!-- PAINEL FLUTUANTE: CENTRAL DE NOTIFICAÇÕES INTELIGENTES -->
     <div id="painelNotificacoes" class="hidden fixed inset-0 bg-black/50 backdrop-blur-[1px] z-50 flex items-start justify-start p-4 md:pl-72 md:pt-8" onclick="if(event.target === this) alternarPainelNotificacoes()">
         <div class="bg-[#1D1724] border border-[#3F3152] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
             <div class="p-5 border-b border-[#2E2538] flex items-center justify-between bg-[#141019]">
@@ -1152,15 +1081,13 @@
             <div id="listaNotificacoesInteligentes" class="p-4 space-y-3 overflow-y-auto flex-1"></div>
         </div>
     </div>
+
     <!-- JAVASCRIPT GERAL -->
     <script>
         const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4eGNjbGFheGxiZHlic3N4anl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzNjk4NDksImV4cCI6MjEwOTk0NTg0OX0.79Y7Eu9qXhqDl4uh7jfadeW8fR7IwUwSTpJJ7BQNM5Y";
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // ==========================================
-        // CONTROLE DE ABAS E ROTAS POR HASH (URL ÚNICA)
-        // ==========================================
         function mudarAba(nomeAba) {
             window.location.hash = nomeAba;
 
@@ -1171,6 +1098,9 @@
             const abaAlvo = document.getElementById('secao-' + nomeAba);
             if (abaAlvo) {
                 abaAlvo.style.display = 'block';
+                if (nomeAba === 'agendar') {
+                    prepararTelaAgendamento();
+                }
             }
         }
 
@@ -1243,10 +1173,6 @@
             const saudacaoEl = document.getElementById('saudacaoHoje');
             if (saudacaoEl) saudacaoEl.textContent = saudacao;
 
-            // Protegido caso o elemento não exista no HTML
-            const navNameEl = document.getElementById('userNameNav');
-            if (navNameEl) navNameEl.textContent = nomeUsuario;
-
             const dataFormatada = agora.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
             const dataHojeEl = document.getElementById('dataHojeFormatada');
             if (dataHojeEl) dataHojeEl.textContent = dataFormatada.charAt(0).toUpperCase() + dataFormatada.slice(1);
@@ -1255,15 +1181,14 @@
         let psicologaTriagemPublicaId = null;
 
         window.addEventListener('DOMContentLoaded', async () => {
-         diaSelecionadoAgendaIso = obterChaveDiaLocal();
+            diaSelecionadoAgendaIso = obterChaveDiaLocal();
 
-         const params = new URLSearchParams(window.location.search);
-         if (params.get('modo') === 'cadastro') {
-             alternarTelaAuth('cadastro');
-         }
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('modo') === 'cadastro') {
+                alternarTelaAuth('cadastro');
+            }
 
-         // Verifica se é acesso ao Link Público de Triagem (?triagem=ID)
-         const triagemPsiId = params.get('triagem');
+            const triagemPsiId = params.get('triagem');
             if (triagemPsiId) {
                 psicologaTriagemPublicaId = triagemPsiId;
                 document.getElementById('loginScreen').classList.add('hidden');
@@ -1284,9 +1209,6 @@
             }
             const { data: { session } } = await client.auth.getSession();
             if (session) {
-                if (session.user && session.user.email) {
-                    document.getElementById('userEmailNav').textContent = session.user.email;
-                }
                 await checarPerfilUsuario(session.user.id, session.user.email);
                 mostrarApp();
             }
@@ -1299,15 +1221,15 @@
             btn.textContent = "Enviando...";
 
             const payload = {
-            nome: document.getElementById('pubNome').value.trim(),
-             whatsapp: document.getElementById('pubWhatsapp').value.trim(),
-             modalidade: document.getElementById('pubModalidade').value,
-             periodo_preferencia: document.getElementById('pubPeriodo').value,
-             motivo_consulta: document.getElementById('pubMotivo').value.trim() || null,
-             lgpd_aceito: true,
-             lgpd_aceito_em: new Date().toISOString(),
-             status: 'Novo Contato',
-             psicologa_id: psicologaTriagemPublicaId
+                nome: document.getElementById('pubNome').value.trim(),
+                whatsapp: document.getElementById('pubWhatsapp').value.trim(),
+                modalidade: document.getElementById('pubModalidade').value,
+                periodo_preferencia: document.getElementById('pubPeriodo').value,
+                motivo_consulta: document.getElementById('pubMotivo').value.trim() || null,
+                lgpd_aceito: true,
+                lgpd_aceito_em: new Date().toISOString(),
+                status: 'Novo Contato',
+                psicologa_id: psicologaTriagemPublicaId
             };
 
             const { error } = await client.from('pacientes').insert([payload]);
@@ -1336,7 +1258,6 @@
             });
         }
 
-        // RECUPERAÇÃO E DEFINIÇÃO DE NOVA SENHA
         client.auth.onAuthStateChange((event) => {
             if (event === 'PASSWORD_RECOVERY') {
                 document.getElementById('loginScreen').classList.add('hidden');
@@ -1370,7 +1291,6 @@
             document.getElementById('loginForm').classList.remove('hidden');
         }
 
-        // Envio do pedido de recuperação
         document.getElementById('recuperarSenhaForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('recuperarEmailInput').value.trim();
@@ -1434,7 +1354,6 @@
             }
         });
 
-        // AUTENTICAÇÃO
         document.getElementById('loginForm').addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('loginEmail').value.trim();
@@ -1450,8 +1369,6 @@
                     erroEl.className = "text-xs text-red-400 text-center font-medium min-h-[16px]";
                     erroEl.textContent = "Dados incorretos: " + error.message;
                 } else {
-                    const emailNav = document.getElementById('userEmailNav');
-                if (emailNav) emailNav.textContent = data.user.email;
                     await checarPerfilUsuario(data.user.id, data.user.email);
                     mostrarApp();
                 }
@@ -1494,26 +1411,6 @@
             }
         }
 
-        async function editarMeuNome() {
-            if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
-            const nomeAtual = obterNomeExibicaoUsuario();
-            const novoNome = prompt("Digite como você deseja ser chamada no painel:", nomeAtual);
-            if (!novoNome || novoNome.trim() === '' || novoNome.trim() === nomeAtual) return;
-
-            const { error } = await client
-                .from('usuarios_perfis')
-                .update({ nome: novoNome.trim() })
-                .eq('id', usuarioAtualPerfil.id);
-
-            if (error) {
-                alert("Erro ao atualizar nome: " + error.message);
-            } else {
-                usuarioAtualPerfil.nome = novoNome.trim();
-                atualizarSaudacao();
-                await carregarDados();
-            }
-        }
-
         async function sair() {
             await client.auth.signOut();
             window.location.reload();
@@ -1534,7 +1431,7 @@
         }
 
         function trocarAbaMobile(aba) {
-            mudarAba(aba); // Atualiza a URL com a hash (ex: #agenda, #clientes)
+            mudarAba(aba);
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebarPrincipal');
                 if (sidebar) sidebar.classList.add('hidden');
@@ -1542,34 +1439,10 @@
             }
         }
 
-        function mudarAba(nomeAba) {
-            window.location.hash = nomeAba;
-
-            document.querySelectorAll('.secao-conteudo').forEach(secao => {
-                secao.style.display = 'none';
-            });
-
-            const abaAlvo = document.getElementById('secao-' + nomeAba);
-            if (abaAlvo) {
-                abaAlvo.style.display = 'block';
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const hashInicial = window.location.hash.replace('#', '') || 'dashboard';
-            mudarAba(hashInicial);
-        });
-
-        window.addEventListener('hashchange', () => {
-            const hashAtual = window.location.hash.replace('#', '') || 'dashboard';
-            mudarAba(hashAtual);
-        });
-
         function fecharModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
         }
 
-        // CARREGAMENTO DOS DADOS GLOBAIS
         async function carregarDados() {
             const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('nome', { ascending: true });
             todosUsuariosCache = usuarios || [];
@@ -1648,22 +1521,23 @@
         }
 
         function gerarUrlLembreteWhatsApp(pacienteId, dataHoraIso, modalidade) {
-         const pac = todosPacientesCache.find(p => p.id === pacienteId) || {};
-         const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
-         if (!numLimpo) return null;
+            const pac = todosPacientesCache.find(p => p.id === pacienteId) || {};
+            const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
+            if (!numLimpo) return null;
 
-         const dt = new Date(dataHoraIso);
-         const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-         const hojeStr = obterChaveDiaLocal();
-         const diaSessaoStr = obterChaveDiaLocal(new Date(dataHoraIso));
-         const quando = diaSessaoStr === hojeStr ? 'hoje' : `no dia ${dt.toLocaleDateString('pt-BR')}`;
+            const dt = new Date(dataHoraIso);
+            const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+            const hojeStr = obterChaveDiaLocal();
+            const diaSessaoStr = obterChaveDiaLocal(new Date(dataHoraIso));
+            const quando = diaSessaoStr === hojeStr ? 'hoje' : `no dia ${dt.toLocaleDateString('pt-BR')}`;
 
-         let msg = `Olá ${pac.nome}, passando para confirmar nossa sessão ${quando} às ${hora}.`;
-         if (modalidade === 'Online' && pac.link_sala && pac.link_sala.trim() !== '') {
-             msg += ` Segue o link da sala: ${pac.link_sala.trim()}`;
-         }
-         return `https://wa.me/55${numLimpo}?text=${encodeURIComponent(msg)}`;
-     }
+            let msg = `Olá ${pac.nome}, passando para confirmar nossa sessão ${quando} às ${hora}.`;
+            if (modalidade === 'Online' && pac.link_sala && pac.link_sala.trim() !== '') {
+                msg += ` Segue o link da sala: ${pac.link_sala.trim()}`;
+            }
+            return `https://wa.me/55${numLimpo}?text=${encodeURIComponent(msg)}`;
+        }
+
         let notificacoesAtuaisCache = [];
 
         function alternarPainelNotificacoes() {
@@ -1680,8 +1554,6 @@
             const amanhaStr = obterChaveDiaLocal(amanhaObj);
 
             const clientesAtivos = pacientes.filter(p => p.status === 'Em Atendimento');
-
-            // 1. ALERTA DE PRONTUÁRIO PENDENTE (Sessões realizadas ou passadas nos últimos 7 dias sem evolução)
             const seteDiasAtras = new Date(agora);
             seteDiasAtras.setDate(agora.getDate() - 7);
 
@@ -1709,58 +1581,6 @@
                             acaoHtml: `<button onclick="alternarPainelNotificacoes(); abrirDetalhesPaciente('${a.paciente_id}')" class="px-3 py-1.5 btn-plum rounded-xl text-[11px] font-semibold">Escrever prontuário</button>`
                         });
                     }
-                }
-            });
-
-            // 2. LEMBRETE DE SESSÃO (Hoje ou Amanhã)
-            atendimentos.forEach(a => {
-                if (!a.data_hora || a.status !== 'Agendada') return;
-                const diaIso = obterChaveDiaLocal(new Date(a.data_hora));
-                const dtSessao = new Date(a.data_hora);
-                if (dtSessao < agora) return;
-
-                if (diaIso === hojeStr || diaIso === amanhaStr) {
-                    const nomePac = a.pacientes ? a.pacientes.nome : 'Paciente';
-                    const hora = dtSessao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                    const quando = diaIso === hojeStr ? 'hoje' : 'amanhã';
-                    const urlWpp = gerarUrlLembreteWhatsApp(a.paciente_id, a.data_hora, a.modalidade);
-
-                    alertas.push({
-                        icone: '💬',
-                        titulo: `Confirmar sessão (${quando} às ${hora})`,
-                        descricao: `Paciente: ${nomePac} · ${a.modalidade || 'Online'}`,
-                        acaoHtml: urlWpp
-                            ? `<a href="${urlWpp}" target="_blank" class="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 hover:bg-emerald-500/30 border border-emerald-500/30 rounded-xl text-[11px] font-semibold inline-block">Enviar WhatsApp</a>`
-                            : `<span class="text-[10px] text-[#9C8EAD]">Sem WhatsApp</span>`
-                    });
-                }
-            });
-
-            // 3. PACOTE DE SESSÕES ACABANDO (Paciente ativo com 0 ou 1 sessão futura agendada)
-            clientesAtivos.forEach(pac => {
-                const sessoesFuturas = atendimentos.filter(a =>
-                    a.paciente_id === pac.id &&
-                    a.status === 'Agendada' &&
-                    new Date(a.data_hora) > agora
-                );
-
-                if (sessoesFuturas.length <= 1) {
-                    const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
-                    const textoSituacao = sessoesFuturas.length === 0
-                        ? 'Nenhuma próxima sessão agendada na agenda.'
-                        : 'Resta apenas 1 sessão agendada no ciclo atual.';
-                    const msgRenovacao = encodeURIComponent(`Olá ${pac.nome}, tudo bem? Passando para avisar que nosso ciclo atual de sessões está chegando ao fim. Vamos já reservar seus horários para as próximas semanas?`);
-
-                    alertas.push({
-                        icone: '🔄',
-                        titulo: `Pacote acabando: ${pac.nome}`,
-                        descricao: textoSituacao,
-                        acaoHtml: `
-                            <div class="flex items-center gap-2">
-                                ${numLimpo ? `<a href="https://wa.me/55${numLimpo}?text=${msgRenovacao}" target="_blank" class="px-2.5 py-1.5 bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 rounded-xl text-[11px] font-semibold">💬 Avisar no WhatsApp</a>` : ''}
-                                <button onclick="alternarPainelNotificacoes(); trocarAba('agendar')" class="px-2.5 py-1.5 bg-[#2B2138] text-[#E5DCED] border border-[#3F3152] rounded-xl text-[11px] font-semibold">Agendar</button>
-                            </div>`
-                    });
                 }
             });
 
@@ -1811,7 +1631,7 @@
                 </div>
             `).join('');
         }
-        // 1. TELA: HOJE
+
         function renderizarCronogramaHoje(atendimentos) {
             const container = document.getElementById('listaCronogramaHoje');
             const subtitulo = document.getElementById('subtituloHoje');
@@ -1840,44 +1660,44 @@
             }
 
             container.innerHTML = deHoje.map(a => {
-             const hora = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-             const nome = a.pacientes ? a.pacientes.nome : 'Paciente';
-             const iniciais = nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
-             const modIcon = a.modalidade === 'Presencial' ? '📍 Presencial' : '🎥 Online';
-             const pacObj = todosPacientesCache.find(p => p.id === a.paciente_id) || {};
-             const linkValido = pacObj.link_sala && /^https?:\/\//i.test(pacObj.link_sala.trim());
-             const linkSalaHtml = (a.modalidade !== 'Presencial' && linkValido)
+                const hora = new Date(a.data_hora).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                const nome = a.pacientes ? a.pacientes.nome : 'Paciente';
+                const iniciais = nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+                const modIcon = a.modalidade === 'Presencial' ? '📍 Presencial' : '🎥 Online';
+                const pacObj = todosPacientesCache.find(p => p.id === a.paciente_id) || {};
+                const linkValido = pacObj.link_sala && /^https?:\/\//i.test(pacObj.link_sala.trim());
+                const linkSalaHtml = (a.modalidade !== 'Presencial' && linkValido)
                     ? ` · <a href="${escapeHtml(pacObj.link_sala.trim())}" target="_blank" rel="noopener noreferrer" class="text-purple-300 hover:underline font-semibold">Entrar na sala ↗</a>`
                     : '';
-             const urlLembrete = gerarUrlLembreteWhatsApp(a.paciente_id, a.data_hora, a.modalidade);
-             const btnLembrete = urlLembrete
-                 ? `<a href="${urlLembrete}" target="_blank" title="Enviar lembrete no WhatsApp" class="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-xl text-[11px] font-semibold transition">💬 Lembrar</a>`
-                 : '';
+                const urlLembrete = gerarUrlLembreteWhatsApp(a.paciente_id, a.data_hora, a.modalidade);
+                const btnLembrete = urlLembrete
+                    ? `<a href="${urlLembrete}" target="_blank" title="Enviar lembrete no WhatsApp" class="px-2.5 py-1 bg-emerald-500/15 text-emerald-400 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-xl text-[11px] font-semibold transition">💬 Lembrar</a>`
+                    : '';
 
-             return `
-                 <div class="flex flex-wrap items-center justify-between gap-2 p-4 hover:bg-white/[0.03] transition">
-                     <div class="flex items-center gap-3.5">
-                         <span class="font-serif text-base font-bold text-[#C2ADC9]">${hora}</span>
-                         <div class="w-8 h-8 rounded-full bg-[#2B2138] text-[#C2ADC9] font-bold text-xs flex items-center justify-center shrink-0">${iniciais}</div>
-                         <div>
-                             <p onclick="abrirDetalhesPaciente('${a.paciente_id}')" class="font-semibold text-xs text-[#F3EEF6] hover:underline cursor-pointer">${escapeHtml(nome)}</p>
-                             <p class="text-[11px] text-[#9C8EAD]">${modIcon}${linkSalaHtml}</p>
-                         </div>
-                     </div>
-                     <div class="flex items-center gap-2">
-                         ${btnLembrete}
-                         <select onchange="atualizarStatusAtendimento('${a.id}', this.value)" class="text-xs input-dark rounded-xl px-2.5 py-1 font-semibold">
-                             <option value="Agendada" ${a.status === 'Agendada' ? 'selected' : ''}>🕒 Agendada</option>
-                             <option value="Confirmada" ${a.status === 'Confirmada' ? 'selected' : ''}>✅ Confirmada</option>
-                             <option value="Realizada" ${a.status === 'Realizada' ? 'selected' : ''}>✔️ Realizada</option>
-                             <option value="Falta" ${a.status === 'Falta' ? 'selected' : ''}>⚠️ Falta</option>
-                             <option value="Cancelada" ${a.status === 'Cancelada' ? 'selected' : ''}>❌ Cancelada</option>
-                         </select>
-                         <button onclick="excluirSessao('${a.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg">🗑️</button>
-                     </div>
-                 </div>
-             `;
-         }).join('');
+                return `
+                    <div class="flex flex-wrap items-center justify-between gap-2 p-4 hover:bg-white/[0.03] transition">
+                        <div class="flex items-center gap-3.5">
+                            <span class="font-serif text-base font-bold text-[#C2ADC9]">${hora}</span>
+                            <div class="w-8 h-8 rounded-full bg-[#2B2138] text-[#C2ADC9] font-bold text-xs flex items-center justify-center shrink-0">${iniciais}</div>
+                            <div>
+                                <p onclick="abrirDetalhesPaciente('${a.paciente_id}')" class="font-semibold text-xs text-[#F3EEF6] hover:underline cursor-pointer">${escapeHtml(nome)}</p>
+                                <p class="text-[11px] text-[#9C8EAD]">${modIcon}${linkSalaHtml}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${btnLembrete}
+                            <select onchange="atualizarStatusAtendimento('${a.id}', this.value)" class="text-xs input-dark rounded-xl px-2.5 py-1 font-semibold">
+                                <option value="Agendada" ${a.status === 'Agendada' ? 'selected' : ''}>🕒 Agendada</option>
+                                <option value="Confirmada" ${a.status === 'Confirmada' ? 'selected' : ''}>✅ Confirmada</option>
+                                <option value="Realizada" ${a.status === 'Realizada' ? 'selected' : ''}>✔️ Realizada</option>
+                                <option value="Falta" ${a.status === 'Falta' ? 'selected' : ''}>⚠️ Falta</option>
+                                <option value="Cancelada" ${a.status === 'Cancelada' ? 'selected' : ''}>❌ Cancelada</option>
+                            </select>
+                            <button onclick="excluirSessao('${a.id}')" title="Excluir sessão" class="text-xs text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg">🗑️</button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
         function renderizarProximosEAlertas(atendimentos) {
@@ -1912,7 +1732,6 @@
             }
         }
 
-        // 2. TELA: AGENDA MENSAL
         function mudarMes(delta) {
             dataCalendarioAtual.setMonth(dataCalendarioAtual.getMonth() + delta);
             renderizarCalendario();
@@ -2054,7 +1873,7 @@
                 alert("⚠️ Não é possível agendar sessões em datas passadas.");
                 return;
             }
-            trocarAba('agendar');
+            mudarAba('agendar');
             const inputData = document.getElementById('agendarData');
             const inputHora = document.getElementById('agendarHora');
             if (inputData) {
@@ -2094,7 +1913,6 @@
             return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}:00${sinal}${offH}:${offM}`;
         }
 
-        // 3. TELA: AGENDAR SESSÃO
         function prepararTelaAgendamento() {
             const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
             const select = document.getElementById('agendarClienteSelect');
@@ -2136,11 +1954,11 @@
             const btnOnline = document.getElementById('btnModOnline');
             const btnPresencial = document.getElementById('btnModPresencial');
             if (mod === 'Online') {
-                btnOnline.className = "py-2 border border-[#8E73AD] bg-[#2B2138] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5";
-                btnPresencial.className = "py-2 border border-[#32283D] text-[#9C8EAD] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5";
+                if (btnOnline) btnOnline.className = "py-2 border border-[#8E73AD] bg-[#2B2138] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5";
+                if (btnPresencial) btnPresencial.className = "py-2 border border-[#32283D] text-[#9C8EAD] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5";
             } else {
-                btnOnline.className = "py-2 border border-[#32283D] text-[#9C8EAD] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5";
-                btnPresencial.className = "py-2 border border-[#8E73AD] bg-[#2B2138] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5";
+                if (btnOnline) btnOnline.className = "py-2 border border-[#32283D] text-[#9C8EAD] text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5";
+                if (btnPresencial) btnPresencial.className = "py-2 border border-[#8E73AD] bg-[#2B2138] text-white text-xs font-semibold rounded-xl flex items-center justify-center gap-1.5";
             }
             atualizarResumoAgendamento();
         }
@@ -2149,11 +1967,11 @@
             const container = document.getElementById('campoValorContainer');
             const inputValor = document.getElementById('agendarValor');
             if (isento) {
-                container.classList.add('opacity-40', 'pointer-events-none');
-                inputValor.value = 0;
+                if (container) container.classList.add('opacity-40', 'pointer-events-none');
+                if (inputValor) inputValor.value = 0;
             } else {
-                container.classList.remove('opacity-40', 'pointer-events-none');
-                inputValor.value = 150;
+                if (container) container.classList.remove('opacity-40', 'pointer-events-none');
+                if (inputValor) inputValor.value = 150;
             }
             atualizarResumoAgendamento();
         }
@@ -2170,107 +1988,115 @@
             const p = todosPacientesCache.find(item => item.id === select.value);
             if (!p) return;
 
-            document.getElementById('resumoNome').textContent = p.nome;
-            document.getElementById('resumoTel').textContent = p.whatsapp || 'Sem WhatsApp';
-            document.getElementById('resumoIniciais').textContent = p.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
+            const rNome = document.getElementById('resumoNome');
+            const rTel = document.getElementById('resumoTel');
+            const rIniciais = document.getElementById('resumoIniciais');
+            if (rNome) rNome.textContent = p.nome;
+            if (rTel) rTel.textContent = p.whatsapp || 'Sem WhatsApp';
+            if (rIniciais) rIniciais.textContent = p.nome.split(' ').map(n => n[0]).slice(0, 2).join('').toUpperCase();
 
             const dt = montarDataLocalAgendamento();
             if (dt && !isNaN(dt.getTime())) {
                 const diaExt = dt.toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' });
                 const hora = dt.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
-                document.getElementById('resumoData').textContent = `${diaExt.charAt(0).toUpperCase() + diaExt.slice(1)}`;
-                document.getElementById('resumoModalidade').textContent = `às ${hora} · ${modalidadeSelecionadaAgendamento}`;
+                const rData = document.getElementById('resumoData');
+                const rMod = document.getElementById('resumoModalidade');
+                if (rData) rData.textContent = `${diaExt.charAt(0).toUpperCase() + diaExt.slice(1)}`;
+                if (rMod) rMod.textContent = `às ${hora} · ${modalidadeSelecionadaAgendamento}`;
             }
 
-            const isento = document.getElementById('agendarIsento').checked;
-            const valor = isento ? 0 : (parseFloat(document.getElementById('agendarValor').value) || 0);
-            document.getElementById('resumoValor').textContent = formatarBRL(valor);
+            const isento = document.getElementById('agendarIsento')?.checked;
+            const valor = isento ? 0 : (parseFloat(document.getElementById('agendarValor')?.value) || 0);
+            const rVal = document.getElementById('resumoValor');
+            if (rVal) rVal.textContent = formatarBRL(valor);
         }
 
-        document.getElementById('formAgendamentoTela').addEventListener('submit', async (e) => {
-            e.preventDefault();
-            const dataBase = montarDataLocalAgendamento();
-            if (!dataBase || isNaN(dataBase.getTime())) {
-                alert("Selecione uma data e um horário válidos.");
-                return;
-            }
-
-            const agora = new Date();
-            if (dataBase.getTime() < agora.getTime() - 60000) {
-                alert("⚠️ Não é possível agendar uma sessão para uma data ou horário que já passou!");
-                return;
-            }
-
-            const btn = document.getElementById('btnSalvarAgendamento');
-            btn.disabled = true; btn.textContent = "Agendando...";
-
-            const paciente_id = document.getElementById('agendarClienteSelect').value;
-            const modalidade = modalidadeSelecionadaAgendamento;
-            const isento = document.getElementById('agendarIsento').checked;
-            const valor = isento ? 0 : (parseFloat(document.getElementById('agendarValor').value) || 0);
-
-            const frequencia = document.getElementById('agendarFrequencia').value;
-            const qtdSessoes = frequencia === 'unica' ? 1 : (parseInt(document.getElementById('agendarQtdSessoes').value, 10) || 4);
-            const diasIntervalo = frequencia === 'quinzenal' ? 14 : 7;
-
-            try {
-                const datasParaCriar = [];
-                for (let i = 0; i < qtdSessoes; i++) {
-                    const dt = new Date(dataBase);
-                    dt.setDate(dataBase.getDate() + (i * diasIntervalo));
-                    datasParaCriar.push(dt);
-                }
-
-                const isosParaChecar = datasParaCriar.map(d => formatarIsoComFusoLocal(d));
-                const { data: conflitos, error: erroConflito } = await client
-                    .from('atendimentos')
-                    .select('data_hora, pacientes(nome)')
-                    .in('data_hora', isosParaChecar)
-                    .neq('status', 'Cancelada');
-
-                if (erroConflito) throw erroConflito;
-
-                if (conflitos && conflitos.length > 0) {
-                    const dtConf = new Date(conflitos[0].data_hora).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                    const pacConf = conflitos[0].pacientes ? conflitos[0].pacientes.nome : 'outro paciente';
-                    alert(`⚠️ Conflito de Horário!\nJá existe sessão em ${dtConf} com ${pacConf}. Ajuste a data/horário inicial.`);
-                    btn.disabled = false; btn.textContent = "Confirmar agendamento";
+        const formAgendamento = document.getElementById('formAgendamentoTela');
+        if (formAgendamento) {
+            formAgendamento.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const dataBase = montarDataLocalAgendamento();
+                if (!dataBase || isNaN(dataBase.getTime())) {
+                    alert("Selecione uma data e um horário válidos.");
                     return;
                 }
 
-                const novosAtendimentos = datasParaCriar.map(dt => ({
-                    paciente_id,
-                    data_hora: formatarIsoComFusoLocal(dt),
-                    modalidade,
-                    status: 'Agendada'
-                }));
+                const agora = new Date();
+                if (dataBase.getTime() < agora.getTime() - 60000) {
+                    alert("⚠️ Não é possível agendar uma sessão para uma data ou horário que já passou!");
+                    return;
+                }
 
-                const { error: erroAtend } = await client.from('atendimentos').insert(novosAtendimentos);
-                if (erroAtend) throw erroAtend;
+                const btn = document.getElementById('btnSalvarAgendamento');
+                if (btn) { btn.disabled = true; btn.textContent = "Agendando..."; }
 
-                const novosPagamentos = datasParaCriar.map(dt => {
-                    const venc = obterChaveDiaLocal(dt);
-                    return {
+                const paciente_id = document.getElementById('agendarClienteSelect').value;
+                const modalidade = modalidadeSelecionadaAgendamento;
+                const isento = document.getElementById('agendarIsento')?.checked;
+                const valor = isento ? 0 : (parseFloat(document.getElementById('agendarValor')?.value) || 0);
+
+                const frequencia = document.getElementById('agendarFrequencia')?.value || 'unica';
+                const qtdSessoes = frequencia === 'unica' ? 1 : (parseInt(document.getElementById('agendarQtdSessoes')?.value, 10) || 4);
+                const diasIntervalo = frequencia === 'quinzenal' ? 14 : 7;
+
+                try {
+                    const datasParaCriar = [];
+                    for (let i = 0; i < qtdSessoes; i++) {
+                        const dt = new Date(dataBase);
+                        dt.setDate(dataBase.getDate() + (i * diasIntervalo));
+                        datasParaCriar.push(dt);
+                    }
+
+                    const isosParaChecar = datasParaCriar.map(d => formatarIsoComFusoLocal(d));
+                    const { data: conflitos, error: erroConflito } = await client
+                        .from('atendimentos')
+                        .select('data_hora, pacientes(nome)')
+                        .in('data_hora', isosParaChecar)
+                        .neq('status', 'Cancelada');
+
+                    if (erroConflito) throw erroConflito;
+
+                    if (conflitos && conflitos.length > 0) {
+                        const dtConf = new Date(conflitos[0].data_hora).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                        const pacConf = conflitos[0].pacientes ? conflitos[0].pacientes.nome : 'outro paciente';
+                        alert(`⚠️ Conflito de Horário!\nJá existe sessão em ${dtConf} com ${pacConf}. Ajuste a data/horário inicial.`);
+                        if (btn) { btn.disabled = false; btn.textContent = "Confirmar agendamento"; }
+                        return;
+                    }
+
+                    const novosAtendimentos = datasParaCriar.map(dt => ({
                         paciente_id,
-                        valor,
-                        data_vencimento: venc,
-                        status: isento ? 'Pago' : 'Pendente',
-                        data_pagamento: isento ? venc : null
-                    };
-                });
+                        data_hora: formatarIsoComFusoLocal(dt),
+                        modalidade,
+                        status: 'Agendada'
+                    }));
 
-                await client.from('pagamentos').insert(novosPagamentos);
+                    const { error: erroAtend } = await client.from('atendimentos').insert(novosAtendimentos);
+                    if (erroAtend) throw erroAtend;
 
-                await carregarDados();
-                trocarAba('agenda');
-            } catch (err) {
-                alert("Erro ao agendar: " + err.message);
-            } finally {
-                btn.disabled = false; btn.textContent = "Confirmar agendamento";
-            }
-        });
+                    const novosPagamentos = datasParaCriar.map(dt => {
+                        const venc = obterChaveDiaLocal(dt);
+                        return {
+                            paciente_id,
+                            valor,
+                            data_vencimento: venc,
+                            status: isento ? 'Pago' : 'Pendente',
+                            data_pagamento: isento ? venc : null
+                        };
+                    });
 
-        // 4. TELA: CLIENTES & PRONTUÁRIOS
+                    await client.from('pagamentos').insert(novosPagamentos);
+
+                    await carregarDados();
+                    mudarAba('agenda');
+                } catch (err) {
+                    alert("Erro ao agendar: " + err.message);
+                } finally {
+                    if (btn) { btn.disabled = false; btn.textContent = "Confirmar agendamento"; }
+                }
+            });
+        }
+
         function filtrarStatusCliente(status) {
             filtroClienteAtivo = status;
             ['todos', 'atendimento', 'pausado', 'alta'].forEach(f => {
@@ -2419,10 +2245,10 @@
             }
 
             const agoraIso = new Date().toISOString();
-         const { error } = await client
-             .from('pacientes')
-             .update({ excluido_em: agoraIso })
-             .eq('id', pacienteId);
+            const { error } = await client
+                .from('pacientes')
+                .update({ excluido_em: agoraIso })
+                .eq('id', pacienteId);
             if (error) {
                 alert("Erro ao excluir paciente: " + error.message);
             } else {
@@ -2439,9 +2265,6 @@
             excluirPaciente(pacienteSelecionadoId, p ? p.nome : 'este paciente');
         }
 
-        // ==========================================
-        // FICHA DO PACIENTE & HISTÓRICO DE PRONTUÁRIOS
-        // ==========================================
         async function abrirDetalhesPaciente(id) {
             const p = todosPacientesCache.find(item => item.id === id);
             if (!p) return;
@@ -2503,18 +2326,18 @@
             renderizarSessoesDoPacienteNaFicha(id);
 
             const SpeechRecSuportado = window.SpeechRecognition || window.webkitSpeechRecognition;
-                        const btnVoz = document.getElementById('btnVozDrawer');
-                        if (btnVoz) {
-                            if (!SpeechRecSuportado) {
-                                btnVoz.disabled = true;
-                                btnVoz.className = "px-3 py-1.5 bg-[#141019] border border-[#2E2538] text-[#9C8EAD] text-[11px] rounded-xl cursor-not-allowed";
-                                btnVoz.innerHTML = "🎙️ Voz disponível no Chrome/Safari";
-                            } else {
-                                btnVoz.disabled = false;
-                                btnVoz.className = "px-3.5 py-1.5 btn-plum text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm";
-                                btnVoz.innerHTML = '<span id="iconeMicDrawer">🎙️</span> <span id="textoMicDrawer">Gravar Voz</span>';
-                            }
-                        }
+            const btnVoz = document.getElementById('btnVozDrawer');
+            if (btnVoz) {
+                if (!SpeechRecSuportado) {
+                    btnVoz.disabled = true;
+                    btnVoz.className = "px-3 py-1.5 bg-[#141019] border border-[#2E2538] text-[#9C8EAD] text-[11px] rounded-xl cursor-not-allowed";
+                    btnVoz.innerHTML = "🎙️ Voz disponível no Chrome/Safari";
+                } else {
+                    btnVoz.disabled = false;
+                    btnVoz.className = "px-3.5 py-1.5 btn-plum text-xs font-semibold rounded-xl flex items-center gap-1.5 shadow-sm";
+                    btnVoz.innerHTML = '<span id="iconeMicDrawer">🎙️</span> <span id="textoMicDrawer">Gravar Voz</span>';
+                }
+            }
             document.getElementById('drawerPaciente').classList.remove('hidden');
         }
 
@@ -2590,11 +2413,11 @@
             container.innerHTML = `<p class="text-xs text-[#9C8EAD]">Carregando prontuários antigos...</p>`;
 
             const { data: historico, error } = await client
-             .from('prontuarios_historico')
-             .select('*')
-             .eq('paciente_id', pacienteId)
-             .is('excluido_em', null)
-             .order('criado_em', { ascending: false });
+                .from('prontuarios_historico')
+                .select('*')
+                .eq('paciente_id', pacienteId)
+                .is('excluido_em', null)
+                .order('criado_em', { ascending: false });
 
             if (error || !historico || historico.length === 0) {
                 historicoProntuarioAtualCache = [];
@@ -2708,9 +2531,9 @@
             }
 
             const { error } = await client
-             .from('prontuarios_historico')
-             .update({ excluido_em: new Date().toISOString() })
-             .eq('id', prontuarioId);
+                .from('prontuarios_historico')
+                .update({ excluido_em: new Date().toISOString() })
+                .eq('id', prontuarioId);
 
             if (error) {
                 alert("Erro ao excluir prontuário: " + error.message);
@@ -2735,14 +2558,14 @@
             const status_financeiro = document.getElementById('detalheStatusFinanceiro').value;
 
             const updatePayload = {
-            whatsapp,
-            data_nascimento,
-            link_sala: document.getElementById('editPacienteLinkSala').value.trim() || null,
-            cpf: document.getElementById('editPacienteCpf').value.trim() || null,
-            responsavel_nome: document.getElementById('editResponsavelNome').value.trim() || null,
-            responsavel_cpf: document.getElementById('editResponsavelCpf').value.trim() || null,
-            status_financeiro,
-            abordagem: document.getElementById('editPacienteAbordagem').value.trim() || null,
+                whatsapp,
+                data_nascimento,
+                link_sala: document.getElementById('editPacienteLinkSala').value.trim() || null,
+                cpf: document.getElementById('editPacienteCpf').value.trim() || null,
+                responsavel_nome: document.getElementById('editResponsavelNome').value.trim() || null,
+                responsavel_cpf: document.getElementById('editResponsavelCpf').value.trim() || null,
+                status_financeiro,
+                abordagem: document.getElementById('editPacienteAbordagem').value.trim() || null,
             };
 
             if (ehAdmin()) {
@@ -2782,7 +2605,6 @@
             }
         }
 
-        // CADASTRO NOVO CLIENTE
         function abrirModalCliente() {
             const containerPsi = document.getElementById('containerSelectPsicologaNovoPaciente');
             const selectPsi = document.getElementById('clientePsicologaSelect');
@@ -2798,47 +2620,46 @@
         }
 
         document.getElementById('formNovoCliente').addEventListener('submit', async (e) => {
-         e.preventDefault();
-         const nome = document.getElementById('clienteNome').value.trim();
-         const whatsapp = document.getElementById('clienteWhatsapp').value.trim();
-         const cpf = document.getElementById('clienteCpf').value.trim() || null;
-         const data_nascimento = document.getElementById('clienteDataNascimento').value || null;
-         const modalidade = document.getElementById('clienteModalidade').value;
-         const valor = parseFloat(document.getElementById('clienteValor').value) || 150.00;
-         const responsavel_nome = document.getElementById('clienteResponsavelNome').value.trim() || null;
-         const responsavel_cpf = document.getElementById('clienteResponsavelCpf').value.trim() || null;
+            e.preventDefault();
+            const nome = document.getElementById('clienteNome').value.trim();
+            const whatsapp = document.getElementById('clienteWhatsapp').value.trim();
+            const cpf = document.getElementById('clienteCpf').value.trim() || null;
+            const data_nascimento = document.getElementById('clienteDataNascimento').value || null;
+            const modalidade = document.getElementById('clienteModalidade').value;
+            const valor = parseFloat(document.getElementById('clienteValor').value) || 150.00;
+            const responsavel_nome = document.getElementById('clienteResponsavelNome').value.trim() || null;
+            const responsavel_cpf = document.getElementById('clienteResponsavelCpf').value.trim() || null;
 
-         let psicologa_id = usuarioAtualPerfil ? usuarioAtualPerfil.id : null;
-         if (ehAdmin()) {
-             const selectPsi = document.getElementById('clientePsicologaSelect');
-             if (selectPsi && selectPsi.value) psicologa_id = selectPsi.value;
-         }
+            let psicologa_id = usuarioAtualPerfil ? usuarioAtualPerfil.id : null;
+            if (ehAdmin()) {
+                const selectPsi = document.getElementById('clientePsicologaSelect');
+                if (selectPsi && selectPsi.value) psicologa_id = selectPsi.value;
+            }
 
-         const lgpdAceito = document.getElementById('clienteLgpdCheck').checked;
-         const { error } = await client.from('pacientes').insert([{
-             nome,
-             whatsapp,
-             cpf,
-             data_nascimento,
-             modalidade,
-             valor_padrao_sessao: valor,
-             responsavel_nome,
-             responsavel_cpf,
-             lgpd_aceito: lgpdAceito,
-             lgpd_aceito_em: lgpdAceito ? new Date().toISOString() : null,
-             status: 'Em Atendimento',
-             status_financeiro: 'Em dia',
-             psicologa_id
-         }]);
+            const lgpdAceito = document.getElementById('clienteLgpdCheck').checked;
+            const { error } = await client.from('pacientes').insert([{
+                nome,
+                whatsapp,
+                cpf,
+                data_nascimento,
+                modalidade,
+                valor_padrao_sessao: valor,
+                responsavel_nome,
+                responsavel_cpf,
+                lgpd_aceito: lgpdAceito,
+                lgpd_aceito_em: lgpdAceito ? new Date().toISOString() : null,
+                status: 'Em Atendimento',
+                status_financeiro: 'Em dia',
+                psicologa_id
+            }]);
 
-         if (error) return alert("Erro ao criar paciente: " + error.message);
+            if (error) return alert("Erro ao criar paciente: " + error.message);
 
-         document.getElementById('formNovoCliente').reset();
-         fecharModal('modalCliente');
-        await carregarDados();
-     });
+            document.getElementById('formNovoCliente').reset();
+            fecharModal('modalCliente');
+            await carregarDados();
+        });
 
-        // 5. GESTÃO DE EQUIPE & NÍVEIS DE USUÁRIO (EXCLUSIVO ADMIN)
         async function carregarEquipe() {
             if (!ehAdmin()) return;
             const tbody = document.getElementById('tabelaUsuarios');
@@ -2904,9 +2725,6 @@
             }
         }
 
-        // ==========================================
-        // TRANSCRIÇÃO DE VOZ DIRETA & SIMPLES
-        // ==========================================
         function alternarGravacaoVoz() {
             const btn = document.getElementById('btnVozDrawer');
             const icone = document.getElementById('iconeMicDrawer');
@@ -3022,9 +2840,6 @@
             }
         }
 
-        // ==========================================
-        // TRIAGENS (APROVAR OU EXCLUIR) & COBRANÇAS
-        // ==========================================
         async function atualizarStatusPaciente(id, status) {
             await client.from('pacientes').update({ status }).eq('id', id);
             await carregarDados();
@@ -3039,7 +2854,6 @@
                 return;
             }
 
-            // Se marcou como "Realizada", garante que exista uma cobrança correspondente
             if (status === 'Realizada' && sessao && sessao.paciente_id) {
                 const pac = todosPacientesCache.find(p => p.id === sessao.paciente_id) || {};
                 const valorSessao = parseFloat(pac.valor_padrao_sessao ?? 150);
@@ -3069,42 +2883,41 @@
         }
 
         async function excluirSessao(atendimentoId) {
-         if (!confirm("Deseja realmente excluir este agendamento?\n\nA cobrança vinculada a esta sessão também será removida da lista.")) return;
+            if (!confirm("Deseja realmente excluir este agendamento?\n\nA cobrança vinculada a esta sessão também será removida da lista.")) return;
 
-         const sessao = todosAtendimentosCache.find(a => a.id === atendimentoId);
-         const agoraIso = new Date().toISOString();
+            const sessao = todosAtendimentosCache.find(a => a.id === atendimentoId);
+            const agoraIso = new Date().toISOString();
 
-         const { error } = await client
-             .from('atendimentos')
-             .update({ excluido_em: agoraIso })
-             .eq('id', atendimentoId);
+            const { error } = await client
+                .from('atendimentos')
+                .update({ excluido_em: agoraIso })
+                .eq('id', atendimentoId);
 
-         if (error) {
-             alert("Erro ao excluir agendamento: " + error.message);
-             return;
-         }
+            if (error) {
+                alert("Erro ao excluir agendamento: " + error.message);
+                return;
+            }
 
-         // Oculta também a cobrança vinculada a esse paciente na data dessa sessão
-         if (sessao && sessao.paciente_id && sessao.data_hora) {
-             const dataSessaoStr = obterChaveDiaLocal(new Date(sessao.data_hora));
-             const cobrancaVinculada = todosPagamentosCache.find(pg =>
-                 pg.paciente_id === sessao.paciente_id &&
-                 pg.data_vencimento === dataSessaoStr
-             );
+            if (sessao && sessao.paciente_id && sessao.data_hora) {
+                const dataSessaoStr = obterChaveDiaLocal(new Date(sessao.data_hora));
+                const cobrancaVinculada = todosPagamentosCache.find(pg =>
+                    pg.paciente_id === sessao.paciente_id &&
+                    pg.data_vencimento === dataSessaoStr
+                );
 
-             if (cobrancaVinculada) {
-                 await client
-                     .from('pagamentos')
-                     .update({ excluido_em: agoraIso })
-                     .eq('id', cobrancaVinculada.id);
-             }
-         }
+                if (cobrancaVinculada) {
+                    await client
+                        .from('pagamentos')
+                        .update({ excluido_em: agoraIso })
+                        .eq('id', cobrancaVinculada.id);
+                }
+            }
 
-         await carregarDados();
-         if (pacienteSelecionadoId) {
-             renderizarSessoesDoPacienteNaFicha(pacienteSelecionadoId);
-         }
-     }
+            await carregarDados();
+            if (pacienteSelecionadoId) {
+                renderizarSessoesDoPacienteNaFicha(pacienteSelecionadoId);
+            }
+        }
         
         function abrirModalCobranca() {
             const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
@@ -3166,17 +2979,14 @@
         async function excluirTriagem(id, nome) {
             if (!confirm(`Deseja excluir esta triagem de "${nome}"? Ela será removida permanentemente.`)) return;
             const { error } = await client
-             .from('pacientes')
-             .update({ excluido_em: new Date().toISOString() })
-             .eq('id', id);
+                .from('pacientes')
+                .update({ excluido_em: new Date().toISOString() })
+                .eq('id', id);
             if (error) alert("Erro ao excluir triagem: " + error.message);
             else await carregarDados();
         }
 
-        // 6. COBRANÇAS
-        // 6. COBRANÇAS (COM FILTRO POR PSICÓLOGA PARA ADMIN E EXCLUSÃO)
         let filtroPsicologaCobrancaAtivo = 'Todas';
-        filtroCobrancaAtivo = 'Todas';
 
         function prepararFiltroPsicologaCobranca() {
             const select = document.getElementById('filtroPsicologaCobranca');
@@ -3187,7 +2997,6 @@
                 select.classList.remove('hidden');
                 if (thPsi) thPsi.classList.remove('hidden');
 
-                // Lista apenas psicólogas (ou todos os perfis que tenham pacientes)
                 const psicologas = todosUsuariosCache.filter(u => u.role === 'psicologo' || todosPacientesCache.some(p => p.psicologa_id === u.id));
                 const valorAnterior = select.value;
 
@@ -3315,9 +3124,9 @@
         async function excluirCobranca(id) {
             if (!confirm("Deseja realmente excluir esta cobrança? Essa ação não pode ser desfeita.")) return;
             const { error } = await client
-             .from('pagamentos')
-             .update({ excluido_em: new Date().toISOString() })
-             .eq('id', id);
+                .from('pagamentos')
+                .update({ excluido_em: new Date().toISOString() })
+                .eq('id', id);
             if (error) {
                 alert("Erro ao excluir cobrança: " + error.message);
             } else {
@@ -3363,9 +3172,7 @@
             document.getElementById('subAReceberContagem').textContent = `${countAbertas} ${countAbertas === 1 ? 'aberta' : 'abertas'}`;
             document.getElementById('subAtrasoContagem').textContent = countAtrasadas > 0 ? `${countAtrasadas} ${countAtrasadas === 1 ? 'vencida' : 'vencidas'}` : 'nada vencido';
         }
-        // ==========================================
-        // ONBOARDING (TRIAL 7 DIAS) & PERFIL CRP/PIX
-        // ==========================================
+
         function alternarTelaAuth(modo) {
             esconderTodasTelasAuth();
             if (modo === 'cadastro') {
@@ -3406,8 +3213,6 @@
             }
 
             if (data.session) {
-                const emailNav = document.getElementById('userEmailNav');
-            if (emailNav) emailNav.textContent = data.user.email;
                 await checarPerfilUsuario(data.user.id, data.user.email);
                 mostrarApp();
             } else {
@@ -3444,17 +3249,6 @@
             document.getElementById('perfilCrp').value = usuarioAtualPerfil.crp || '';
             document.getElementById('perfilAbordagem').value = usuarioAtualPerfil.abordagem || '';
             document.getElementById('perfilPix').value = usuarioAtualPerfil.chave_pix || '';
-            
-            // Limpa o input de arquivo toda vez que abre o modal
-            const fileInput = document.getElementById('perfilAssinaturaFile');
-            if (fileInput) fileInput.value = '';
-            
-            const statusEl = document.getElementById('statusUploadAssinatura');
-            if (statusEl) {
-                statusEl.textContent = usuarioAtualPerfil.assinatura_url 
-                    ? "Assinatura cadastrada atual. Envie uma nova se desejar substituir." 
-                    : "Selecione uma imagem para enviar ao salvar o perfil.";
-            }
 
             document.getElementById('modalPerfilProfissional').classList.remove('hidden');
         }
@@ -3487,33 +3281,6 @@
             }
         });
 
-        // Função que controla a troca de abas e atualiza a URL
-        function mudarAba(nomeAba) {
-            window.location.hash = nomeAba;
-
-            document.querySelectorAll('.secao-conteudo').forEach(secao => {
-                secao.style.display = 'none';
-            });
-
-            const abaAlvo = document.getElementById('secao-' + nomeAba);
-            if (abaAlvo) {
-                abaAlvo.style.display = 'block';
-            }
-        }
-
-        window.addEventListener('DOMContentLoaded', () => {
-            const hashInicial = window.location.hash.replace('#', '') || 'agenda';
-            mudarAba(hashInicial);
-        });
-
-        window.addEventListener('hashchange', () => {
-            const hashAtual = window.location.hash.replace('#', '') || 'agenda';
-            mudarAba(hashAtual);
-        });
-
-        // ==========================================
-        // GERADOR DE RECIBO EM PDF (1 CLIQUE)
-        // ==========================================
         async function gerarReciboPDF(pagamentoId) {
             const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
             if (!pg) return;
@@ -3540,7 +3307,6 @@
                 ? new Date(pg.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')
                 : new Date().toLocaleDateString('pt-BR');
 
-            // Cria um elemento temporário invisível no DOM para o jsPDF ler
             const container = document.createElement('div');
             container.style.position = 'absolute';
             container.style.left = '-9999px';
@@ -3573,18 +3339,16 @@
             document.body.appendChild(container);
 
             try {
-                // Converte o HTML em imagem de alta qualidade e gera o PDF via jsPDF
                 const canvas = await html2canvas(container, { scale: 2, useCORS: true });
                 const imgData = canvas.toDataURL('image/png');
 
                 const { jsPDF } = window.jspdf;
                 const pdf = new jsPDF('p', 'mm', 'a4');
                 const pdfWidth = pdf.internal.pageSize.getWidth();
-                const pdfHeight = (canvas.height * pdfWidth) / canvas.width; // <-- O '*' estava faltando aqui
+                const pdfHeight = (canvas.height * pdfWidth) / canvas.width;
 
                 pdf.addImage(imgData, 'PNG', 0, 10, pdfWidth, pdfHeight);
                 
-                // Nome do arquivo dinâmico com Nome e Data
                 const dataArquivoStr = pg.data_pagamento ? pg.data_pagamento.split('-').reverse().join('-') : 'data';
                 const nomeArquivoLimpo = `Recibo_${pagadorNome.replace(/[^a-zA-Z0-9]/g, '_')}_${dataArquivoStr}.pdf`;
                 
@@ -3597,10 +3361,7 @@
             }
         }
 
-    // ==========================================
-    // EXPORTAÇÃO DE PRONTUÁRIO COMPLETO (PDF / CFP)
-    // ==========================================
-    function exportarProntuarioPDF(registroUnicoId = null) {
+        function exportarProntuarioPDF(registroUnicoId = null) {
             if (!pacienteSelecionadoId) return;
             const pac = todosPacientesCache.find(p => p.id === pacienteSelecionadoId);
             if (!pac) return;
@@ -3610,7 +3371,6 @@
             const crpPsi = psi.crp || 'Não informado';
             const abordagemUtilizada = pac.abordagem || psi.abordagem || 'Não informada';
 
-            // Define quais evoluções entram no PDF: 1 específica, as marcadas, ou todas se nenhuma estiver marcada
             let registrosFiltrados = [...historicoProntuarioAtualCache];
             let subtituloEscopo = 'Prontuário Completo';
 
