@@ -374,35 +374,35 @@
                 </div>
 
                 <nav class="space-y-1.5">
-                    <button id="btn-dashboard" onclick="trocarAbaMobile('dashboard')" class="sidebar-link ativo w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
+                    <button id="btn-dashboard" onclick="mudarAba('dashboard')" class="sidebar-link ativo w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
                         <span>Hoje</span>
                     </button>
-                    <button id="btn-agenda" onclick="trocarAbaMobile('agenda')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
+                    <button id="btn-agenda" onclick="mudarAba('agenda')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
                         <span>Agenda</span>
                     </button>
-                    <button id="btn-agendar" onclick="trocarAbaMobile('agendar')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
+                    <button id="btn-agendar" onclick="mudarAba('agendar')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
                         <span>Agendar sessão</span>
                     </button>
-                    <button id="btn-clientes" onclick="trocarAbaMobile('clientes')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
+                    <button id="btn-clientes" onclick="mudarAba('clientes')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
                         <span>Pacientes</span>
                     </button>
-                    <button id="btn-leads" onclick="trocarAbaMobile('leads')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center justify-between">
+                    <button id="btn-leads" onclick="mudarAba('leads')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center justify-between">
                         <span class="flex items-center gap-3">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4"/></svg>
                             <span>Triagens</span>
                         </span>
                         <span id="badgeLeads" class="hidden px-2 py-0.5 rounded-full bg-amber-500/20 text-amber-300 border border-amber-500/30 text-[10px] font-bold">0</span>
                     </button>
-                    <button id="btn-pagamentos" onclick="trocarAbaMobile('pagamentos')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
+                    <button id="btn-pagamentos" onclick="mudarAba('pagamentos')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                         <span>Cobranças</span>
                     </button>
                     <!-- SOMENTE ADMINISTRADOR VÊ ESTE BOTÃO -->
-                    <button id="btn-equipe" onclick="trocarAbaMobile('equipe')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 hidden">
+                    <button id="btn-equipe" onclick="mudarAba('equipe')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 hidden">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
                         <span>Equipe & Níveis</span>
                     </button>
@@ -444,7 +444,7 @@
         <main class="flex-1 p-4 md:p-10 max-w-7xl mx-auto overflow-x-hidden overflow-y-auto w-full">
 
             <!-- 1. TELA: HOJE -->
-            <section id="aba-dashboard">
+            <section id="secao-dashboard" class="secao-conteudo">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <p id="dataHojeFormatada" class="text-xs font-semibold text-[#9C8EAD] capitalize"></p>
@@ -527,7 +527,7 @@
             </section>
 
             <!-- 2. TELA: AGENDA -->
-            <section id="aba-agenda" class="hidden">
+            <section id="secao-agenda" class="secao-conteudo" style="display: none;">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <p class="text-xs font-semibold text-[#9C8EAD]">Visão Mensal</p>
@@ -575,7 +575,7 @@
             </section>
 
             <!-- 3. TELA: AGENDAR SESSÃO -->
-            <section id="aba-agendar" class="hidden">
+            <section id="secao-agendar" class="secao-conteudo" style="display: none;">
                 <div class="mb-6">
                     <p class="text-xs font-semibold text-[#9C8EAD]">Novo Agendamento</p>
                     <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Agendar sessão</h2>
@@ -697,7 +697,7 @@
             </section>
 
             <!-- 4. TELA: CLIENTES / PACIENTES -->
-            <section id="aba-clientes" class="hidden">
+            <section id="secao-clientes" class="secao-conteudo" style="display: none;">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <p class="text-xs font-semibold text-[#9C8EAD]">Base Clínica</p>
@@ -748,7 +748,7 @@
             </section>
 
             <!-- 5. TELA: TRIAGENS -->
-            <section id="aba-leads" class="hidden">
+            <section id="secao-leads" class="secao-conteudo" style="display: none;">
                 <div class="mb-6">
                     <p class="text-xs font-semibold text-[#9C8EAD]">Formulário Do Site</p>
                     <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Triagens</h2>
@@ -758,8 +758,7 @@
             </section>
 
             <!-- 6. TELA: COBRANÇAS -->
-            <!-- 6. TELA: COBRANÇAS -->
-            <section id="aba-pagamentos" class="hidden">
+            <section id="secao-pagamentos" class="secao-conteudo" style="display: none;">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <p class="text-xs font-semibold text-[#9C8EAD]">Financeiro</p>
@@ -827,7 +826,7 @@
             </section>
 
             <!-- 7. TELA: EQUIPE & NÍVEIS (SOMENTE ADMIN) -->
-            <section id="aba-equipe" class="hidden">
+            <section id="secao-equipe" class="secao-conteudo" style="display: none;">
                 <div class="mb-6">
                     <p class="text-xs font-semibold text-[#9C8EAD]">Gestão de Acessos (Exclusivo Administrador)</p>
                     <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Equipe & Níveis</h2>
@@ -1149,6 +1148,32 @@
         const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4eGNjbGFheGxiZHlic3N4anl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzNjk4NDksImV4cCI6MjEwOTk0NTg0OX0.79Y7Eu9qXhqDl4uh7jfadeW8fR7IwUwSTpJJ7BQNM5Y";
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // ==========================================
+        // CONTROLE DE ABAS E ROTAS POR HASH (URL ÚNICA)
+        // ==========================================
+        function mudarAba(nomeAba) {
+            window.location.hash = nomeAba;
+
+            document.querySelectorAll('.secao-conteudo').forEach(secao => {
+                secao.style.display = 'none';
+            });
+
+            const abaAlvo = document.getElementById('secao-' + nomeAba);
+            if (abaAlvo) {
+                abaAlvo.style.display = 'block';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const hashInicial = window.location.hash.replace('#', '') || 'dashboard';
+            mudarAba(hashInicial);
+        });
+
+        window.addEventListener('hashchange', () => {
+            const hashAtual = window.location.hash.replace('#', '') || 'dashboard';
+            mudarAba(hashAtual);
+        });
 
         let todosPacientesCache = [];
         let todosAtendimentosCache = [];
@@ -1494,7 +1519,7 @@
         }
 
         function trocarAbaMobile(aba) {
-            trocarAba(aba);
+            mudarAba(aba); // Atualiza a URL com a hash (ex: #agenda, #clientes)
             if (window.innerWidth < 768) {
                 const sidebar = document.getElementById('sidebarPrincipal');
                 if (sidebar) sidebar.classList.add('hidden');
@@ -1502,28 +1527,28 @@
             }
         }
 
-        function trocarAba(aba) {
-            if (aba === 'equipe' && !ehAdmin()) {
-                alert("Acesso restrito apenas para Administradores.");
-                return;
-            }
+        function mudarAba(nomeAba) {
+            window.location.hash = nomeAba;
 
-            ['dashboard', 'clientes', 'agendar', 'leads', 'agenda', 'pagamentos', 'equipe'].forEach(a => {
-                const el = document.getElementById(`aba-${a}`);
-                const btn = document.getElementById(`btn-${a}`);
-                if (el) el.classList.add('hidden');
-                if (btn) btn.classList.remove('ativo');
+            document.querySelectorAll('.secao-conteudo').forEach(secao => {
+                secao.style.display = 'none';
             });
-            const abaAlvo = document.getElementById(`aba-${aba}`);
-            const btnAlvo = document.getElementById(`btn-${aba}`);
-            if (abaAlvo) abaAlvo.classList.remove('hidden');
-            if (btnAlvo) btnAlvo.classList.add('ativo');
 
-            if (aba === 'agendar') prepararTelaAgendamento();
-            if (aba === 'agenda') renderizarCalendario();
-            if (aba === 'equipe') carregarEquipe();
-            if (aba === 'pagamentos') aplicarFiltrosCobrancas();
+            const abaAlvo = document.getElementById('secao-' + nomeAba);
+            if (abaAlvo) {
+                abaAlvo.style.display = 'block';
+            }
         }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const hashInicial = window.location.hash.replace('#', '') || 'dashboard';
+            mudarAba(hashInicial);
+        });
+
+        window.addEventListener('hashchange', () => {
+            const hashAtual = window.location.hash.replace('#', '') || 'dashboard';
+            mudarAba(hashAtual);
+        });
 
         function fecharModal(modalId) {
             document.getElementById(modalId).classList.add('hidden');
@@ -3439,6 +3464,30 @@
                 fecharModal('modalPerfilProfissional');
                 alert("Dados profissionais salvos com sucesso!");
             }
+        });
+
+        // Função que controla a troca de abas e atualiza a URL
+        function mudarAba(nomeAba) {
+            window.location.hash = nomeAba;
+
+            document.querySelectorAll('.secao-conteudo').forEach(secao => {
+                secao.style.display = 'none';
+            });
+
+            const abaAlvo = document.getElementById('secao-' + nomeAba);
+            if (abaAlvo) {
+                abaAlvo.style.display = 'block';
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const hashInicial = window.location.hash.replace('#', '') || 'agenda';
+            mudarAba(hashInicial);
+        });
+
+        window.addEventListener('hashchange', () => {
+            const hashAtual = window.location.hash.replace('#', '') || 'agenda';
+            mudarAba(hashAtual);
         });
 
         // ==========================================
