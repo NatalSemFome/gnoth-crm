@@ -1381,10 +1381,31 @@
 
         async function checarPerfilUsuario(userId, fallbackEmail = '') {
             try {
-                const { data } = await client.from('usuarios_perfis').select('*').eq('id', userId).single();
-                usuarioAtualPerfil = data || { id: userId, email: fallbackEmail, nome: fallbackEmail.split('@')[0], role: 'psicologo' };
+                // Consulta limpa e direta à tabela de perfis do Supabase
+                const { data, error } = await client
+                    .from('usuarios_perfis')
+                    .select('*')
+                    .eq('id', userId)
+                    .single();
+
+                if (error || !data) {
+                    // Se por algum motivo o perfil ainda não existir na tabela, cria um registro padrão limpo baseado no e-mail
+                    usuarioAtualPerfil = { 
+                        id: userId, 
+                        email: fallbackEmail, 
+                        nome: fallbackEmail.split('@')[0], 
+                        role: 'psicologo' 
+                    };
+                } else {
+                    usuarioAtualPerfil = data;
+                }
             } catch(e) {
-                usuarioAtualPerfil = { id: userId, email: fallbackEmail, nome: fallbackEmail.split('@')[0], role: 'psicologo' };
+                usuarioAtualPerfil = { 
+                    id: userId, 
+                    email: fallbackEmail, 
+                    nome: fallbackEmail.split('@')[0], 
+                    role: 'psicologo' 
+                };
             }
             
             atualizarSaudacao();
@@ -1394,13 +1415,13 @@
             const btnEquipe = document.getElementById('btn-equipe');
             const thPsicologa = document.getElementById('thPsicologaResponsavel');
 
-            // Verifica se o usuário é administrador de forma segura
+            // Regra pura baseada unicamente no campo 'role' salvo no banco de dados
             if (ehAdmin()) {
                 if (badge) {
                     badge.textContent = "Administrador";
                     badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-400/30";
                 }
-                if (btnEquipe) btnEquipe.classList.remove('hidden'); // Exibe a aba Equipe & Níveis
+                if (btnEquipe) btnEquipe.classList.remove('hidden');
                 if (thPsicologa) thPsicologa.classList.remove('hidden');
             } else {
                 if (badge) {
@@ -1411,7 +1432,6 @@
                 if (thPsicologa) thPsicologa.classList.add('hidden');
             }
 
-            // Se o usuário estiver na aba de equipe e for admin, carrega os dados da equipe
             if (ehAdmin() && typeof carregarEquipe === 'function') {
                 carregarEquipe();
             }
