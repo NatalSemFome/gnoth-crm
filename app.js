@@ -1073,17 +1073,38 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 ativo: document.getElementById('lpEditAtivo').checked
             };
 
-            const { data: salvo, error } = await client
-                .from('landing_pages')
-                .upsert(payload, { onConflict: 'user_id' })
-                .select()
-                .single();
+            let salvo = null;
+            let error = null;
+
+            if (minhaLPAtual && minhaLPAtual.id) {
+                const resUpdate = await client
+                    .from('landing_pages')
+                    .update(payload)
+                    .eq('id', minhaLPAtual.id)
+                    .select()
+                    .single();
+                salvo = resUpdate.data;
+                error = resUpdate.error;
+            } else {
+                const resInsert = await client
+                    .from('landing_pages')
+                    .insert(payload)
+                    .select()
+                    .single();
+                salvo = resInsert.data;
+                error = resInsert.error;
+            }
 
             btn.disabled = false;
             btn.textContent = textoOriginal;
 
             if (error) {
-                alert("Erro ao salvar Landing Page (verifique se este link/slug já não está em uso): " + error.message);
+                const msgErro = error.message || '';
+                if (msgErro.toLowerCase().includes('row-level security')) {
+                    alert("Permissão bloqueada pelo Supabase (RLS) na tabela landing_pages. Rode a policy de liberação no SQL Editor do Supabase para permitir que o dono ou Admin salve.");
+                } else {
+                    alert("Erro ao salvar Landing Page (verifique se este link/slug já não está em uso): " + msgErro);
+                }
             } else {
                 minhaLPAtual = salvo;
                 if (statusFoto) statusFoto.textContent = "✓ Página e foto salvas com sucesso!";
