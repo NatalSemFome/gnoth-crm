@@ -76,6 +76,12 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const btnAlvo = document.getElementById('btn-' + nomeAba);
             if (btnAlvo) btnAlvo.classList.add('ativo');
 
+            if (window.innerWidth < 768) {
+                const sidebar = document.getElementById('sidebarPrincipal');
+                if (sidebar) sidebar.classList.add('hidden');
+                document.body.classList.remove('overflow-hidden');
+            }
+
             const abaAlvo = document.getElementById('secao-' + nomeAba);
             if (abaAlvo) {
                 abaAlvo.style.display = 'block';
