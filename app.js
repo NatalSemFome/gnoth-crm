@@ -1266,6 +1266,8 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const hojeStr = obterChaveDiaLocal(agora);
             const dispensadas = obterNotificacoesDispensadas();
 
+            try {
+
             // 1. CONFIGURAÇÃO URGENTE: CHAVE PIX NÃO CONFIGURADA
             const chavePixPsi = (perfil?.chave_pix || (perfil ? localStorage.getItem('gnoth_chave_pix_user_' + perfil.id) : null) || '').trim();
             if (perfil && !chavePixPsi) {
@@ -1394,7 +1396,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                         const nomePac = pac.nome || 'Paciente';
                         const horaFmt = dtSessao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
                         const mod = a.modalidade || pac.modalidade || 'Online';
-                        const linkWpp = gerarLinkWhatsappLembrete(a, pac, mod);
+                        const linkWpp = gerarUrlLembreteWhatsApp(a.paciente_id, a.data_hora, mod);
 
                         let botoes = `<button onclick="alternarPainelNotificacoes(); trocarAbaMobile('agenda')" class="px-3 py-1.5 bg-[#2B2138] hover:bg-[#3F3152] border border-[#3F3152] text-[#D8B4FE] rounded-xl text-[11px] font-semibold flex items-center gap-1.5"><span>📅</span> Ver Agenda</button>`;
                         if (linkWpp) {
@@ -1504,6 +1506,9 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     }
                 }
             });
+            } catch (err) {
+                console.error('Erro ao gerar notificações:', err);
+            }
 
             notificacoesAtuaisCache = alertas;
             renderizarNotificacoesInteligentes();
@@ -2697,6 +2702,11 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 todosPacientesCache = [registroFinal, ...todosPacientesCache.filter(p => p.id !== registroFinal.id)];
                 limparDispensadasDoPaciente(registroFinal.id);
 
+                // Fecha o modal e limpa o formulário imediatamente antes das re-renderizações
+                document.getElementById('formNovoCliente').reset();
+                fecharModal('modalCliente');
+                exibirToastTempoReal(`Paciente ${nome} cadastrado com sucesso!`);
+
                 // 2. Re-renderiza imediatamente a lista de pacientes, notificações e agenda
                 aplicarFiltrosClientes();
                 gerarNotificacoesInteligentes();
@@ -2704,12 +2714,11 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     prepararTelaAgendamento({ preservarSelecao: true });
                 }
 
-                document.getElementById('formNovoCliente').reset();
-                fecharModal('modalCliente');
-                exibirToastTempoReal(`Paciente ${nome} cadastrado com sucesso!`);
-
                 // 3. Sincroniza em background com o banco
                 await carregarDados();
+            } catch (err) {
+                console.error('Erro inesperado ao cadastrar paciente:', err);
+                alert("Erro inesperado ao cadastrar paciente: " + (err && err.message ? err.message : err));
             } finally {
                 if (btnSalvar) {
                     btnSalvar.disabled = false;
