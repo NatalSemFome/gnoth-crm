@@ -711,7 +711,7 @@
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
                     <div>
                         <p class="text-xs font-semibold text-[#9C8EAD]">Financeiro</p>
-                        <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Cobranças</h2>
+                        <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Pagamentos</h2>
                         <p class="text-xs text-[#9C8EAD] mt-0.5">Controle de recebimentos e histórico.</p>
                     </div>
                     <div class="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
@@ -1718,11 +1718,84 @@
             }
         }
 
+        let canalRealtime = null;
+        let intervaloAutoSync = null;
+        let timeoutDebounceSync = null;
+        let carregandoDadosEmAndamento = false;
+        let qtdLeadsAnterior = null;
+
+        function exibirToastTempoReal(mensagem) {
+            let toast = document.getElementById('toastTempoRealGnoth');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toastTempoRealGnoth';
+                toast.className = 'fixed bottom-5 right-5 z-50 px-4 py-3 rounded-2xl bg-[#2B2138] border border-purple-400/40 text-xs font-semibold text-white shadow-2xl transition-all duration-300 opacity-0 translate-y-2 pointer-events-none flex items-center gap-2';
+                document.body.appendChild(toast);
+            }
+            toast.innerHTML = `<span>🔔</span><span>${escapeHtml(mensagem)}</span>`;
+            toast.classList.remove('opacity-0', 'translate-y-2');
+            clearTimeout(toast._hideTimer);
+            toast._hideTimer = setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-2');
+            }, 4000);
+        }
+
+        function agendarSincronizacaoTempoReal(tabelaAfetada = '') {
+            if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
+            clearTimeout(timeoutDebounceSync);
+            timeoutDebounceSync = setTimeout(async () => {
+                await carregarDados({ silencioso: true });
+                const abaAtual = obterAbaDaUrl();
+                if (abaAtual === 'equipe' && ehAdmin() && ( !tabelaAfetada || tabelaAfetada === 'usuarios_perfis' || tabelaAfetada === 'landing_pages')) {
+                    carregarEquipe();
+                }
+            }, 350);
+        }
+
+        function iniciarSincronizacaoTempoReal() {
+            if (! canalRealtime) {
+                try {
+                    canalRealtime = client
+                        .channel('gnothi-crm-realtime')
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, () => agendarSincronizacaoTempoReal('pacientes'))
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'atendimentos' }, () => agendarSincronizacaoTempoReal('atendimentos'))
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'pagamentos' }, () => agendarSincronizacaoTempoReal('pagamentos'))
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'prontuarios_historico' }, () => agendarSincronizacaoTempoReal('prontuarios_historico'))
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios_perfis' }, () => agendarSincronizacaoTempoReal('usuarios_perfis'))
+                        .on('postgres_changes', { event: '*', schema: 'public', table: 'landing_pages' }, () => agendarSincronizacaoTempoReal('landing_pages'))
+                        .subscribe();
+                } catch (e) {
+                    console.warn('Realtime fallback ativo:', e);
+                }
+            }
+
+            if (!intervaloAutoSync) {
+                intervaloAutoSync = setInterval(() => {
+                    if (document.visibilityState === 'visible' && usuarioAtualPerfil && usuarioAtualPerfil.id) {
+                        carregarDados({ silencioso: true });
+                    }
+                }, 8000);
+
+                window.addEventListener('focus', () => {
+                    if (usuarioAtualPerfil && usuarioAtualPerfil.id) {
+                        carregarDados({ silencioso: true });
+                    }
+                });
+
+                document.addEventListener('visibilitychange', () => {
+                    if (document.visibilityState === 'visible' && usuarioAtualPerfil && usuarioAtualPerfil.id) {
+                        carregarDados({ silencioso: true });
+                    }
+                });
+            }
+        }
+
         function mostrarApp() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
             mudarAba(obterAbaDaUrl(), { substituir: true });
             carregarDados();
+            iniciarSincronizacaoTempoReal();
         }
 
         function alternarMenuMobile() {
@@ -1746,74 +1819,88 @@
             document.getElementById(modalId).classList.add('hidden');
         }
 
-        async function carregarDados() {
-            const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('nome', { ascending: true });
-            todosUsuariosCache = usuarios || [];
+        async function carregarDados(opcoes = {}) {
+            if (carregandoDadosEmAndamento) return;
+            carregandoDadosEmAndamento = true;
+            try {
+                const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('nome', { ascending: true });
+                todosUsuariosCache = usuarios || [];
 
-            const { data: pacientes } = await client
-                .from('pacientes')
-                .select('*')
-                .is('excluido_em', null)
-                .order('created_at', { ascending: false });
-            const todosBrutos = pacientes || [];
+                const { data: pacientes } = await client
+                    .from('pacientes')
+                    .select('*')
+                    .is('excluido_em', null)
+                    .order('created_at', { ascending: false });
+                const todosBrutos = pacientes || [];
 
-            if (ehAdmin()) {
-                todosPacientesCache = todosBrutos;
-            } else {
-                todosPacientesCache = todosBrutos.filter(p => p.psicologa_id === usuarioAtualPerfil.id);
-            }
-
-            const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
-            const leads = todosPacientesCache.filter(p => p.status === 'Novo Contato');
-
-            document.getElementById('kpiClientesAtivos').textContent = clientes.length;
-            document.getElementById('kpiLeadsPendentes').textContent = leads.length;
-
-            const badgeLeads = document.getElementById('badgeLeads');
-            if (badgeLeads) {
-                if (leads.length > 0) {
-                    badgeLeads.textContent = leads.length;
-                    badgeLeads.classList.remove('hidden');
+                if (ehAdmin()) {
+                    todosPacientesCache = todosBrutos;
                 } else {
-                    badgeLeads.classList.add('hidden');
+                    todosPacientesCache = todosBrutos.filter(p => p.psicologa_id === usuarioAtualPerfil.id);
                 }
+
+                const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
+                const leads = todosPacientesCache.filter(p => p.status === 'Novo Contato');
+
+                if (qtdLeadsAnterior !== null && leads.length > qtdLeadsAnterior) {
+                    exibirToastTempoReal('Nova triagem recebida no painel!');
+                }
+                qtdLeadsAnterior = leads.length;
+
+                document.getElementById('kpiClientesAtivos').textContent = clientes.length;
+                document.getElementById('kpiLeadsPendentes').textContent = leads.length;
+
+                const badgeLeads = document.getElementById('badgeLeads');
+                if (badgeLeads) {
+                    if (leads.length > 0) {
+                        badgeLeads.textContent = leads.length;
+                        badgeLeads.classList.remove('hidden');
+                    } else {
+                        badgeLeads.classList.add('hidden');
+                    }
+                }
+
+                const avisoTriagemTexto = document.getElementById('textoAvisoTriagem');
+                if (avisoTriagemTexto) {
+                    avisoTriagemTexto.textContent = `${leads.length} ${leads.length === 1 ? 'triagem nova' : 'triagens novas'}`;
+                }
+
+                const idsPacientesVisiveis = new Set(clientes.map(c => c.id));
+
+                const { data: atendimentos } = await client
+                    .from('atendimentos')
+                    .select('*, pacientes(nome, whatsapp, modalidade, valor_padrao_sessao, psicologa_id)')
+                    .is('excluido_em', null)
+                    .order('data_hora', { ascending: true });
+                todosAtendimentosCache = (atendimentos || []).filter(a => ehAdmin() || idsPacientesVisiveis.has(a.paciente_id));
+
+                const { data: pagamentos } = await client
+                    .from('pagamentos')
+                    .select('*, pacientes(nome, whatsapp)')
+                    .is('excluido_em', null)
+                    .order('data_vencimento', { ascending: false });
+                todosPagamentosCache = (pagamentos || []).filter(pg => ehAdmin() || idsPacientesVisiveis.has(pg.paciente_id));
+
+                const { data: prontuariosRecentes } = await client
+                    .from('prontuarios_historico')
+                    .select('paciente_id, criado_em')
+                    .is('excluido_em', null)
+                    .order('criado_em', { ascending: false });
+
+                gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes || []);
+                renderizarCronogramaHoje(todosAtendimentosCache);
+                renderizarProximosEAlertas(todosAtendimentosCache);
+                aplicarFiltrosClientes();
+                renderizarTriagensCards(leads);
+                renderizarCalendario();
+                aplicarFiltrosCobrancas();
+                atualizarKpisFinanceiros(todosPagamentosCache);
+                if (typeof prepararTelaAgendamento === 'function') {
+                    prepararTelaAgendamento({ preservarSelecao: true });
+                }
+            } finally {
+                carregandoDadosEmAndamento = false;
             }
-
-            const avisoTriagemTexto = document.getElementById('textoAvisoTriagem');
-            if (avisoTriagemTexto) {
-                avisoTriagemTexto.textContent = `${leads.length} ${leads.length === 1 ? 'triagem nova' : 'triagens novas'}`;
-            }
-
-            const idsPacientesVisiveis = new Set(clientes.map(c => c.id));
-
-            const { data: atendimentos } = await client
-                .from('atendimentos')
-                .select('*, pacientes(nome, whatsapp, modalidade, valor_padrao_sessao)')
-                .is('excluido_em', null)
-                .order('data_hora', { ascending: true });
-            todosAtendimentosCache = (atendimentos || []).filter(a => ehAdmin() || idsPacientesVisiveis.has(a.paciente_id));
-
-            const { data: pagamentos } = await client
-                .from('pagamentos')
-                .select('*, pacientes(nome, whatsapp)')
-                .is('excluido_em', null)
-                .order('data_vencimento', { ascending: false });
-            todosPagamentosCache = (pagamentos || []).filter(pg => ehAdmin() || idsPacientesVisiveis.has(pg.paciente_id));
-
-            const { data: prontuariosRecentes } = await client
-                .from('prontuarios_historico')
-                .select('paciente_id, criado_em')
-                .is('excluido_em', null)
-                .order('criado_em', { ascending: false });
-
-            gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes || []);
-            renderizarCronogramaHoje(todosAtendimentosCache);
-            renderizarProximosEAlertas(todosAtendimentosCache);
-            aplicarFiltrosClientes();
-            renderizarTriagensCards(leads);
-            renderizarCalendario();
-            aplicarFiltrosCobrancas();
-            atualizarKpisFinanceiros(todosPagamentosCache);
         }
         let minhaLPAtual = null;
 
@@ -2533,29 +2620,45 @@
             return new Date(ano, mes - 1, dia, hora, minuto, 0, 0);
         }
 
-        function formatarIsoComFusoLocal(dateObj) {
+        function formatarIsoComFusoLocal(dateObj, segundosExtras = 0) {
+            const dt = segundosExtras ? new Date(dateObj.getTime() + segundosExtras * 1000) : dateObj;
             const pad = (n) => String(n).padStart(2, '0');
-            const offsetMin = -dateObj.getTimezoneOffset();
+            const offsetMin = -dt.getTimezoneOffset();
             const sinal = offsetMin >= 0 ? '+' : '-';
             const absOffset = Math.abs(offsetMin);
             const offH = pad(Math.floor(absOffset / 60));
             const offM = pad(absOffset % 60);
 
-            return `${dateObj.getFullYear()}-${pad(dateObj.getMonth() + 1)}-${pad(dateObj.getDate())}T${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}:00${sinal}${offH}:${offM}`;
+            return `${dt.getFullYear()}-${pad(dt.getMonth() + 1)}-${pad(dt.getDate())}T${pad(dt.getHours())}:${pad(dt.getMinutes())}:${pad(dt.getSeconds())}${sinal}${offH}:${offM}`;
         }
 
-        function prepararTelaAgendamento() {
+        function obterChaveDataHoraMinutoLocal(dateObj) {
+            const pad = (n) => String(n).padStart(2, '0');
+            return `${obterChaveDiaLocal(dateObj)} ${pad(dateObj.getHours())}:${pad(dateObj.getMinutes())}`;
+        }
+
+        function prepararTelaAgendamento(opcoes = {}) {
             const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
             const select = document.getElementById('agendarClienteSelect');
 
             if (!select) return;
+
+            const valorAnterior = select.value;
 
             if (clientes.length === 0) {
                 select.innerHTML = '<option value="">Nenhum paciente cadastrado</option>';
                 return;
             }
 
-            select.innerHTML = clientes.map(c => `<option value="${c.id}">${escapeHtml(c.nome)}</option>`).join('');
+            const isAdmin = ehAdmin();
+            select.innerHTML = clientes.map(c => {
+                const sufixoPsi = isAdmin ? ` (${obterNomePsicologa(c.psicologa_id)})` : '';
+                return `<option value="${c.id}">${escapeHtml(c.nome + sufixoPsi)}</option>`;
+            }).join('');
+
+            if (opcoes.preservarSelecao && valorAnterior && clientes.some(c => c.id === valorAnterior)) {
+                select.value = valorAnterior;
+            }
 
             const inputData = document.getElementById('agendarData');
             const inputHora = document.getElementById('agendarHora');
@@ -2572,7 +2675,7 @@
                 inputHora.value = '14:00';
             }
 
-            if (typeof selecionarModalidade === 'function') {
+            if (!opcoes.preservarSelecao && typeof selecionarModalidade === 'function') {
                 selecionarModalidade('Online');
             }
             if (typeof atualizarResumoAgendamento === 'function') {
@@ -2678,29 +2781,53 @@
                         datasParaCriar.push(dt);
                     }
 
-                    const isosParaChecar = datasParaCriar.map(d => formatarIsoComFusoLocal(d));
-                    const { data: conflitos, error: erroConflito } = await client
+                    const pacienteAlvo = todosPacientesCache.find(p => p.id === paciente_id);
+                    const psicologaAlvoId = pacienteAlvo?.psicologa_id || usuarioAtualPerfil?.id || null;
+
+                    const { data: sessoesAtivas, error: erroConflito } = await client
                         .from('atendimentos')
-                        .select('data_hora, pacientes(nome)')
-                        .in('data_hora', isosParaChecar)
+                        .select('id, data_hora, paciente_id, status, pacientes(nome, psicologa_id)')
+                        .is('excluido_em', null)
                         .neq('status', 'Cancelada');
 
                     if (erroConflito) throw erroConflito;
 
-                    if (conflitos && conflitos.length > 0) {
-                        const dtConf = new Date(conflitos[0].data_hora).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
-                        const pacConf = conflitos[0].pacientes ? conflitos[0].pacientes.nome : 'outro paciente';
-                        alert(`⚠️ Conflito de Horário!\nJá existe sessão em ${dtConf} com ${pacConf}. Ajuste a data/horário inicial.`);
+                    const chavesDesejadas = new Set(datasParaCriar.map(d => obterChaveDataHoraMinutoLocal(d)));
+                    const conflitosMesmaPsicologa = (sessoesAtivas || []).filter(s => {
+                        if (!s.data_hora) return false;
+                        const chaveSessao = obterChaveDataHoraMinutoLocal(new Date(s.data_hora));
+                        if (!chavesDesejadas.has(chaveSessao)) return false;
+
+                        const psiDaSessao = s.pacientes?.psicologa_id
+                            || todosPacientesCache.find(p => p.id === s.paciente_id)?.psicologa_id
+                            || null;
+
+                        return psiDaSessao === psicologaAlvoId;
+                    });
+
+                    if (conflitosMesmaPsicologa.length > 0) {
+                        const dtConf = new Date(conflitosMesmaPsicologa[0].data_hora).toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+                        const pacConf = conflitosMesmaPsicologa[0].pacientes ? conflitosMesmaPsicologa[0].pacientes.nome : 'outro paciente';
+                        alert(`⚠️ Conflito de Horário!\nEste profissional já possui sessão em ${dtConf} com ${pacConf}. Ajuste a data/horário inicial.`);
                         if (btn) { btn.disabled = false; btn.textContent = "Confirmar agendamento"; }
                         return;
                     }
 
-                    const novosAtendimentos = datasParaCriar.map(dt => ({
-                        paciente_id,
-                        data_hora: formatarIsoComFusoLocal(dt),
-                        modalidade,
-                        status: 'Agendada'
-                    }));
+                    // Garante que mesmo se o banco tiver índice único legado em data_hora, diferentes psicólogas possam agendar no mesmo horário (HH:mm)
+                    const timestampsOcupadosMs = new Set((sessoesAtivas || []).map(s => new Date(s.data_hora).getTime()));
+                    const novosAtendimentos = datasParaCriar.map(dt => {
+                        let segOffset = 0;
+                        while (timestampsOcupadosMs.has(dt.getTime() + segOffset * 1000) && segOffset < 59) {
+                            segOffset++;
+                        }
+                        timestampsOcupadosMs.add(dt.getTime() + segOffset * 1000);
+                        return {
+                            paciente_id,
+                            data_hora: formatarIsoComFusoLocal(dt, segOffset),
+                            modalidade,
+                            status: 'Agendada'
+                        };
+                    });
 
                     const { error: erroAtend } = await client.from('atendimentos').insert(novosAtendimentos);
                     if (erroAtend) throw erroAtend;
