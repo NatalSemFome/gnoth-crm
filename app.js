@@ -492,7 +492,21 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         let intervaloAutoSync = null;
         let timeoutDebounceSync = null;
         let carregandoDadosEmAndamento = false;
+        let versaoMutacaoLocal = 0;
         let qtdLeadsAnterior = null;
+
+        function alternarInstrucoesReceitaSaude() {
+            const el = document.getElementById('painelInstrucoesReceitaSaude');
+            if (!el) return;
+            const estaOculto = el.classList.contains('hidden') || el.style.display === 'none';
+            if (estaOculto) {
+                el.classList.remove('hidden');
+                el.style.display = 'block';
+            } else {
+                el.classList.add('hidden');
+                el.style.display = 'none';
+            }
+        }
 
         function exibirToastTempoReal(mensagem) {
             let toast = document.getElementById('toastTempoRealGnoth');
@@ -586,14 +600,19 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         function fecharModal(modalId) {
-            document.getElementById(modalId).classList.add('hidden');
+            const el = document.getElementById(modalId);
+            if (!el) return;
+            el.classList.add('hidden');
+            el.style.display = '';
         }
 
         async function carregarDados(opcoes = {}) {
             if (carregandoDadosEmAndamento && opcoes.silencioso) return;
             carregandoDadosEmAndamento = true;
+            const versaoInicio = versaoMutacaoLocal;
             try {
                 const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('nome', { ascending: true });
+                if (opcoes.silencioso && versaoMutacaoLocal !== versaoInicio) return;
                 todosUsuariosCache = usuarios || [];
 
                 const { data: pacientes } = await client
@@ -601,6 +620,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     .select('*')
                     .is('excluido_em', null)
                     .order('created_at', { ascending: false });
+                if (opcoes.silencioso && versaoMutacaoLocal !== versaoInicio) return;
                 const todosBrutos = pacientes || [];
 
                 if (ehAdmin()) {
@@ -649,6 +669,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     .select('*, pacientes(nome, whatsapp)')
                     .is('excluido_em', null)
                     .order('data_vencimento', { ascending: false });
+                if (opcoes.silencioso && versaoMutacaoLocal !== versaoInicio) return;
                 todosPagamentosCache = (pagamentos || []).filter(pg => ehAdmin() || idsPacientesVisiveis.has(pg.paciente_id));
 
                 const { data: prontuariosRecentes } = await client
@@ -2687,6 +2708,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         async function marcarComoPago(id) {
+            versaoMutacaoLocal++;
             const hoje = obterChaveDiaLocal();
             const itemLocal = todosPagamentosCache.find(p => p.id === id);
             if (itemLocal) {
@@ -2704,6 +2726,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         async function excluirCobranca(id) {
             if (!confirm("Deseja realmente excluir esta cobrança? Essa ação não pode ser desfeita.")) return;
+            versaoMutacaoLocal++;
             const { error } = await client
                 .from('pagamentos')
                 .update({ excluido_em: new Date().toISOString() })
@@ -3049,7 +3072,11 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (inputCpfResp) inputCpfResp.value = pac.responsavel_cpf || '';
 
             atualizarUICamposModalReceitaIndividual();
-            document.getElementById('modalReceitaSaudeIndividual').classList.remove('hidden');
+            const modal = document.getElementById('modalReceitaSaudeIndividual');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
         }
 
         function atualizarUICamposModalReceitaIndividual() {
@@ -3223,7 +3250,10 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
             atualizarPreviaLoteReceitaSaude();
             const modal = document.getElementById('modalReceitaSaudeLote');
-            if (modal) modal.classList.remove('hidden');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
         }
 
         function obterPagamentosPagosDoMesSelecionado() {

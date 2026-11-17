@@ -68,3 +68,7 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator {
 ::-webkit-scrollbar-track { background: #141019; }
 ::-webkit-scrollbar-thumb { background: #362B42; border-radius: 10px; }
 ::-webkit-scrollbar-thumb:hover { background: #524263; }
+
+.hidden {
+    display: none !important;
+}

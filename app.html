@@ -12,7 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
 
-    <link rel="stylesheet" href="/app.css?v=20261117b">
+    <link rel="stylesheet" href="app.css?v=20261117c">
     <!-- Biblioteca jsPDF para gerar PDF direto -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -698,39 +698,41 @@
                                 <p class="text-[11px] text-[#9C8EAD]">Veja o passo a passo para exportar todos os recibos do mês em lote (.CSV) ou emitir na hora da sessão.</p>
                             </div>
                         </div>
-                        <button type="button" onclick="document.getElementById('painelInstrucoesReceitaSaude').classList.toggle('hidden')" class="px-3.5 py-2 rounded-xl bg-[#2B2138] hover:bg-[#3F3152] border border-[#3F3152] text-xs font-semibold text-[#E5DCED] transition self-start sm:self-auto shrink-0">
+                        <button type="button" onclick="alternarInstrucoesReceitaSaude()" class="px-3.5 py-2 rounded-xl bg-[#2B2138] hover:bg-[#3F3152] border border-[#3F3152] text-xs font-semibold text-[#E5DCED] transition self-start sm:self-auto shrink-0">
                             📖 Ver / Ocultar Passo a Passo
                         </button>
                     </div>
 
-                    <div id="painelInstrucoesReceitaSaude" class="hidden mt-4 pt-4 border-t border-[#2E2538] grid grid-cols-1 lg:grid-cols-2 gap-4 text-xs">
-                        <!-- FLUXO 1: LOTE MENSAL CSV -->
-                        <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-2.5">
-                            <div class="flex items-center justify-between">
-                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">Opção 1 · Fim do Mês (Em Lote)</span>
-                                <span class="text-[11px] text-[#9C8EAD]">Mais rápido (1 min)</span>
+                    <div id="painelInstrucoesReceitaSaude" class="hidden mt-4 pt-4 border-t border-[#2E2538] text-xs" style="display: none;">
+                        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                            <!-- FLUXO 1: LOTE MENSAL CSV -->
+                            <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">Opção 1 · Fim do Mês (Em Lote)</span>
+                                    <span class="text-[11px] text-[#9C8EAD]">Mais rápido (1 min)</span>
+                                </div>
+                                <h4 class="font-bold text-white text-xs">Importar arquivo .CSV no Portal e-CAC</h4>
+                                <ol class="space-y-1.5 text-[11px] text-[#C2ADC9] list-decimal list-inside leading-relaxed">
+                                    <li>Clique no botão verde <strong>🏛️ Receita Saúde (.CSV)</strong> no topo desta tela, escolha o mês e baixe o arquivo <code>.csv</code>.</li>
+                                    <li>Acesse o portal <a href="https://cav.receita.fazenda.gov.br" target="_blank" rel="noopener" class="text-emerald-400 underline hover:text-emerald-300">e-CAC da Receita Federal ↗</a> com sua conta <strong>gov.br</strong> (Prata ou Ouro).</li>
+                                    <li>Clique em <strong>Meu Imposto de Renda</strong> → <strong>Acessar Carnê-Leão</strong>.</li>
+                                    <li>No menu lateral esquerdo, vá em <strong>Escrituração → Importar Arquivo CSV</strong> e envie o arquivo baixado do Gnoth. Todos os recibos do mês serão lançados de uma só vez (Código <code>R01.001.001</code> · Ocupação <code>255</code>).</li>
+                                </ol>
                             </div>
-                            <h4 class="font-bold text-white text-xs">Importar arquivo .CSV no Portal e-CAC</h4>
-                            <ol class="space-y-1.5 text-[11px] text-[#C2ADC9] list-decimal list-inside leading-relaxed">
-                                <li>Clique no botão verde <strong>🏛️ Receita Saúde (.CSV)</strong> no topo desta tela, escolha o mês e baixe o arquivo <code>.csv</code>.</li>
-                                <li>Acesse o portal <a href="https://cav.receita.fazenda.gov.br" target="_blank" rel="noopener" class="text-emerald-400 underline hover:text-emerald-300">e-CAC da Receita Federal ↗</a> com sua conta <strong>gov.br</strong> (Prata ou Ouro).</li>
-                                <li>Clique em <strong>Meu Imposto de Renda</strong> → <strong>Acessar Carnê-Leão</strong>.</li>
-                                <li>No menu lateral esquerdo, vá em <strong>Escrituração → Importar Arquivo CSV</strong> e envie o arquivo baixado do Gnoth. Todos os recibos do mês serão lançados de uma só vez (Código <code>R01.001.001</code> · Ocupação <code>255</code>).</li>
-                            </ol>
-                        </div>
 
-                        <!-- FLUXO 2: EMISSÃO NA HORA DA SESSÃO -->
-                        <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-2.5">
-                            <div class="flex items-center justify-between">
-                                <span class="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold uppercase tracking-wider">Opção 2 · No Dia da Sessão (Individual)</span>
-                                <span class="text-[11px] text-[#9C8EAD]">App ou Web</span>
+                            <!-- FLUXO 2: EMISSÃO NA HORA DA SESSÃO -->
+                            <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-2.5">
+                                <div class="flex items-center justify-between">
+                                    <span class="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold uppercase tracking-wider">Opção 2 · No Dia da Sessão (Individual)</span>
+                                    <span class="text-[11px] text-[#9C8EAD]">App ou Web</span>
+                                </div>
+                                <h4 class="font-bold text-white text-xs">Quando o paciente pede o recibo na hora</h4>
+                                <ol class="space-y-1.5 text-[11px] text-[#C2ADC9] list-decimal list-inside leading-relaxed">
+                                    <li>Na linha do pagamento confirmado abaixo, clique em <strong>🏛️ Receita Saúde / Recibo</strong>.</li>
+                                    <li>Use os botões de <strong>1 clique</strong> (<em>Copiar CPF Pagador</em>, <em>Copiar CPF Paciente</em>, <em>Copiar Valor</em>) para colar direto no <strong>App Receita Federal (Receita Saúde)</strong> ou gere o <strong>Comprovante em PDF</strong> para enviar no WhatsApp.</li>
+                                    <li>Clique em <strong>✅ Marcar Emitido na Receita</strong> para identificar a cobrança com o selo roxo <strong>🏛️ Receita OK</strong> na tabela.</li>
+                                </ol>
                             </div>
-                            <h4 class="font-bold text-white text-xs">Quando o paciente pede o recibo na hora</h4>
-                            <ol class="space-y-1.5 text-[11px] text-[#C2ADC9] list-decimal list-inside leading-relaxed">
-                                <li>Na linha do pagamento confirmado abaixo, clique em <strong>🏛️ Receita Saúde / Recibo</strong>.</li>
-                                <li>Use os botões de <strong>1 clique</strong> (<em>Copiar CPF Pagador</em>, <em>Copiar CPF Paciente</em>, <em>Copiar Valor</em>) para colar direto no <strong>App Receita Federal (Receita Saúde)</strong> ou gere o <strong>Comprovante em PDF</strong> para enviar no WhatsApp.</li>
-                                <li>Clique em <strong>✅ Marcar Emitido na Receita</strong> para identificar a cobrança com o selo roxo <strong>🏛️ Receita OK</strong> na tabela.</li>
-                            </ol>
                         </div>
                     </div>
                 </div>
@@ -1432,6 +1434,6 @@
     </div>
 
     <!-- JAVASCRIPT GERAL -->
-    <script src="/app.js?v=20261117b"></script>
+    <script src="app.js?v=20261117c"></script>
 </body>
 </html>
