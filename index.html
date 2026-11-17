@@ -75,10 +75,9 @@
     <section class="max-w-6xl mx-auto px-6 pt-12 pb-20 md:pt-20 md:pb-28">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div class="lg:col-span-7 space-y-6">
-                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EFEAF4] border border-[#D8CBE5] text-[11px] font-bold text-[#5F4A78]">
-                    <span>🏛️</span>
-                    <span>Compatível com Receita Saúde / Carnê-Leão Web + Resolução CFP nº 01/2009</span>
-                </div>
+                <span class="inline-block text-[11px] font-bold uppercase tracking-[0.22em] text-[#6E568A]">
+                    Feito para Psicólogos Clínicos
+                </span>
 
                 <h1 class="font-serif text-4xl sm:text-5xl lg:text-[54px] font-semibold text-[#1D1724] leading-[1.1] tracking-tight">
                     Uma clínica silenciosa e organizada para quem cuida de <em class="italic font-normal text-[#6E568A]">histórias.</em>
@@ -225,10 +224,6 @@
                                 </div>
                                 <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">✓ CPF Validado</span>
                             </div>
-                        </div>
-
-                        <div class="p-3 rounded-xl bg-[#1D1724]/70 border border-[#2E2538] font-mono text-[10px] text-[#C2ADC9] overflow-x-auto whitespace-nowrap">
-                            17/11/2026;R01.001.001;255;180,00;;Atendimento psicologico;PF;12345678901;12345678901;;;
                         </div>
 
                         <a href="/cadastro" class="block w-full py-3.5 btn-plum rounded-xl text-center text-xs font-bold shadow-md">
@@ -402,7 +397,7 @@
 
     <!-- SEÇÃO: PLANOS E PREÇOS -->
     <section id="planos" class="py-20 bg-white border-t subtle-border">
-        <div class="max-w-5xl mx-auto px-6">
+        <div class="max-w-6xl mx-auto px-6">
             <div class="text-center max-w-xl mx-auto mb-14 space-y-2">
                 <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#6E568A]">Investimento Transparente</span>
                 <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-[#1D1724]">
@@ -413,8 +408,8 @@
                 </p>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch">
-                <!-- PLANO INDIVIDUAL -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-7 items-stretch">
+                <!-- 1. PLANO INDIVIDUAL -->
                 <div class="p-8 rounded-3xl bg-[#F9F7F2] border subtle-border flex flex-col justify-between space-y-6">
                     <div>
                         <span class="text-xs font-bold uppercase tracking-wider text-[#6E568A]">Consultório Autônomo</span>
@@ -441,24 +436,54 @@
                     </a>
                 </div>
 
-                <!-- PLANO CLÍNICA -->
-                <div class="p-8 rounded-3xl card-plum border-2 border-[#6E568A] flex flex-col justify-between space-y-6 relative">
-                    <span class="absolute -top-3.5 right-6 px-3.5 py-1 bg-[#6E568A] text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow">
-                        Para Equipes & Clínicas
+                <!-- 2. PLANO INDIVIDUAL + LANDING PAGE (MAIS ESCOLHIDO) -->
+                <div class="p-8 rounded-3xl card-plum border-2 border-[#8E73AD] flex flex-col justify-between space-y-6 relative shadow-xl">
+                    <span class="absolute -top-3.5 right-6 px-3.5 py-1 bg-emerald-600 text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow">
+                        ⭐ Mais Completo p/ Autônomos
                     </span>
                     <div>
-                        <span class="text-xs font-bold uppercase tracking-wider text-[#D8B4FE]">Clínica & Sublocação</span>
-                        <h3 class="font-serif text-2xl font-bold text-white mt-1">Plano Clínica</h3>
-                        <p class="text-xs text-[#9C8EAD] mt-1">Para clínicas com múltiplos profissionais e gestão centralizada.</p>
+                        <span class="text-xs font-bold uppercase tracking-wider text-[#D8B4FE]">Gestão + Captação de Pacientes</span>
+                        <h3 class="font-serif text-2xl font-bold text-white mt-1">Individual + Landing Page</h3>
+                        <p class="text-xs text-[#9C8EAD] mt-1">O sistema completo de gestão clínica somado ao seu próprio site profissional.</p>
                         
                         <div class="mt-6 flex items-baseline gap-1">
-                            <span class="font-serif text-4xl font-bold text-white">R$ 119,90</span>
+                            <span class="font-serif text-4xl font-bold text-white">R$ 79,90</span>
                             <span class="text-xs text-[#9C8EAD]">/mês</span>
                         </div>
 
                         <ul class="mt-6 space-y-3 text-xs text-[#E5DCED]">
+                            <li>✓ <strong>Tudo do Plano Individual incluso</strong></li>
+                            <li>✓ 🌐 <strong>Landing Page Profissional Exclusiva</strong> (<code>gnoth.com.br/lp/SeuNome</code>)</li>
+                            <li>✓ Painel visual para personalizar cores, foto, bio e abordagem</li>
+                            <li>✓ Botão flutuante de WhatsApp + Formulário de acolhimento na página</li>
+                            <li>✓ Pacientes que preenchem seu site caem em tempo real na aba Triagens</li>
+                            <li>✓ Ideal para anúncios (Google Ads / Instagram) e autoridade clínica</li>
+                        </ul>
+                    </div>
+
+                    <a href="/cadastro" class="block w-full py-3.5 btn-plum rounded-xl text-center text-xs font-bold shadow-md">
+                        Começar com Site + Sistema →
+                    </a>
+                </div>
+
+                <!-- 3. PLANO CLÍNICA -->
+                <div class="p-8 rounded-3xl bg-[#F9F7F2] border subtle-border flex flex-col justify-between space-y-6 relative">
+                    <span class="absolute -top-3.5 right-6 px-3.5 py-1 bg-[#1D1724] text-[#D8B4FE] text-[10px] font-bold uppercase tracking-wider rounded-full shadow">
+                        Para Equipes & Clínicas
+                    </span>
+                    <div>
+                        <span class="text-xs font-bold uppercase tracking-wider text-[#6E568A]">Clínica & Sublocação</span>
+                        <h3 class="font-serif text-2xl font-bold text-[#1D1724] mt-1">Plano Clínica</h3>
+                        <p class="text-xs text-[#5C5366] mt-1">Para clínicas com múltiplos profissionais e gestão centralizada.</p>
+                        
+                        <div class="mt-6 flex items-baseline gap-1">
+                            <span class="font-serif text-4xl font-bold text-[#1D1724]">R$ 119,90</span>
+                            <span class="text-xs text-[#6E6578]">/mês</span>
+                        </div>
+
+                        <ul class="mt-6 space-y-3 text-xs text-[#231C2B]">
                             <li>✓ Até <strong>5 psicólogos</strong> na mesma clínica com agendas independentes</li>
-                            <li>✓ Painel Administrador com gestão de Equipe & Níveis</li>
+                            <li>✓ Painel Administrador com gestão de Equipe, Planos & Níveis</li>
                             <li>✓ Filtro financeiro e exportação <strong>Receita Saúde (.CSV)</strong> por psicóloga</li>
                             <li>✓ Gestão centralizada de Landing Pages da equipe</li>
                             <li>✓ Links de triagem individuais para cada profissional</li>
@@ -466,7 +491,7 @@
                         </ul>
                     </div>
 
-                    <a href="/cadastro" class="block w-full py-3.5 btn-plum rounded-xl text-center text-xs font-semibold shadow-md">
+                    <a href="/cadastro" class="block w-full py-3.5 rounded-xl border border-[#1D1724] text-[#1D1724] hover:bg-[#1D1724] hover:text-white text-center text-xs font-semibold transition">
                         Testar Plano Clínica grátis
                     </a>
                 </div>

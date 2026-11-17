@@ -922,10 +922,15 @@
 
             <!-- 7. TELA: EQUIPE & NÍVEIS (SOMENTE ADMIN) -->
             <section id="secao-equipe" class="secao-conteudo" style="display: none;">
-                <div class="mb-6">
-                    <p class="text-xs font-semibold text-[#9C8EAD]">Gestão de Acessos (Exclusivo Administrador)</p>
-                    <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Equipe & Níveis</h2>
-                    <p class="text-xs text-[#9C8EAD] mt-0.5">Gerencie nomes e defina quem é Administrador e quem é Psicólogo da clínica.</p>
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+                    <div>
+                        <p class="text-xs font-semibold text-[#9C8EAD]">Gestão de Acessos, Assinaturas e Equipe (Exclusivo Administrador)</p>
+                        <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Equipe & Níveis</h2>
+                        <p class="text-xs text-[#9C8EAD] mt-0.5">Cadastre novos usuários, ative assinaturas (Individual, Individual + LP ou Clínica) e gerencie níveis.</p>
+                    </div>
+                    <button type="button" onclick="abrirModalNovoUsuarioEquipe()" class="px-5 py-2.5 btn-plum rounded-xl text-xs font-semibold flex items-center gap-2 shadow-sm">
+                        <span>+</span> Novo Usuário
+                    </button>
                 </div>
                 <div class="card-surface overflow-x-auto">
                     <table class="w-full text-left text-xs">
@@ -933,8 +938,9 @@
                             <tr>
                                 <th class="p-4">Nome de Exibição</th>
                                 <th class="p-4">E-mail de Acesso</th>
-                                <th class="p-4">Cargo / Nível</th>
+                                <th class="p-4">Assinatura / Plano</th>
                                 <th class="p-4">Landing Page</th>
+                                <th class="p-4">Cargo / Nível</th>
                                 <th class="p-4 text-center">Alterar Nível</th>
                             </tr>
                         </thead>
@@ -1417,6 +1423,69 @@
         </div>
     </div>
 
+    <!-- MODAL: CADASTRAR NOVO USUÁRIO / PROFISSIONAL (EXCLUSIVO ADMIN) -->
+    <div id="modalNovoUsuarioEquipe" class="hidden fixed inset-0 bg-black/75 backdrop-blur-sm z-50 flex items-center justify-center p-4" onclick="if(event.target === this) fecharModal('modalNovoUsuarioEquipe')">
+        <div class="bg-[#1D1724] p-6 sm:p-8 rounded-3xl max-w-md w-full border border-[#32283D] shadow-2xl space-y-5">
+            <div class="flex items-start justify-between gap-3 border-b border-[#2E2538] pb-3">
+                <div>
+                    <span class="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold uppercase tracking-wider">Gestão Admin</span>
+                    <h3 class="text-xl font-bold font-serif text-[#F3EEF6] mt-1">Novo Usuário</h3>
+                    <p class="text-[11px] text-[#9C8EAD]">Crie o acesso do profissional já definindo o plano e o nível.</p>
+                </div>
+                <button type="button" onclick="fecharModal('modalNovoUsuarioEquipe')" class="text-[#9C8EAD] hover:text-white text-xl leading-none">✕</button>
+            </div>
+
+            <form id="formNovoUsuarioEquipe" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Nome Profissional *</label>
+                    <input type="text" id="novoUserNome" required placeholder="Ex: Dra. Camila Rocha" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">E-mail de Acesso *</label>
+                        <input type="email" id="novoUserEmail" autocomplete="off" required placeholder="psicologa@email.com" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Senha Inicial *</label>
+                        <input type="password" id="novoUserSenha" autocomplete="new-password" required minlength="6" placeholder="Mín. 6 dígitos" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Número do CRP</label>
+                        <input type="text" id="novoUserCrp" placeholder="Ex: 06/123456" class="w-full px-4 py-2 input-dark rounded-xl text-sm outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Nível de Acesso</label>
+                        <select id="novoUserRole" class="w-full px-3 py-2 input-dark rounded-xl text-sm outline-none">
+                            <option value="psicologo">Psicólogo(a)</option>
+                            <option value="admin">Administrador</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Plano / Assinatura Inicial</label>
+                    <select id="novoUserPlano" class="w-full px-3.5 py-2.5 input-dark rounded-xl text-xs font-semibold outline-none">
+                        <option value="individual">⭐ Assinante · Plano Individual</option>
+                        <option value="individual_lp">🌟 Assinante · Individual + Landing Page (Já libera LP)</option>
+                        <option value="clinica">🏛️ Assinante · Plano Clínica</option>
+                        <option value="trial">⏳ Período de Teste (Trial 7 dias)</option>
+                    </select>
+                </div>
+
+                <p id="feedbackNovoUsuarioEquipe" class="text-xs text-center font-medium min-h-[16px]"></p>
+
+                <div class="flex gap-2 pt-2 border-t border-[#2E2538]">
+                    <button type="button" onclick="fecharModal('modalNovoUsuarioEquipe')" class="flex-1 py-2.5 bg-[#141019] border border-[#32283D] text-[#9C8EAD] hover:text-white rounded-xl text-xs font-semibold">Cancelar</button>
+                    <button type="submit" id="btnSalvarNovoUsuarioEquipe" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Criar Usuário</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <!-- PAINEL FLUTUANTE: CENTRAL DE NOTIFICAÇÕES INTELIGENTES -->
     <div id="painelNotificacoes" class="hidden fixed inset-0 bg-black/50 backdrop-blur-[1px] z-50 flex items-start justify-end p-4 md:pr-10 md:pt-20" onclick="if(event.target === this) alternarPainelNotificacoes()">
         <div class="bg-[#1D1724] border border-[#3F3152] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
@@ -1434,6 +1503,6 @@
     </div>
 
     <!-- JAVASCRIPT GERAL -->
-    <script src="app.js?v=20261117e"></script>
+    <script src="app.js?v=20261117f"></script>
 </body>
 </html>

@@ -430,9 +430,9 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                         .select('id')
                         .eq('user_id', userId)
                         .maybeSingle();
-                    usuarioTemLPComprada = Boolean(lpUser) || Boolean(usuarioAtualPerfil?.tem_lp);
+                    usuarioTemLPComprada = Boolean(lpUser) || Boolean(usuarioAtualPerfil?.tem_lp) || usuarioAtualPerfil?.plano === 'individual_lp';
                 } catch (e) {
-                    usuarioTemLPComprada = Boolean(usuarioAtualPerfil?.tem_lp);
+                    usuarioTemLPComprada = Boolean(usuarioAtualPerfil?.tem_lp) || usuarioAtualPerfil?.plano === 'individual_lp';
                 }
             }
 
@@ -2227,12 +2227,38 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             await carregarDados();
         });
 
+        function obterResumoPlanoUsuario(u) {
+            const plano = (u.plano || 'trial').toLowerCase();
+            if (plano === 'individual_lp') {
+                return { codigo: 'individual_lp', label: '🌟 Assinante + LP', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true };
+            }
+            if (plano === 'clinica') {
+                return { codigo: 'clinica', label: '🏛️ Assinante Clínica', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true };
+            }
+            if (plano === 'individual' || plano === 'assinante' || plano === 'ativo') {
+                return { codigo: 'individual', label: '⭐ Assinante Individual', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true };
+            }
+
+            let labelTrial = '⏳ Em Trial';
+            let classeTrial = 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+            if (u.trial_ends_at) {
+                const dias = Math.ceil((new Date(u.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
+                if (dias > 0) {
+                    labelTrial = `⏳ Trial (${dias}d)`;
+                } else {
+                    labelTrial = '⚠️ Trial Expirado';
+                    classeTrial = 'bg-red-500/15 text-red-300 border border-red-500/30';
+                }
+            }
+            return { codigo: 'trial', label: labelTrial, classe: classeTrial, ehAssinante: false };
+        }
+
         async function carregarEquipe() {
             if (!ehAdmin()) return;
             const tbody = document.getElementById('tabelaUsuarios');
             if (!tbody) return;
 
-            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-[#9C8EAD]">Carregando equipe...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-[#9C8EAD]">Carregando equipe...</td></tr>`;
 
             const [{ data: usuarios, error }, { data: lps }] = await Promise.all([
                 client.from('usuarios_perfis').select('*').order('created_at', { ascending: false }),
@@ -2240,7 +2266,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             ]);
 
             if (error) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Erro ao carregar equipe: ${escapeHtml(error.message)}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Erro ao carregar equipe: ${escapeHtml(error.message)}</td></tr>`;
                 return;
             }
 
@@ -2249,7 +2275,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const idsComLP = new Set(todasLPsCache.map(item => item.user_id));
 
             if (todosUsuariosCache.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-[#9C8EAD]">Nenhum usuário encontrado na tabela usuarios_perfis.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-[#9C8EAD]">Nenhum usuário encontrado na tabela usuarios_perfis.</td></tr>`;
                 return;
             }
 
@@ -2257,6 +2283,8 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 const isAdmin = u.role === 'admin';
                 const temLP = idsComLP.has(u.id) || Boolean(u.tem_lp);
                 const nomeAtual = u.nome || (u.email ? u.email.split('@')[0] : 'Sem nome');
+                const infoPlano = obterResumoPlanoUsuario(u);
+
                 return `
                     <tr class="hover:bg-white/[0.03]">
                         <td class="p-4">
@@ -2267,9 +2295,21 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                         </td>
                         <td class="p-4 text-xs text-[#9C8EAD]">${escapeHtml(u.email)}</td>
                         <td class="p-4">
-                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${isAdmin ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-[#2B2138] text-[#C2ADC9]'}">
-                                ${isAdmin ? 'Administrador' : 'Psicólogo'}
-                            </span>
+                            <div class="flex flex-wrap items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${infoPlano.classe}">
+                                    ${infoPlano.label}
+                                </span>
+                                <select onchange="alterarPlanoUsuarioEquipe('${u.id}', this.value)" class="text-xs input-dark rounded-xl px-2 py-1 font-semibold outline-none">
+                                    <option value="trial" ${infoPlano.codigo === 'trial' ? 'selected' : ''}>⏳ Trial (7 dias)</option>
+                                    <option value="individual" ${infoPlano.codigo === 'individual' ? 'selected' : ''}>⭐ Assinante Individual</option>
+                                    <option value="individual_lp" ${infoPlano.codigo === 'individual_lp' ? 'selected' : ''}>🌟 Assinante + LP</option>
+                                    <option value="clinica" ${infoPlano.codigo === 'clinica' ? 'selected' : ''}>🏛️ Assinante Clínica</option>
+                                </select>
+                                ${!infoPlano.ehAssinante
+                                    ? `<button type="button" onclick="tornarUsuarioAssinanteRapido('${u.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold transition">⭐ Tornar Assinante</button>`
+                                    : ''
+                                }
+                            </div>
                         </td>
                         <td class="p-4">
                             <div class="flex items-center gap-2">
@@ -2281,6 +2321,11 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                                 </button>
                             </div>
                         </td>
+                        <td class="p-4">
+                            <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${isAdmin ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-[#2B2138] text-[#C2ADC9]'}">
+                                ${isAdmin ? 'Administrador' : 'Psicólogo'}
+                            </span>
+                        </td>
                         <td class="p-4 text-center">
                             <select onchange="alterarRoleUsuario('${u.id}', this.value)" class="text-xs input-dark rounded-xl px-2 py-1 font-semibold outline-none">
                                 <option value="psicologo" ${!isAdmin ? 'selected' : ''}>Psicólogo</option>
@@ -2291,6 +2336,136 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 `;
             }).join('');
         }
+
+        async function garantirLPCriadaParaUsuario(u) {
+            if (!u || !u.id) return;
+            const slugBase = ((u.nome || u.email?.split('@')[0] || 'psicologo').replace(/[^a-zA-Z0-9_-]/g, '')) || `psi-${u.id.slice(0, 6)}`;
+            await client.from('landing_pages').upsert({
+                user_id: u.id,
+                slug: slugBase,
+                nome: u.nome || 'Profissional',
+                crp: u.crp || '',
+                subtitulo_topo: u.abordagem ? `Psicologia Clínica • ${u.abordagem}` : 'Psicologia Clínica',
+                badge_hero: 'Atendimento Online e Individualizado',
+                titulo_hero: 'Quem sou eu?',
+                cor_500: '#736185',
+                cor_600: '#5E4E6D',
+                cor_700: '#4A3D56',
+                ativo: true
+            }, { onConflict: 'user_id' });
+        }
+
+        async function alterarPlanoUsuarioEquipe(userId, novoPlano) {
+            if (!ehAdmin()) return;
+            const payloadUpdate = {
+                plano: novoPlano,
+                trial_ends_at: novoPlano === 'trial'
+                    ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+                    : null
+            };
+
+            const { error } = await client.from('usuarios_perfis').update(payloadUpdate).eq('id', userId);
+            if (error) {
+                alert('Erro ao atualizar plano do usuário: ' + error.message);
+                return;
+            }
+
+            if (novoPlano === 'individual_lp') {
+                const u = todosUsuariosCache.find(item => item.id === userId);
+                if (u) await garantirLPCriadaParaUsuario(u);
+            }
+
+            if (usuarioAtualPerfil && usuarioAtualPerfil.id === userId) {
+                usuarioAtualPerfil.plano = payloadUpdate.plano;
+                usuarioAtualPerfil.trial_ends_at = payloadUpdate.trial_ends_at;
+                atualizarBadgeTrial();
+            }
+
+            exibirToastTempoReal('Assinatura/plano do usuário atualizado!');
+            await carregarEquipe();
+        }
+
+        async function tornarUsuarioAssinanteRapido(userId) {
+            await alterarPlanoUsuarioEquipe(userId, 'individual');
+        }
+
+        function abrirModalNovoUsuarioEquipe() {
+            if (!ehAdmin()) return;
+            const form = document.getElementById('formNovoUsuarioEquipe');
+            if (form) form.reset();
+            const fb = document.getElementById('feedbackNovoUsuarioEquipe');
+            if (fb) fb.textContent = '';
+            const modal = document.getElementById('modalNovoUsuarioEquipe');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+        }
+
+        document.getElementById('formNovoUsuarioEquipe')?.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!ehAdmin()) return;
+
+            const nome = document.getElementById('novoUserNome').value.trim();
+            const email = document.getElementById('novoUserEmail').value.trim();
+            const password = document.getElementById('novoUserSenha').value;
+            const crp = document.getElementById('novoUserCrp').value.trim();
+            const role = document.getElementById('novoUserRole').value;
+            const plano = document.getElementById('novoUserPlano').value;
+            const fb = document.getElementById('feedbackNovoUsuarioEquipe');
+            const btn = document.getElementById('btnSalvarNovoUsuarioEquipe');
+
+            if (btn) { btn.disabled = true; btn.textContent = 'Criando...'; }
+            if (fb) fb.textContent = '';
+
+            try {
+                // Cliente isolado sem persistência para não deslogar o Administrador atual
+                const tempAuthClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+                    auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+                });
+
+                const { data, error } = await tempAuthClient.auth.signUp({
+                    email,
+                    password,
+                    options: { data: { nome, crp } }
+                });
+
+                if (error) throw error;
+
+                const novoUserId = data?.user?.id;
+                if (novoUserId) {
+                    const trial_ends_at = plano === 'trial'
+                        ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+                        : null;
+
+                    await client.from('usuarios_perfis').upsert({
+                        id: novoUserId,
+                        email,
+                        nome,
+                        crp: crp || null,
+                        role,
+                        plano,
+                        trial_ends_at
+                    }, { onConflict: 'id' });
+
+                    if (plano === 'individual_lp') {
+                        await garantirLPCriadaParaUsuario({ id: novoUserId, nome, email, crp });
+                    }
+                }
+
+                fecharModal('modalNovoUsuarioEquipe');
+                exibirToastTempoReal(`Usuário ${nome} criado com sucesso!`);
+                await carregarEquipe();
+                await carregarDados();
+            } catch (err) {
+                if (fb) {
+                    fb.className = 'text-xs text-red-400 text-center font-semibold';
+                    fb.textContent = 'Erro ao criar usuário: ' + err.message;
+                }
+            } finally {
+                if (btn) { btn.disabled = false; btn.textContent = 'Criar Usuário'; }
+            }
+        });
 
         async function salvarNomeUsuarioEquipe(userId) {
             if (!ehAdmin()) return;
@@ -2851,7 +3026,12 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const badge = document.getElementById('trialBadgeNav');
             if (!badge || !usuarioAtualPerfil) return;
 
-            if (usuarioAtualPerfil.plano === 'trial' && usuarioAtualPerfil.trial_ends_at) {
+            const plano = (usuarioAtualPerfil.plano || 'trial').toLowerCase();
+            if (plano === 'individual' || plano === 'individual_lp' || plano === 'clinica' || plano === 'assinante' || plano === 'ativo') {
+                badge.classList.remove('hidden');
+                badge.textContent = plano === 'individual_lp' ? '🌟 Assinante + LP' : '⭐ Assinante';
+                badge.className = "px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+            } else if (plano === 'trial' && usuarioAtualPerfil.trial_ends_at) {
                 const fim = new Date(usuarioAtualPerfil.trial_ends_at);
                 const agora = new Date();
                 const diasRestantes = Math.ceil((fim - agora) / (1000 * 60 * 60 * 24));
