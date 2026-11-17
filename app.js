@@ -904,6 +904,50 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (typeof carregarEquipe === 'function') carregarEquipe();
         }
 
+        function atualizarPreviewMiniaturaFotoLP(url) {
+            const img = document.getElementById('lpPreviewFotoMiniatura');
+            if (!img) return;
+            img.src = (url && String(url).trim()) ? String(url).trim() : 'https://placehold.co/120x160/1D1724/9C8EAD?text=Foto';
+        }
+
+        function aoSelecionarArquivoFotoLP(input) {
+            if (!input || !input.files || !input.files[0]) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                atualizarPreviewMiniaturaFotoLP(ev.target.result);
+                const statusFoto = document.getElementById('lpStatusFoto');
+                if (statusFoto) statusFoto.textContent = '📸 Foto selecionada! Clique em "Salvar e Publicar Página" abaixo.';
+            };
+            reader.readAsDataURL(input.files[0]);
+        }
+
+        function comprimirImagemParaDataURL(file, maxHeight = 850, quality = 0.84) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onerror = reject;
+                reader.onload = (ev) => {
+                    const img = new Image();
+                    img.onerror = reject;
+                    img.onload = () => {
+                        let w = img.width;
+                        let h = img.height;
+                        if (h > maxHeight) {
+                            w = Math.round((w * maxHeight) / h);
+                            h = maxHeight;
+                        }
+                        const canvas = document.createElement('canvas');
+                        canvas.width = w;
+                        canvas.height = h;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, w, h);
+                        resolve(canvas.toDataURL('image/jpeg', quality));
+                    };
+                    img.src = ev.target.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
         async function carregarDadosMinhaLP(pularPreparoFiltro = false) {
             if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
 
@@ -933,8 +977,9 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             document.getElementById('lpEditCrp').value = data?.crp || alvo.crp || '';
             document.getElementById('lpEditWhatsapp').value = data?.whatsapp || '';
             document.getElementById('lpEditSubtitulo').value = data?.subtitulo_topo || (alvo.abordagem ? `Psicologia Clínica • ${alvo.abordagem}` : '');
-            document.getElementById('lpEditBadgeHero').value = data?.badge_hero || 'Atendimento Online e Individualizado';
-            document.getElementById('lpEditTituloHero').value = data?.titulo_hero || 'Quem sou eu?';
+            const elBadgeHero = document.getElementById('lpEditBadgeHero');
+            if (elBadgeHero) elBadgeHero.value = data?.badge_hero || '';
+            document.getElementById('lpEditTituloHero').value = data?.titulo_hero || 'Um espaço seguro para acolher sua história e transformar suas dores.';
             document.getElementById('lpEditSobreP1').value = data?.sobre_p1 || '';
             document.getElementById('lpEditSobreP2').value = data?.sobre_p2 || '';
             document.getElementById('lpEditSobreP3').value = data?.sobre_p3 || '';
@@ -942,6 +987,10 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             document.getElementById('lpEditCor600').value = data?.cor_600 || '#5E4E6D';
             document.getElementById('lpEditCor700').value = data?.cor_700 || '#4A3D56';
             document.getElementById('lpEditAtivo').checked = data ? data.ativo !== false : true;
+
+            const inputFotoUrl = document.getElementById('lpEditFotoUrl');
+            if (inputFotoUrl) inputFotoUrl.value = (data?.foto_url && !data.foto_url.startsWith('data:')) ? data.foto_url : '';
+            atualizarPreviewMiniaturaFotoLP(data?.foto_url || '');
 
             const statusFoto = document.getElementById('lpStatusFoto');
             if (statusFoto) {
@@ -965,11 +1014,12 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             btn.disabled = true;
             btn.textContent = "Salvando...";
 
-            let foto_url = minhaLPAtual?.foto_url || '';
+            const urlDigitada = (document.getElementById('lpEditFotoUrl')?.value || '').trim();
+            let foto_url = urlDigitada || minhaLPAtual?.foto_url || '';
             const fileInput = document.getElementById('lpEditFotoFile');
             const statusFoto = document.getElementById('lpStatusFoto');
 
-            // Faz upload da foto profissional no bucket 'Assinaturas'
+            // Faz upload da foto profissional no bucket 'Assinaturas' (com fallback automático comprimido caso o bucket não esteja público)
             if (fileInput && fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
                 const fileExt = file.name.split('.').pop();
@@ -981,15 +1031,19 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     .from('Assinaturas')
                     .upload(fileName, file, { upsert: true });
 
-                if (uploadError) {
-                    alert("Erro ao enviar foto: " + uploadError.message);
-                    btn.disabled = false;
-                    btn.textContent = textoOriginal;
-                    return;
+                if (!uploadError) {
+                    const { data: pubUrl } = client.storage.from('Assinaturas').getPublicUrl(fileName);
+                    foto_url = pubUrl.publicUrl;
+                } else {
+                    try {
+                        foto_url = await comprimirImagemParaDataURL(file);
+                    } catch (errComp) {
+                        alert("Erro ao processar foto: " + uploadError.message);
+                        btn.disabled = false;
+                        btn.textContent = textoOriginal;
+                        return;
+                    }
                 }
-
-                const { data: pubUrl } = client.storage.from('Assinaturas').getPublicUrl(fileName);
-                foto_url = pubUrl.publicUrl;
             }
 
             const payload = {
@@ -999,7 +1053,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 crp: document.getElementById('lpEditCrp').value.trim(),
                 whatsapp: document.getElementById('lpEditWhatsapp').value.replace(/\D/g, ''),
                 subtitulo_topo: document.getElementById('lpEditSubtitulo').value.trim(),
-                badge_hero: document.getElementById('lpEditBadgeHero').value.trim(),
+                badge_hero: document.getElementById('lpEditBadgeHero')?.value?.trim() || '',
                 titulo_hero: document.getElementById('lpEditTituloHero').value.trim(),
                 descricao_hero: document.getElementById('lpEditSobreP1').value.trim(),
                 sobre_p1: document.getElementById('lpEditSobreP1').value.trim(),

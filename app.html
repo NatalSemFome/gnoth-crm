@@ -849,10 +849,16 @@
                             <input type="text" id="lpEditSubtitulo" placeholder="Psicologia Clínica • Abordagem..." class="w-full px-3.5 py-2 input-dark rounded-xl text-sm outline-none">
                         </div>
 
-                        <div>
-                            <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Foto Profissional (Hero)</label>
-                            <input type="file" id="lpEditFotoFile" accept="image/png, image/jpeg, image/webp" class="w-full px-3 py-2 input-dark rounded-xl text-xs outline-none cursor-pointer">
-                            <p id="lpStatusFoto" class="text-[11px] text-[#9C8EAD] mt-1">Envie uma foto vertical de boa qualidade.</p>
+                        <div class="space-y-2">
+                            <label class="block text-xs font-semibold uppercase text-[#9C8EAD]">Foto Profissional (Hero)</label>
+                            <div class="flex items-center gap-3">
+                                <img id="lpPreviewFotoMiniatura" src="https://placehold.co/120x160/1D1724/9C8EAD?text=Foto" alt="Preview Foto LP" class="w-14 h-18 object-cover rounded-xl border border-[#2E2538] shrink-0 bg-[#141019]">
+                                <div class="flex-1 space-y-1.5">
+                                    <input type="file" id="lpEditFotoFile" accept="image/png, image/jpeg, image/webp" onchange="aoSelecionarArquivoFotoLP(this)" class="w-full px-3 py-1.5 input-dark rounded-xl text-xs outline-none cursor-pointer">
+                                    <input type="text" id="lpEditFotoUrl" placeholder="Ou cole link/caminho (ex: /Alexia.jpeg)" oninput="atualizarPreviewMiniaturaFotoLP(this.value)" class="w-full px-3 py-1.5 input-dark rounded-xl text-[11px] outline-none">
+                                </div>
+                            </div>
+                            <p id="lpStatusFoto" class="text-[11px] text-[#9C8EAD]">Envie do seu computador (JPG, PNG, WebP) ou informe o link/caminho.</p>
                         </div>
 
                         <div class="pt-2 border-t border-[#2E2538]">
@@ -879,15 +885,9 @@
                         <div class="space-y-4">
                             <h3 class="font-serif text-lg font-semibold text-white border-b border-[#2E2538] pb-2">2. Textos de Apresentação da Página</h3>
 
-                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Selo Acima do Título (Badge Hero)</label>
-                                    <input type="text" id="lpEditBadgeHero" placeholder="Atendimento Online e Individualizado" class="w-full px-3.5 py-2 input-dark rounded-xl text-sm outline-none">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Título Principal (Hero)</label>
-                                    <input type="text" id="lpEditTituloHero" placeholder="Quem sou eu?" class="w-full px-3.5 py-2 input-dark rounded-xl text-sm outline-none">
-                                </div>
+                            <div>
+                                <label class="block text-xs font-semibold uppercase mb-1 text-[#9C8EAD]">Título Principal (Hero)</label>
+                                <input type="text" id="lpEditTituloHero" placeholder="Um espaço seguro para acolher sua história..." class="w-full px-3.5 py-2 input-dark rounded-xl text-sm outline-none">
                             </div>
 
                             <div>
@@ -1625,6 +1625,6 @@
     </div>
 
     <!-- JAVASCRIPT GERAL -->
-    <script src="app.js?v=20261117i"></script>
+    <script src="app.js?v=20261117j"></script>
 </body>
 </html>
