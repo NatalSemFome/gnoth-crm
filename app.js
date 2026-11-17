@@ -122,7 +122,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         let diaSelecionadoAgendaIso = null;
         let modalidadeSelecionadaAgendamento = 'Online';
         let filtroClienteAtivo = 'Todos';
-        let filtroCobrancaAtivo = 'A receber';
+        let filtroCobrancaAtivo = 'Todas';
 
         let recognition = null;
         let gravando = false;
@@ -590,7 +590,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         async function carregarDados(opcoes = {}) {
-            if (carregandoDadosEmAndamento) return;
+            if (carregandoDadosEmAndamento && opcoes.silencioso) return;
             carregandoDadosEmAndamento = true;
             try {
                 const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('nome', { ascending: true });
@@ -2575,18 +2575,26 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             aplicarFiltrosCobrancas();
         }
 
-        function filtrarStatusCobranca(status) {
-            filtroCobrancaAtivo = status;
+        function sincronizarBotoesFiltroCobranca() {
             ['todas', 'areceber', 'atraso', 'pagas'].forEach(id => {
                 const el = document.getElementById(`cob-${id}`);
                 if (el) el.className = "px-3 py-1.5 rounded-xl text-[#9C8EAD] hover:text-white";
             });
 
-            if (status === 'Todas') document.getElementById('cob-todas').className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
-            if (status === 'A receber') document.getElementById('cob-areceber').className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
-            if (status === 'Em atraso') document.getElementById('cob-atraso').className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
-            if (status === 'Pagas') document.getElementById('cob-pagas').className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
+            const btnAtivo =
+                filtroCobrancaAtivo === 'Todas' ? document.getElementById('cob-todas') :
+                filtroCobrancaAtivo === 'A receber' ? document.getElementById('cob-areceber') :
+                filtroCobrancaAtivo === 'Em atraso' ? document.getElementById('cob-atraso') :
+                filtroCobrancaAtivo === 'Pagas' ? document.getElementById('cob-pagas') : null;
 
+            if (btnAtivo) {
+                btnAtivo.className = "px-3 py-1.5 rounded-xl bg-[#2B2138] text-white shadow-sm";
+            }
+        }
+
+        function filtrarStatusCobranca(status) {
+            filtroCobrancaAtivo = status;
+            sincronizarBotoesFiltroCobranca();
             aplicarFiltrosCobrancas();
         }
 
@@ -2604,6 +2612,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         function aplicarFiltrosCobrancas() {
             prepararFiltroPsicologaCobranca();
+            sincronizarBotoesFiltroCobranca();
 
             const pagamentosBase = obterPagamentosFiltradosPorPsicologa();
             atualizarKpisFinanceiros(pagamentosBase);
@@ -2679,7 +2688,17 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         async function marcarComoPago(id) {
             const hoje = obterChaveDiaLocal();
-            await client.from('pagamentos').update({ status: 'Pago', data_pagamento: hoje }).eq('id', id);
+            const itemLocal = todosPagamentosCache.find(p => p.id === id);
+            if (itemLocal) {
+                itemLocal.status = 'Pago';
+                itemLocal.data_pagamento = hoje;
+                aplicarFiltrosCobrancas();
+                atualizarKpisFinanceiros(todosPagamentosCache);
+            }
+            const { error } = await client.from('pagamentos').update({ status: 'Pago', data_pagamento: hoje }).eq('id', id);
+            if (error) {
+                alert('Erro ao confirmar pagamento: ' + error.message);
+            }
             await carregarDados();
         }
 
@@ -2692,6 +2711,8 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (error) {
                 alert("Erro ao excluir cobrança: " + error.message);
             } else {
+                todosPagamentosCache = todosPagamentosCache.filter(p => p.id !== id);
+                aplicarFiltrosCobrancas();
                 await carregarDados();
             }
         }
@@ -3176,19 +3197,41 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         function abrirModalExportarReceitaSaude() {
-            const inputMes = document.getElementById('mesLoteReceitaSaude');
-            if (inputMes && !inputMes.value) {
-                inputMes.value = obterChaveDiaLocal().slice(0, 7);
+            const selectMes = document.getElementById('mesLoteReceitaSaude');
+            const basePagos = obterPagamentosFiltradosPorPsicologa().filter(pg => pg.status === 'Pago');
+
+            if (selectMes) {
+                const mesesSet = new Set();
+                basePagos.forEach(pg => {
+                    const m = (pg.data_pagamento || pg.data_vencimento || '').slice(0, 7);
+                    if (m && m.length === 7) mesesSet.add(m);
+                });
+                const mesAtual = obterChaveDiaLocal().slice(0, 7);
+                mesesSet.add(mesAtual);
+
+                const mesesOrdenados = Array.from(mesesSet).sort().reverse();
+                selectMes.innerHTML = `<option value="todos">Todos os meses (${basePagos.length} pagos)</option>` +
+                    mesesOrdenados.map(m => {
+                        const [ano, mes] = m.split('-');
+                        const qtd = basePagos.filter(pg => (pg.data_pagamento || pg.data_vencimento || '').slice(0, 7) === m).length;
+                        return `<option value="${m}">${mes}/${ano} (${qtd} ${qtd === 1 ? 'pago' : 'pagos'})</option>`;
+                    }).join('');
+
+                const temNoMesAtual = basePagos.some(pg => (pg.data_pagamento || pg.data_vencimento || '').slice(0, 7) === mesAtual);
+                selectMes.value = temNoMesAtual ? mesAtual : 'todos';
             }
+
             atualizarPreviaLoteReceitaSaude();
-            document.getElementById('modalReceitaSaudeLote').classList.remove('hidden');
+            const modal = document.getElementById('modalReceitaSaudeLote');
+            if (modal) modal.classList.remove('hidden');
         }
 
         function obterPagamentosPagosDoMesSelecionado() {
-            const mesAno = document.getElementById('mesLoteReceitaSaude')?.value || obterChaveDiaLocal().slice(0, 7);
+            const mesAno = document.getElementById('mesLoteReceitaSaude')?.value || 'todos';
             const base = obterPagamentosFiltradosPorPsicologa();
             return base.filter(pg => {
                 if (pg.status !== 'Pago') return false;
+                if (mesAno === 'todos') return true;
                 const dtRef = (pg.data_pagamento || pg.data_vencimento || '').slice(0, 7);
                 return dtRef === mesAno;
             });
