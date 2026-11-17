@@ -2648,6 +2648,10 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 const sitText = isPago ? '● Pago' : (isAtrasado ? '● Em atraso' : '● Pendente');
 
                 const colPsi = isAdmin ? `<td class="p-4 text-xs text-[#9C8EAD]">${escapeHtml(nomePsi)}</td>` : '';
+                const emitidoRS = isPago && typeof foiEmitidoReceitaSaude === 'function' && foiEmitidoReceitaSaude(pg.id);
+                const badgeRS = emitidoRS
+                    ? `<span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30" title="Emitido no Receita Saúde">🏛️ Receita OK</span>`
+                    : '';
 
                 return `
                     <tr class="hover:bg-white/[0.03]">
@@ -2657,12 +2661,13 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                         <td class="p-4 text-xs text-[#9C8EAD]">${pg.data_vencimento ? new Date(pg.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
                         <td class="p-4">
                             <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${sitPill}">${sitText}</span>
+                            ${badgeRS}
                         </td>
                         <td class="p-4">
                             <div class="flex items-center justify-center gap-2">
                                 ${!isPago 
                                     ? `<button onclick="marcarComoPago('${pg.id}')" class="px-3 py-1 btn-plum rounded-lg text-xs font-semibold shadow-sm">Confirmar</button>` 
-                                    : `<button onclick="gerarReciboPDF('${pg.id}')" class="px-2.5 py-1 bg-emerald-500/15 text-emerald-300 hover:bg-emerald-500/25 border border-emerald-500/30 rounded-lg text-xs font-semibold transition">📄 Recibo</button>`}
+                                    : `<button onclick="abrirModalReceitaSaudeIndividual('${pg.id}')" class="px-2.5 py-1 ${emitidoRS ? 'bg-purple-500/15 text-purple-300 border-purple-500/30' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'} hover:opacity-90 border rounded-lg text-xs font-semibold transition">🏛️ Receita Saúde / Recibo</button>`}
                                 <button onclick="excluirCobranca('${pg.id}')" title="Excluir cobrança" class="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg transition">🗑️</button>
                             </div>
                         </td>
@@ -2923,6 +2928,368 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 }
             }
         });
+
+        let pagamentoReceitaSaudeAtualId = null;
+
+        function obterMapaReceitaSaudeStorage() {
+            try {
+                return JSON.parse(localStorage.getItem('gnoth_receita_saude_emitidos') || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function foiEmitidoReceitaSaude(pagamentoId) {
+            const pg = todosPagamentosCache.find(p => p.id === pagamentoId);
+            if (pg && pg.receita_saude_emitido) return true;
+            const mapa = obterMapaReceitaSaudeStorage();
+            return Boolean(mapa[pagamentoId]);
+        }
+
+        function definirEmitidoReceitaSaude(pagamentoId, status) {
+            const mapa = obterMapaReceitaSaudeStorage();
+            if (status) {
+                mapa[pagamentoId] = new Date().toISOString();
+            } else {
+                delete mapa[pagamentoId];
+            }
+            localStorage.setItem('gnoth_receita_saude_emitidos', JSON.stringify(mapa));
+            const pg = todosPagamentosCache.find(p => p.id === pagamentoId);
+            if (pg) pg.receita_saude_emitido = status;
+        }
+
+        function limparCpfApenasDigitos(cpf) {
+            return String(cpf || '').replace(/\D/g, '').slice(0, 11);
+        }
+
+        function formatarDataDDMMAAAA(isoDateStr) {
+            const base = (isoDateStr || obterChaveDiaLocal()).slice(0, 10);
+            const [ano, mes, dia] = base.split('-');
+            if (!ano || !mes || !dia) return new Date().toLocaleDateString('pt-BR');
+            return `${dia}/${mes}/${ano}`;
+        }
+
+        function montarLinhaCSVReceitaSaude(pg) {
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+            const dataPag = formatarDataDDMMAAAA(pg.data_pagamento || pg.data_vencimento);
+            const valorVirgula = Number(pg.valor || 0).toFixed(2).replace('.', ',');
+            const cpfBeneficiario = limparCpfApenasDigitos(pac.cpf);
+            const cpfPagador = limparCpfApenasDigitos(pac.responsavel_cpf) || cpfBeneficiario;
+            const nomePacLimpo = (pac.nome || 'Paciente').replace(/;/g, ' ').trim();
+            const descricao = `Atendimento psicologico - ${nomePacLimpo}`.slice(0, 250);
+
+            // Layout Oficial Receita Federal (Carnê-Leão Web / Receita Saúde - 12 colunas separadas por ;)
+            // 1:Data; 2:CodRend(R01.001.001); 3:Ocupacao(255-Psicologo); 4:Valor; 5:Deducao; 6:Historico; 7:Tipo(PF); 8:CPFPagador; 9:CPFBeneficiario; 10:IndSemCPF; 11:CNPJ; 12:IndIRRF
+            const indSemCpf = cpfBeneficiario.length === 11 ? '' : 'S';
+            return [
+                dataPag,
+                'R01.001.001',
+                '255',
+                valorVirgula,
+                '',
+                descricao,
+                'PF',
+                cpfPagador,
+                cpfBeneficiario,
+                indSemCpf,
+                '',
+                ''
+            ].join(';');
+        }
+
+        function dispararDownloadCSV(conteudoLinhas, nomeArquivo) {
+            const csvFinal = '\uFEFF' + conteudoLinhas.join('\r\n');
+            const blob = new Blob([csvFinal], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = nomeArquivo;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function abrirModalReceitaSaudeIndividual(pagamentoId) {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
+            if (!pg) return;
+
+            pagamentoReceitaSaudeAtualId = pagamentoId;
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+
+            document.getElementById('rsIndNomePaciente').textContent = pac.nome || 'Paciente';
+            document.getElementById('rsIndValorFormatado').textContent = formatarBRL(pg.valor);
+            document.getElementById('rsIndDataQuitação').textContent = `Data do pagamento: ${formatarDataDDMMAAAA(pg.data_pagamento || pg.data_vencimento)}`;
+
+            const inputCpfPac = document.getElementById('rsIndInputCpfPaciente');
+            const inputCpfResp = document.getElementById('rsIndInputCpfResponsavel');
+            if (inputCpfPac) inputCpfPac.value = pac.cpf || '';
+            if (inputCpfResp) inputCpfResp.value = pac.responsavel_cpf || '';
+
+            atualizarUICamposModalReceitaIndividual();
+            document.getElementById('modalReceitaSaudeIndividual').classList.remove('hidden');
+        }
+
+        function atualizarUICamposModalReceitaIndividual() {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoReceitaSaudeAtualId);
+            if (!pg) return;
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+
+            const cpfBenef = limparCpfApenasDigitos(document.getElementById('rsIndInputCpfPaciente')?.value || pac.cpf);
+            const cpfPag = limparCpfApenasDigitos(document.getElementById('rsIndInputCpfResponsavel')?.value || pac.responsavel_cpf) || cpfBenef;
+            const valorVirgula = Number(pg.valor || 0).toFixed(2).replace('.', ',');
+
+            document.getElementById('rsBtnTxtCpfPagador').textContent = cpfPag || 'Não informado';
+            document.getElementById('rsBtnTxtCpfBenef').textContent = cpfBenef || 'Não informado';
+            document.getElementById('rsBtnTxtValor').textContent = valorVirgula;
+
+            const statusCpfEl = document.getElementById('rsIndStatusCpfTexto');
+            if (statusCpfEl) {
+                if (cpfBenef.length === 11) {
+                    statusCpfEl.className = 'text-[11px] text-emerald-400 font-semibold';
+                    statusCpfEl.textContent = '✓ CPF válido (11 dígitos) pronto para o Receita Saúde';
+                } else {
+                    statusCpfEl.className = 'text-[11px] text-amber-300 font-semibold';
+                    statusCpfEl.textContent = '⚠️ Informe o CPF (11 dígitos) do paciente para o Receita Saúde';
+                }
+            }
+
+            const emitido = foiEmitidoReceitaSaude(pg.id);
+            const badgeModal = document.getElementById('badgeStatusReceitaModal');
+            const btnToggle = document.getElementById('btnToggleEmitidoReceitaModal');
+
+            if (badgeModal) {
+                if (emitido) {
+                    badgeModal.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30';
+                    badgeModal.textContent = '✓ Já Emitido na Receita';
+                } else {
+                    badgeModal.className = 'px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+                    badgeModal.textContent = '● Pendente de Emissão Fiscal';
+                }
+            }
+
+            if (btnToggle) {
+                if (emitido) {
+                    btnToggle.className = 'py-2.5 px-4 rounded-xl bg-purple-500/20 hover:bg-purple-500/30 border border-purple-500/40 text-purple-200 text-xs font-semibold transition flex items-center justify-center gap-1.5';
+                    btnToggle.innerHTML = '<span>✓</span> Emitido na Receita (Desmarcar)';
+                } else {
+                    btnToggle.className = 'py-2.5 px-4 rounded-xl bg-[#141019] hover:bg-emerald-500/20 border border-[#32283D] hover:border-emerald-500/40 text-[#E5DCED] hover:text-emerald-300 text-xs font-semibold transition flex items-center justify-center gap-1.5';
+                    btnToggle.innerHTML = '<span>✅</span> Marcar Emitido na Receita';
+                }
+            }
+        }
+
+        async function salvarCpfRapidoReceitaSaude() {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoReceitaSaudeAtualId);
+            if (!pg || !pg.paciente_id) return;
+
+            const novoCpfPac = document.getElementById('rsIndInputCpfPaciente').value.trim();
+            const novoCpfResp = document.getElementById('rsIndInputCpfResponsavel').value.trim();
+
+            const { error } = await client
+                .from('pacientes')
+                .update({
+                    cpf: novoCpfPac || null,
+                    responsavel_cpf: novoCpfResp || null
+                })
+                .eq('id', pg.paciente_id);
+
+            if (error) {
+                alert('Erro ao salvar CPF: ' + error.message);
+                return;
+            }
+
+            const pac = todosPacientesCache.find(p => p.id === pg.paciente_id);
+            if (pac) {
+                pac.cpf = novoCpfPac || null;
+                pac.responsavel_cpf = novoCpfResp || null;
+            }
+            atualizarUICamposModalReceitaIndividual();
+            exibirToastTempoReal('CPF atualizado no cadastro do paciente!');
+        }
+
+        function copiarCampoReceitaSaude(tipo) {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoReceitaSaudeAtualId);
+            if (!pg) return;
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+
+            const cpfBenef = limparCpfApenasDigitos(document.getElementById('rsIndInputCpfPaciente')?.value || pac.cpf);
+            const cpfPag = limparCpfApenasDigitos(document.getElementById('rsIndInputCpfResponsavel')?.value || pac.responsavel_cpf) || cpfBenef;
+            const valorVirgula = Number(pg.valor || 0).toFixed(2).replace('.', ',');
+
+            let texto = '';
+            let label = '';
+            if (tipo === 'cpfPagador') {
+                texto = cpfPag;
+                label = 'CPF do Pagador';
+            } else if (tipo === 'cpfBeneficiario') {
+                texto = cpfBenef;
+                label = 'CPF do Paciente';
+            } else if (tipo === 'valor') {
+                texto = valorVirgula;
+                label = 'Valor';
+            } else {
+                texto = `Atendimento psicológico referente a ${pac.nome || 'paciente'}`;
+                label = 'Descrição';
+            }
+
+            if (!texto) {
+                alert(`O campo ${label} está vazio. Preencha o CPF acima primeiro.`);
+                return;
+            }
+
+            navigator.clipboard.writeText(texto);
+            exibirToastTempoReal(`${label} copiado: ${texto}`);
+        }
+
+        function alternarEmitidoReceitaSaudeAtual() {
+            if (!pagamentoReceitaSaudeAtualId) return;
+            const novoStatus = !foiEmitidoReceitaSaude(pagamentoReceitaSaudeAtualId);
+            definirEmitidoReceitaSaude(pagamentoReceitaSaudeAtualId, novoStatus);
+            atualizarUICamposModalReceitaIndividual();
+            aplicarFiltrosCobrancas();
+            exibirToastTempoReal(novoStatus ? 'Marcado como emitido no Receita Saúde!' : 'Status de emissão removido.');
+        }
+
+        function exportarCSVUnicoReceitaSaude() {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoReceitaSaudeAtualId);
+            if (!pg) return;
+
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+            const cpfBenef = limparCpfApenasDigitos(document.getElementById('rsIndInputCpfPaciente')?.value || pac.cpf);
+            if (cpfBenef.length !== 11) {
+                if (!confirm('O CPF do paciente não possui 11 dígitos. No Receita Saúde o CPF é obrigatório. Deseja exportar mesmo assim?')) return;
+            }
+
+            const linha = montarLinhaCSVReceitaSaude(pg);
+            const nomeLimpo = (pac.nome || 'Paciente').replace(/[^a-zA-Z0-9]/g, '_');
+            dispararDownloadCSV([linha], `ReceitaSaude_${nomeLimpo}_${pg.data_pagamento || 'sessao'}.csv`);
+            definirEmitidoReceitaSaude(pg.id, true);
+            atualizarUICamposModalReceitaIndividual();
+            aplicarFiltrosCobrancas();
+        }
+
+        function baixarReciboPDFDoModalAtual() {
+            if (!pagamentoReceitaSaudeAtualId) return;
+            gerarReciboPDF(pagamentoReceitaSaudeAtualId);
+        }
+
+        function abrirModalExportarReceitaSaude() {
+            const inputMes = document.getElementById('mesLoteReceitaSaude');
+            if (inputMes && !inputMes.value) {
+                inputMes.value = obterChaveDiaLocal().slice(0, 7);
+            }
+            atualizarPreviaLoteReceitaSaude();
+            document.getElementById('modalReceitaSaudeLote').classList.remove('hidden');
+        }
+
+        function obterPagamentosPagosDoMesSelecionado() {
+            const mesAno = document.getElementById('mesLoteReceitaSaude')?.value || obterChaveDiaLocal().slice(0, 7);
+            const base = obterPagamentosFiltradosPorPsicologa();
+            return base.filter(pg => {
+                if (pg.status !== 'Pago') return false;
+                const dtRef = (pg.data_pagamento || pg.data_vencimento || '').slice(0, 7);
+                return dtRef === mesAno;
+            });
+        }
+
+        function atualizarPreviaLoteReceitaSaude() {
+            const listaEl = document.getElementById('listaPreviaLoteReceitaSaude');
+            const resumoEl = document.getElementById('resumoContagemLoteRS');
+            if (!listaEl || !resumoEl) return;
+
+            const pagosMes = obterPagamentosPagosDoMesSelecionado();
+            if (pagosMes.length === 0) {
+                resumoEl.textContent = '0 pagamentos quitados neste mês';
+                listaEl.innerHTML = `<div class="p-6 text-center text-xs text-[#9C8EAD] bg-[#141019] rounded-2xl border border-[#2E2538]">Nenhum pagamento com status "Pago" encontrado neste mês.</div>`;
+                return;
+            }
+
+            let comCpf = 0;
+            pagosMes.forEach(pg => {
+                const pac = todosPacientesCache.find(p => p.id === pg.paciente_id) || {};
+                if (limparCpfApenasDigitos(pac.cpf).length === 11) comCpf++;
+            });
+
+            resumoEl.innerHTML = `<span class="text-emerald-400">${pagosMes.length} pagos</span> · <span class="${comCpf === pagosMes.length ? 'text-emerald-300' : 'text-amber-300'}">${comCpf}/${pagosMes.length} com CPF válido</span>`;
+
+            listaEl.innerHTML = pagosMes.map(pg => {
+                const pac = todosPacientesCache.find(p => p.id === pg.paciente_id) || pg.pacientes || {};
+                const cpfLimpo = limparCpfApenasDigitos(pac.cpf);
+                const temCpfValido = cpfLimpo.length === 11;
+                const emitido = foiEmitidoReceitaSaude(pg.id);
+
+                return `
+                    <div class="p-3 rounded-xl bg-[#141019] border border-[#2E2538] flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs">
+                        <div>
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-white">${escapeHtml(pac.nome || 'Paciente')}</span>
+                                <span class="text-emerald-400 font-bold">${formatarBRL(pg.valor)}</span>
+                                <span class="text-[#9C8EAD]">(${formatarDataDDMMAAAA(pg.data_pagamento || pg.data_vencimento)})</span>
+                                ${emitido ? `<span class="px-2 py-0.5 rounded-full text-[9px] bg-purple-500/20 text-purple-300 border border-purple-500/30">🏛️ Já exportado</span>` : ''}
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            ${temCpfValido
+                                ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[11px] font-mono">CPF: ${escapeHtml(cpfLimpo)}</span>`
+                                : `<input type="text" id="cpfLoteInput_${pac.id}" placeholder="Digite o CPF (11 díg)" class="px-2.5 py-1 input-dark rounded-lg text-[11px] font-mono w-36 outline-none border-amber-500/40">
+                                   <button type="button" onclick="salvarCpfLoteRapido('${pac.id}')" class="px-2.5 py-1 rounded-lg bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 text-[11px] font-semibold">Salvar CPF</button>`
+                            }
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function salvarCpfLoteRapido(pacienteId) {
+            const input = document.getElementById(`cpfLoteInput_${pacienteId}`);
+            if (!input || !input.value.trim()) return;
+
+            const cpfLimpo = limparCpfApenasDigitos(input.value);
+            if (cpfLimpo.length !== 11) {
+                alert('Informe um CPF válido com 11 números.');
+                return;
+            }
+
+            const { error } = await client.from('pacientes').update({ cpf: cpfLimpo }).eq('id', pacienteId);
+            if (error) {
+                alert('Erro ao salvar CPF: ' + error.message);
+                return;
+            }
+
+            const pac = todosPacientesCache.find(p => p.id === pacienteId);
+            if (pac) pac.cpf = cpfLimpo;
+            atualizarPreviaLoteReceitaSaude();
+            exibirToastTempoReal('CPF salvo com sucesso!');
+        }
+
+        function baixarCSVLoteReceitaSaude() {
+            const pagosMes = obterPagamentosPagosDoMesSelecionado();
+            if (pagosMes.length === 0) {
+                alert('Não há pagamentos quitados no mês selecionado para exportar.');
+                return;
+            }
+
+            const semCpf = pagosMes.filter(pg => {
+                const pac = todosPacientesCache.find(p => p.id === pg.paciente_id) || {};
+                return limparCpfApenasDigitos(pac.cpf).length !== 11;
+            });
+
+            if (semCpf.length > 0) {
+                if (!confirm(`Existem ${semCpf.length} pagamento(s) sem CPF de 11 dígitos preenchido. Deseja exportar o arquivo mesmo assim?`)) {
+                    return;
+                }
+            }
+
+            const linhas = pagosMes.map(pg => montarLinhaCSVReceitaSaude(pg));
+            const mesAno = document.getElementById('mesLoteReceitaSaude')?.value || 'lote';
+            dispararDownloadCSV(linhas, `ReceitaSaude_CarneLeao_${mesAno}.csv`);
+
+            pagosMes.forEach(pg => definirEmitidoReceitaSaude(pg.id, true));
+            atualizarPreviaLoteReceitaSaude();
+            aplicarFiltrosCobrancas();
+            exibirToastTempoReal(`Lote de ${pagosMes.length} recibos exportado no padrão Receita Saúde!`);
+        }
 
         async function gerarReciboPDF(pagamentoId) {
             const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
