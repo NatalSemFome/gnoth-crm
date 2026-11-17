@@ -85,6 +85,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const abaAlvo = document.getElementById('secao-' + nomeAba);
             if (abaAlvo) {
                 abaAlvo.style.display = 'block';
+                if (nomeAba === 'clientes' && typeof aplicarFiltrosClientes === 'function') aplicarFiltrosClientes();
                 if (nomeAba === 'agendar' && typeof prepararTelaAgendamento === 'function') prepararTelaAgendamento();
                 if (nomeAba === 'agenda' && typeof renderizarCalendario === 'function') renderizarCalendario();
                 if (nomeAba === 'equipe' && typeof carregarEquipe === 'function') carregarEquipe();
@@ -1179,6 +1180,47 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             renderizarNotificacoesInteligentes();
         }
 
+        function limparDispensadasDoPaciente(pacienteId) {
+            if (!pacienteId) return;
+            try {
+                const map = obterNotificacoesDispensadas();
+                let alterado = false;
+                for (const chave of Object.keys(map)) {
+                    if (chave.includes(String(pacienteId))) {
+                        delete map[chave];
+                        alterado = true;
+                    }
+                }
+                if (alterado) {
+                    localStorage.setItem(CHAVE_NOTIFICACOES_DISPENSADAS, JSON.stringify(map));
+                }
+            } catch (e) {}
+        }
+
+        function extrairDiaMesNascimento(valor) {
+            if (!valor) return null;
+            const str = String(valor).trim();
+            if (str.includes('/')) {
+                const pedacos = str.split('/');
+                const dia = parseInt(pedacos[0], 10);
+                const mes = parseInt(pedacos[1], 10);
+                if (!isNaN(dia) && !isNaN(mes) && dia >= 1 && dia <= 31 && mes >= 1 && mes <= 12) {
+                    return { dia, mes };
+                }
+            }
+            if (str.includes('-')) {
+                const pedacos = str.split('-');
+                if (pedacos.length >= 3) {
+                    const mes = parseInt(pedacos[1], 10);
+                    const dia = parseInt(pedacos[2].slice(0, 2), 10);
+                    if (!isNaN(dia) && !isNaN(mes) && dia >= 1 && dia <= 31 && mes >= 1 && mes <= 12) {
+                        return { dia, mes };
+                    }
+                }
+            }
+            return null;
+        }
+
         function filtrarNotificacoes(categoria) {
             filtroNotificacaoAtivo = categoria;
             const categorias = ['todas', 'urgente', 'clinico', 'financeiro', 'agenda'];
@@ -1428,15 +1470,13 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             // 7. ANIVERSARIANTE DO DIA
             (pacientes || []).forEach(pac => {
                 if (pac.data_nascimento && pac.status !== 'Inativo') {
-                    const partes = pac.data_nascimento.split('-');
-                    if (partes.length === 3) {
-                        const mesNasc = partes[1];
-                        const diaNasc = partes[2];
-                        const mesAtual = String(agora.getMonth() + 1).padStart(2, '0');
-                        const diaAtual = String(agora.getDate()).padStart(2, '0');
+                    const infoNasc = extrairDiaMesNascimento(pac.data_nascimento);
+                    if (infoNasc) {
+                        const diaAtual = agora.getDate();
+                        const mesAtual = agora.getMonth() + 1;
 
-                        if (mesNasc === mesAtual && diaNasc === diaAtual) {
-                            const idAlerta = `aniversario_${pac.id}_${agora.getFullYear()}`;
+                        if (infoNasc.dia === diaAtual && infoNasc.mes === mesAtual) {
+                            const idAlerta = `aniversario_${pac.id}_${infoNasc.dia}_${infoNasc.mes}_${agora.getFullYear()}`;
                             if (!dispensadas[idAlerta]) {
                                 const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
                                 const meuNome = obterNomeExibicaoUsuario();
@@ -1451,12 +1491,12 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                                 alertas.push({
                                     id: idAlerta,
                                     categoria: 'agenda',
-                                    urgente: false,
+                                    urgente: true,
                                     icone: '🎂',
                                     badgeTexto: 'Aniversariante Hoje',
                                     badgeClasse: 'bg-pink-500/15 text-pink-300 border-pink-500/30',
                                     titulo: `Hoje é aniversário de ${escapeHtml(pac.nome)}! 🎉`,
-                                    descricao: 'Fortaleça o vínculo terapêutico enviando uma mensagem afetuosa de felicitações.',
+                                    descricao: 'Fortaleça a aliança terapêutica enviando uma mensagem afetuosa de felicitações pelo dia de hoje.',
                                     acoesHtml: botoes
                                 });
                             }
@@ -2551,6 +2591,15 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             try {
                 await client.from('pacientes').update(updatePayload).eq('id', pacienteSelecionadoId);
 
+                // Atualização instantânea e otimista no cache local
+                const idxPac = todosPacientesCache.findIndex(p => p.id === pacienteSelecionadoId);
+                if (idxPac !== -1) {
+                    todosPacientesCache[idxPac] = { ...todosPacientesCache[idxPac], ...updatePayload };
+                }
+                limparDispensadasDoPaciente(pacienteSelecionadoId);
+                aplicarFiltrosClientes();
+                gerarNotificacoesInteligentes();
+
                 if (novoTexto.length > 0) {
                     const autorNome = obterNomeExibicaoUsuario();
 
@@ -2596,43 +2645,77 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         document.getElementById('formNovoCliente').addEventListener('submit', async (e) => {
             e.preventDefault();
-            const nome = document.getElementById('clienteNome').value.trim();
-            const whatsapp = document.getElementById('clienteWhatsapp').value.trim();
-            const cpf = document.getElementById('clienteCpf').value.trim() || null;
-            const data_nascimento = document.getElementById('clienteDataNascimento').value || null;
-            const modalidade = document.getElementById('clienteModalidade').value;
-            const valor = parseFloat(document.getElementById('clienteValor').value) || 150.00;
-            const responsavel_nome = document.getElementById('clienteResponsavelNome').value.trim() || null;
-            const responsavel_cpf = document.getElementById('clienteResponsavelCpf').value.trim() || null;
-
-            let psicologa_id = usuarioAtualPerfil ? usuarioAtualPerfil.id : null;
-            if (ehAdmin()) {
-                const selectPsi = document.getElementById('clientePsicologaSelect');
-                if (selectPsi && selectPsi.value) psicologa_id = selectPsi.value;
+            const btnSalvar = document.getElementById('formNovoCliente').querySelector('button[type="submit"]');
+            if (btnSalvar) {
+                btnSalvar.disabled = true;
+                btnSalvar.textContent = "Salvando...";
             }
 
-            const lgpdAceito = document.getElementById('clienteLgpdCheck').checked;
-            const { error } = await client.from('pacientes').insert([{
-                nome,
-                whatsapp,
-                cpf,
-                data_nascimento,
-                modalidade,
-                valor_padrao_sessao: valor,
-                responsavel_nome,
-                responsavel_cpf,
-                lgpd_aceito: lgpdAceito,
-                lgpd_aceito_em: lgpdAceito ? new Date().toISOString() : null,
-                status: 'Em Atendimento',
-                status_financeiro: 'Em dia',
-                psicologa_id
-            }]);
+            try {
+                const nome = document.getElementById('clienteNome').value.trim();
+                const whatsapp = document.getElementById('clienteWhatsapp').value.trim();
+                const cpf = document.getElementById('clienteCpf').value.trim() || null;
+                const data_nascimento = document.getElementById('clienteDataNascimento').value || null;
+                const modalidade = document.getElementById('clienteModalidade').value;
+                const valor = parseFloat(document.getElementById('clienteValor').value) || 150.00;
+                const responsavel_nome = document.getElementById('clienteResponsavelNome').value.trim() || null;
+                const responsavel_cpf = document.getElementById('clienteResponsavelCpf').value.trim() || null;
 
-            if (error) return alert("Erro ao criar paciente: " + error.message);
+                let psicologa_id = usuarioAtualPerfil ? usuarioAtualPerfil.id : null;
+                if (ehAdmin()) {
+                    const selectPsi = document.getElementById('clientePsicologaSelect');
+                    if (selectPsi && selectPsi.value) psicologa_id = selectPsi.value;
+                }
 
-            document.getElementById('formNovoCliente').reset();
-            fecharModal('modalCliente');
-            await carregarDados();
+                const lgpdAceito = document.getElementById('clienteLgpdCheck').checked;
+                const payloadNovo = {
+                    nome,
+                    whatsapp,
+                    cpf,
+                    data_nascimento,
+                    modalidade,
+                    valor_padrao_sessao: valor,
+                    responsavel_nome,
+                    responsavel_cpf,
+                    lgpd_aceito: lgpdAceito,
+                    lgpd_aceito_em: lgpdAceito ? new Date().toISOString() : null,
+                    status: 'Em Atendimento',
+                    status_financeiro: 'Em dia',
+                    psicologa_id
+                };
+
+                const { data: pacienteInserido, error } = await client.from('pacientes').insert([payloadNovo]).select();
+                if (error) return alert("Erro ao criar paciente: " + error.message);
+
+                const registroFinal = (pacienteInserido && pacienteInserido[0]) ? pacienteInserido[0] : {
+                    id: 'temp_' + Date.now(),
+                    ...payloadNovo,
+                    created_at: new Date().toISOString()
+                };
+
+                // 1. Atualização instantânea e otimista no cache local (0ms de atraso)
+                todosPacientesCache = [registroFinal, ...todosPacientesCache.filter(p => p.id !== registroFinal.id)];
+                limparDispensadasDoPaciente(registroFinal.id);
+
+                // 2. Re-renderiza imediatamente a lista de pacientes, notificações e agenda
+                aplicarFiltrosClientes();
+                gerarNotificacoesInteligentes();
+                if (typeof prepararTelaAgendamento === 'function') {
+                    prepararTelaAgendamento({ preservarSelecao: true });
+                }
+
+                document.getElementById('formNovoCliente').reset();
+                fecharModal('modalCliente');
+                exibirToastTempoReal(`Paciente ${nome} cadastrado com sucesso!`);
+
+                // 3. Sincroniza em background com o banco
+                await carregarDados();
+            } finally {
+                if (btnSalvar) {
+                    btnSalvar.disabled = false;
+                    btnSalvar.textContent = "Salvar Paciente";
+                }
+            }
         });
 
         function obterResumoPlanoUsuario(u) {
