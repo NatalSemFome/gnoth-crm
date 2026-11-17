@@ -700,7 +700,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 todosAtendimentosCache = atendimentos;
                 todosPagamentosCache = pagamentos;
 
-                gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes);
+                gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes, todosPagamentosCache, usuarioAtualPerfil);
                 renderizarCronogramaHoje(todosAtendimentosCache);
                 renderizarProximosEAlertas(todosAtendimentosCache);
                 aplicarFiltrosClientes();
@@ -1124,47 +1124,343 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         let notificacoesAtuaisCache = [];
+        let filtroNotificacaoAtivo = 'todas';
+        const CHAVE_NOTIFICACOES_DISPENSADAS = 'gnoth_notificacoes_dispensadas_v2';
+
+        function obterNotificacoesDispensadas() {
+            try {
+                const raw = localStorage.getItem(CHAVE_NOTIFICACOES_DISPENSADAS);
+                if (!raw) return {};
+                const parsed = JSON.parse(raw);
+                const agora = Date.now();
+                const limiteDias = 3 * 24 * 60 * 60 * 1000; // expira em 3 dias
+                const limpo = {};
+                for (const [id, ts] of Object.entries(parsed)) {
+                    if (agora - ts < limiteDias) {
+                        limpo[id] = ts;
+                    }
+                }
+                return limpo;
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function salvarNotificacaoDispensada(id) {
+            try {
+                const map = obterNotificacoesDispensadas();
+                map[id] = Date.now();
+                localStorage.setItem(CHAVE_NOTIFICACOES_DISPENSADAS, JSON.stringify(map));
+            } catch (e) {}
+        }
+
+        function dispensarNotificacao(id, evento) {
+            if (evento) {
+                evento.stopPropagation();
+            }
+            salvarNotificacaoDispensada(id);
+            notificacoesAtuaisCache = notificacoesAtuaisCache.filter(n => n.id !== id);
+            renderizarNotificacoesInteligentes();
+        }
+
+        function dispensarTodasNotificacoes() {
+            if (!notificacoesAtuaisCache.length) return;
+            const confirmou = confirm("Deseja marcar todos os lembretes visíveis como lidos?");
+            if (!confirmou) return;
+            try {
+                const map = obterNotificacoesDispensadas();
+                const agora = Date.now();
+                notificacoesAtuaisCache.forEach(n => {
+                    map[n.id] = agora;
+                });
+                localStorage.setItem(CHAVE_NOTIFICACOES_DISPENSADAS, JSON.stringify(map));
+            } catch (e) {}
+            notificacoesAtuaisCache = [];
+            renderizarNotificacoesInteligentes();
+        }
+
+        function filtrarNotificacoes(categoria) {
+            filtroNotificacaoAtivo = categoria;
+            const categorias = ['todas', 'urgente', 'clinico', 'financeiro', 'agenda'];
+            categorias.forEach(cat => {
+                const btn = document.getElementById('btnFiltroNotif-' + cat);
+                if (!btn) return;
+                if (cat === categoria) {
+                    btn.className = "px-3 py-1.5 rounded-xl font-semibold transition whitespace-nowrap bg-[#8A4F7D] text-white shadow-sm";
+                } else {
+                    btn.className = "px-3 py-1.5 rounded-xl font-semibold transition whitespace-nowrap text-[#9C8EAD] hover:text-white hover:bg-[#251D2E]";
+                }
+            });
+
+            const txtStatus = document.getElementById('textoStatusFiltroNotificacoes');
+            if (txtStatus) {
+                const labels = {
+                    todas: 'Exibindo todas as pendências',
+                    urgente: 'Exibindo apenas pendências críticas e urgentes',
+                    clinico: 'Exibindo prontuários e acompanhamentos clínicos',
+                    financeiro: 'Exibindo cobranças e recebimentos',
+                    agenda: 'Exibindo sessões agendadas para hoje'
+                };
+                txtStatus.textContent = labels[categoria] || 'Exibindo pendências';
+            }
+
+            renderizarNotificacoesInteligentes();
+        }
 
         function alternarPainelNotificacoes() {
             const painel = document.getElementById('painelNotificacoes');
-            if (painel) painel.classList.toggle('hidden');
+            if (painel) {
+                const ficaraAberto = painel.classList.contains('hidden');
+                painel.classList.toggle('hidden');
+                if (ficaraAberto) {
+                    renderizarNotificacoesInteligentes();
+                }
+            }
         }
 
-        function gerarNotificacoesInteligentes(pacientes, atendimentos, prontuarios) {
+        function gerarNotificacoesInteligentes(pacientes = todosPacientesCache, atendimentos = todosAtendimentosCache, prontuarios = [], pagamentos = todosPagamentosCache, perfil = usuarioAtualPerfil) {
             const alertas = [];
             const agora = new Date();
             const hojeStr = obterChaveDiaLocal(agora);
-            const amanhaObj = new Date(agora);
-            amanhaObj.setDate(agora.getDate() + 1);
-            const amanhaStr = obterChaveDiaLocal(amanhaObj);
+            const dispensadas = obterNotificacoesDispensadas();
 
-            const clientesAtivos = pacientes.filter(p => p.status === 'Em Atendimento');
-            const seteDiasAtras = new Date(agora);
-            seteDiasAtras.setDate(agora.getDate() - 7);
+            // 1. CONFIGURAÇÃO URGENTE: CHAVE PIX NÃO CONFIGURADA
+            const chavePixPsi = (perfil?.chave_pix || (perfil ? localStorage.getItem('gnoth_chave_pix_user_' + perfil.id) : null) || '').trim();
+            if (perfil && !chavePixPsi) {
+                const idAlerta = 'config_pix_pendente_' + perfil.id;
+                if (!dispensadas[idAlerta]) {
+                    alertas.push({
+                        id: idAlerta,
+                        categoria: 'financeiro',
+                        urgente: true,
+                        icone: '⚙️',
+                        badgeTexto: 'Configuração Urgente',
+                        badgeClasse: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                        titulo: 'Chave Pix de recebimento não configurada',
+                        descricao: 'Cadastre sua chave Pix na aba "Meu Perfil" para que os pagamentos de sessões caiam 100% direto na sua conta.',
+                        acoesHtml: `<button onclick="alternarPainelNotificacoes(); trocarAbaMobile('perfil')" class="px-3.5 py-1.5 btn-plum rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>⚙️</span> Configurar no Perfil</button>`
+                    });
+                }
+            }
 
-            atendimentos.forEach(a => {
+            // 2. CAPTAÇÃO: NOVAS TRIAGENS AGUARDANDO CONTATO
+            const leads = (pacientes || []).filter(p => p.status === 'Novo Contato');
+            if (leads.length > 0) {
+                const idAlerta = 'triagens_fila_' + leads.length;
+                if (!dispensadas[idAlerta]) {
+                    alertas.push({
+                        id: idAlerta,
+                        categoria: 'urgente',
+                        urgente: true,
+                        icone: '📩',
+                        badgeTexto: `${leads.length} ${leads.length === 1 ? 'Nova Triagem' : 'Novas Triagens'}`,
+                        badgeClasse: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                        titulo: `${leads.length} ${leads.length === 1 ? 'paciente aguardando primeiro contato' : 'pacientes aguardando primeiro contato'}`,
+                        descricao: 'Novas solicitações de triagem recebidas via Landing Page ou Link da Bio. Responda com agilidade para acolher o paciente.',
+                        acoesHtml: `<button onclick="alternarPainelNotificacoes(); trocarAbaMobile('leads')" class="px-3.5 py-1.5 btn-plum rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>📩</span> Abrir Aba Triagens (${leads.length})</button>`
+                    });
+                }
+            }
+
+            // 3. PRONTUÁRIOS CLÍNICOS PENDENTES (RESOLUÇÃO CFP Nº 01/2009)
+            const quatorzeDiasAtras = new Date(agora);
+            quatorzeDiasAtras.setDate(agora.getDate() - 14);
+
+            (atendimentos || []).forEach(a => {
                 if (!a.data_hora || a.status === 'Cancelada' || a.status === 'Falta') return;
                 const dtSessao = new Date(a.data_hora);
-                const jaPassou = dtSessao < agora && dtSessao >= seteDiasAtras;
+                const jaPassou = dtSessao < agora && dtSessao >= quatorzeDiasAtras;
 
                 if (a.status === 'Realizada' || jaPassou) {
-                    const temProntuarioApos = prontuarios.some(pr => {
+                    const temProntuario = (prontuarios || []).some(pr => {
                         if (pr.paciente_id !== a.paciente_id) return false;
                         const dtPront = new Date(pr.criado_em);
                         return dtPront >= new Date(dtSessao.getTime() - (2 * 60 * 60 * 1000));
                     });
 
-                    if (!temProntuarioApos) {
-                        const nomePac = a.pacientes ? a.pacientes.nome : 'Paciente';
-                        const dataFormatada = dtSessao.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
-                        const horaFormatada = dtSessao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                    if (!temProntuario) {
+                        const idAlerta = `prontuario_${a.id}`;
+                        if (!dispensadas[idAlerta]) {
+                            const pac = (pacientes || []).find(p => p.id === a.paciente_id) || a.pacientes || {};
+                            const nomePac = pac.nome || 'Paciente';
+                            const dataFmt = dtSessao.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' });
+                            const horaFmt = dtSessao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+                            alertas.push({
+                                id: idAlerta,
+                                categoria: 'clinico',
+                                urgente: true,
+                                icone: '📝',
+                                badgeTexto: 'Prontuário Pendente',
+                                badgeClasse: 'bg-amber-500/15 text-amber-300 border-amber-500/30',
+                                titulo: `Prontuário pendente: ${escapeHtml(nomePac)}`,
+                                descricao: `Sessão de ${dataFmt} às ${horaFmt} ainda não possui evolução registrada (Resolução CFP nº 01/2009).`,
+                                acoesHtml: `<button onclick="alternarPainelNotificacoes(); abrirDetalhesPaciente('${a.paciente_id}')" class="px-3.5 py-1.5 btn-plum rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>✍️</span> Registrar Prontuário</button>`
+                            });
+                        }
+                    }
+                }
+            });
+
+            // 4. COBRANÇAS VENCIDAS / INADIMPLÊNCIA
+            (pagamentos || []).forEach(pg => {
+                if (pg.status === 'Pendente' && pg.data_vencimento) {
+                    const vencStr = pg.data_vencimento.slice(0, 10);
+                    if (vencStr < hojeStr) {
+                        const idAlerta = `cobranca_vencida_${pg.id}`;
+                        if (!dispensadas[idAlerta]) {
+                            const pac = (pacientes || []).find(p => p.id === pg.paciente_id) || pg.pacientes || {};
+                            const nomePac = pac.nome || 'Paciente';
+                            const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
+                            const valorFmt = formatarBRL(pg.valor);
+                            const vencFmt = formatarDataDDMMAAAA(pg.data_vencimento);
+                            const meuNome = obterNomeExibicaoUsuario();
+
+                            const msgCob = encodeURIComponent(`Olá, ${nomePac}! Tudo bem? Aqui é ${meuNome}. Passando para lembrar da cobrança referente à nossa sessão no valor de ${valorFmt}, que venceu em ${vencFmt}. Se precisar da chave Pix ou do código Copia e Cola, é só me avisar!`);
+                            const linkWpp = numLimpo ? `https://wa.me/55${numLimpo}?text=${msgCob}` : null;
+
+                            let botoes = `<button onclick="alternarPainelNotificacoes(); abrirModalPixPaciente('${pg.id}')" class="px-3 py-1.5 bg-[#2B2138] hover:bg-[#3F3152] border border-[#3F3152] text-[#D8B4FE] rounded-xl text-[11px] font-semibold flex items-center gap-1.5"><span>⚡</span> Gerar Pix</button>`;
+                            if (linkWpp) {
+                                botoes += `<a href="${linkWpp}" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>💬</span> WhatsApp</a>`;
+                            }
+
+                            alertas.push({
+                                id: idAlerta,
+                                categoria: 'financeiro',
+                                urgente: true,
+                                icone: '💰',
+                                badgeTexto: 'Cobrança Vencida',
+                                badgeClasse: 'bg-red-500/15 text-red-300 border-red-500/30',
+                                titulo: `Cobrança vencida: ${escapeHtml(nomePac)}`,
+                                descricao: `Valor de ${valorFmt} venceu em ${vencFmt} e ainda consta em aberto no sistema.`,
+                                acoesHtml: `<div class="flex items-center gap-2 flex-wrap">${botoes}</div>`
+                            });
+                        }
+                    }
+                }
+            });
+
+            // 5. SESSÕES DE HOJE (CONFIRMAÇÃO / LINK DA SALA)
+            (atendimentos || []).forEach(a => {
+                if (!a.data_hora || a.status === 'Cancelada' || a.status === 'Falta') return;
+                const dtSessao = new Date(a.data_hora);
+                const diaIso = obterChaveDiaLocal(dtSessao);
+                if (diaIso === hojeStr) {
+                    const idAlerta = `sessao_hoje_${a.id}_${hojeStr}`;
+                    if (!dispensadas[idAlerta]) {
+                        const pac = (pacientes || []).find(p => p.id === a.paciente_id) || a.pacientes || {};
+                        const nomePac = pac.nome || 'Paciente';
+                        const horaFmt = dtSessao.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+                        const mod = a.modalidade || pac.modalidade || 'Online';
+                        const linkWpp = gerarLinkWhatsappLembrete(a, pac, mod);
+
+                        let botoes = `<button onclick="alternarPainelNotificacoes(); trocarAbaMobile('agenda')" class="px-3 py-1.5 bg-[#2B2138] hover:bg-[#3F3152] border border-[#3F3152] text-[#D8B4FE] rounded-xl text-[11px] font-semibold flex items-center gap-1.5"><span>📅</span> Ver Agenda</button>`;
+                        if (linkWpp) {
+                            botoes += `<a href="${linkWpp}" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>📲</span> Enviar Link</a>`;
+                        }
 
                         alertas.push({
-                            icone: '📝',
-                            titulo: `Prontuário pendente: ${nomePac}`,
-                            descricao: `Sessão de ${dataFormatada} às ${horaFormatada} ainda não possui evolução registrada.`,
-                            acaoHtml: `<button onclick="alternarPainelNotificacoes(); abrirDetalhesPaciente('${a.paciente_id}')" class="px-3 py-1.5 btn-plum rounded-xl text-[11px] font-semibold">Escrever prontuário</button>`
+                            id: idAlerta,
+                            categoria: 'agenda',
+                            urgente: false,
+                            icone: '📅',
+                            badgeTexto: `Sessão Hoje às ${horaFmt}`,
+                            badgeClasse: 'bg-purple-500/15 text-purple-300 border-purple-500/30',
+                            titulo: `${escapeHtml(nomePac)} às ${horaFmt}`,
+                            descricao: `Atendimento ${mod} agendado para hoje. ${mod === 'Online' && (pac.link_sala || a.link_sala) ? 'Link da sala pronto para envio.' : ''}`,
+                            acoesHtml: `<div class="flex items-center gap-2 flex-wrap">${botoes}</div>`
                         });
+                    }
+                }
+            });
+
+            // 6. RISCO DE ABANDONO: PACIENTE ATIVO SEM SESSÃO HÁ +15 DIAS
+            const pacientesAtivos = (pacientes || []).filter(p => p.status === 'Em Atendimento');
+            pacientesAtivos.forEach(pac => {
+                const temSessaoFutura = (atendimentos || []).some(a => {
+                    if (a.paciente_id !== pac.id || a.status === 'Cancelada') return false;
+                    return new Date(a.data_hora) >= agora;
+                });
+
+                if (!temSessaoFutura) {
+                    const sessoesPassadas = (atendimentos || [])
+                        .filter(a => a.paciente_id === pac.id && a.status !== 'Cancelada' && new Date(a.data_hora) < agora)
+                        .sort((a, b) => new Date(b.data_hora) - new Date(a.data_hora));
+
+                    let diasSemSessao = 999;
+                    let textoDataUltima = 'sem registro de sessão anterior';
+                    if (sessoesPassadas.length > 0) {
+                        const dtUltima = new Date(sessoesPassadas[0].data_hora);
+                        diasSemSessao = Math.floor((agora - dtUltima) / (1000 * 60 * 60 * 24));
+                        textoDataUltima = `última sessão em ${dtUltima.toLocaleDateString('pt-BR')}`;
+                    }
+
+                    if (diasSemSessao >= 15) {
+                        const semanaAno = Math.floor(Date.now() / (7 * 24 * 60 * 60 * 1000));
+                        const idAlerta = `abandono_${pac.id}_${semanaAno}`;
+                        if (!dispensadas[idAlerta]) {
+                            const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
+                            const meuNome = obterNomeExibicaoUsuario();
+                            const msgFollow = encodeURIComponent(`Olá, ${pac.nome}! Tudo bem por aí? Aqui é ${meuNome}. Passando para saber como você está e se gostaria de agendar nosso próximo encontro terapêutico.`);
+                            const linkWppFollow = numLimpo ? `https://wa.me/55${numLimpo}?text=${msgFollow}` : null;
+
+                            let botoes = `<button onclick="alternarPainelNotificacoes(); trocarAbaMobile('agendar')" class="px-3.5 py-1.5 btn-plum rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>📅</span> Agendar Sessão</button>`;
+                            if (linkWppFollow) {
+                                botoes += `<a href="${linkWppFollow}" target="_blank" class="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>💬</span> Acolhimento</a>`;
+                            }
+
+                            alertas.push({
+                                id: idAlerta,
+                                categoria: 'clinico',
+                                urgente: false,
+                                icone: '💜',
+                                badgeTexto: 'Acompanhamento',
+                                badgeClasse: 'bg-violet-500/15 text-violet-300 border-violet-500/30',
+                                titulo: `Paciente sem agendamento: ${escapeHtml(pac.nome)}`,
+                                descricao: `Paciente ativo sem sessões agendadas há ${diasSemSessao === 999 ? 'mais de 15' : diasSemSessao} dias (${textoDataUltima}).`,
+                                acoesHtml: `<div class="flex items-center gap-2 flex-wrap">${botoes}</div>`
+                            });
+                        }
+                    }
+                }
+            });
+
+            // 7. ANIVERSARIANTE DO DIA
+            (pacientes || []).forEach(pac => {
+                if (pac.data_nascimento && pac.status !== 'Inativo') {
+                    const partes = pac.data_nascimento.split('-');
+                    if (partes.length === 3) {
+                        const mesNasc = partes[1];
+                        const diaNasc = partes[2];
+                        const mesAtual = String(agora.getMonth() + 1).padStart(2, '0');
+                        const diaAtual = String(agora.getDate()).padStart(2, '0');
+
+                        if (mesNasc === mesAtual && diaNasc === diaAtual) {
+                            const idAlerta = `aniversario_${pac.id}_${agora.getFullYear()}`;
+                            if (!dispensadas[idAlerta]) {
+                                const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
+                                const meuNome = obterNomeExibicaoUsuario();
+                                const msgAniv = encodeURIComponent(`Olá, ${pac.nome}! Desejo a você um feliz aniversário! Muita saúde, paz e realizações neste novo ciclo. Um abraço afetuoso, ${meuNome}.`);
+                                const linkWppAniv = numLimpo ? `https://wa.me/55${numLimpo}?text=${msgAniv}` : null;
+
+                                let botoes = '';
+                                if (linkWppAniv) {
+                                    botoes = `<a href="${linkWppAniv}" target="_blank" class="px-3 py-1.5 bg-pink-600 hover:bg-pink-500 text-white rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>🎈</span> Enviar Felicitações</a>`;
+                                }
+
+                                alertas.push({
+                                    id: idAlerta,
+                                    categoria: 'agenda',
+                                    urgente: false,
+                                    icone: '🎂',
+                                    badgeTexto: 'Aniversariante Hoje',
+                                    badgeClasse: 'bg-pink-500/15 text-pink-300 border-pink-500/30',
+                                    titulo: `Hoje é aniversário de ${escapeHtml(pac.nome)}! 🎉`,
+                                    descricao: 'Fortaleça o vínculo terapêutico enviando uma mensagem afetuosa de felicitações.',
+                                    acoesHtml: botoes
+                                });
+                            }
+                        }
                     }
                 }
             });
@@ -1177,13 +1473,39 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const listaEl = document.getElementById('listaNotificacoesInteligentes');
             const badgeDesk = document.getElementById('badgeNotificacoesDesktop');
             const badgeMob = document.getElementById('badgeNotificacoesMobile');
+            const badgeTotalPainel = document.getElementById('badgeTotalPainelNotificacoes');
 
-            const qtd = notificacoesAtuaisCache.length;
+            const total = notificacoesAtuaisCache.length;
+            const qtdUrgente = notificacoesAtuaisCache.filter(n => n.urgente).length;
+            const qtdClinico = notificacoesAtuaisCache.filter(n => n.categoria === 'clinico').length;
+            const qtdFinanceiro = notificacoesAtuaisCache.filter(n => n.categoria === 'financeiro').length;
+            const qtdAgenda = notificacoesAtuaisCache.filter(n => n.categoria === 'agenda').length;
+
+            // Atualiza contadores nas abas de filtro
+            const elContTodas = document.getElementById('contNotif-todas');
+            const elContUrgente = document.getElementById('contNotif-urgente');
+            const elContClinico = document.getElementById('contNotif-clinico');
+            const elContFinanceiro = document.getElementById('contNotif-financeiro');
+            const elContAgenda = document.getElementById('contNotif-agenda');
+
+            if (elContTodas) elContTodas.textContent = total;
+            if (elContUrgente) elContUrgente.textContent = qtdUrgente;
+            if (elContClinico) elContClinico.textContent = qtdClinico;
+            if (elContFinanceiro) elContFinanceiro.textContent = qtdFinanceiro;
+            if (elContAgenda) elContAgenda.textContent = qtdAgenda;
+            if (badgeTotalPainel) badgeTotalPainel.textContent = total;
+
+            // Badges no sino (Desktop e Mobile)
             [badgeDesk, badgeMob].forEach(badge => {
                 if (!badge) return;
-                if (qtd > 0) {
-                    badge.textContent = qtd > 9 ? '9+' : qtd;
+                if (total > 0) {
+                    badge.textContent = total > 9 ? '9+' : total;
                     badge.classList.remove('hidden');
+                    if (qtdUrgente > 0) {
+                        badge.className = badge.className.replace(/bg-\S+/g, 'bg-red-500');
+                    } else {
+                        badge.className = badge.className.replace(/bg-\S+/g, 'bg-[#8A4F7D]');
+                    }
                 } else {
                     badge.classList.add('hidden');
                 }
@@ -1191,28 +1513,54 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
             if (!listaEl) return;
 
-            if (qtd === 0) {
+            // Filtra conforme a aba ativa
+            let visiveis = notificacoesAtuaisCache;
+            if (filtroNotificacaoAtivo === 'urgente') {
+                visiveis = notificacoesAtuaisCache.filter(n => n.urgente);
+            } else if (filtroNotificacaoAtivo === 'clinico') {
+                visiveis = notificacoesAtuaisCache.filter(n => n.categoria === 'clinico');
+            } else if (filtroNotificacaoAtivo === 'financeiro') {
+                visiveis = notificacoesAtuaisCache.filter(n => n.categoria === 'financeiro');
+            } else if (filtroNotificacaoAtivo === 'agenda') {
+                visiveis = notificacoesAtuaisCache.filter(n => n.categoria === 'agenda');
+            }
+
+            if (visiveis.length === 0) {
+                const mensagensVazias = {
+                    todas: 'Tudo em dia! Nenhum lembrete ou pendência pendente no momento.',
+                    urgente: 'Excelente! Nenhuma pendência urgente ou crítica pendente.',
+                    clinico: 'Nenhum prontuário pendente ou paciente sem acompanhamento.',
+                    financeiro: 'Nenhuma cobrança em atraso encontrada.',
+                    agenda: 'Nenhuma sessão agendada para hoje ou lembrete de agenda.'
+                };
                 listaEl.innerHTML = `
-                    <div class="py-10 text-center space-y-2">
-                        <span class="text-2xl block">✨</span>
-                        <p class="font-serif text-sm font-bold text-[#F3EEF6]">Tudo em dia!</p>
-                        <p class="text-xs text-[#9C8EAD]">Nenhum prontuário pendente ou lembrete urgente no momento.</p>
+                    <div class="py-12 px-4 text-center space-y-2.5">
+                        <span class="text-3xl block">✨</span>
+                        <p class="font-serif text-sm font-bold text-[#F3EEF6]">Tudo limpo!</p>
+                        <p class="text-xs text-[#9C8EAD] max-w-xs mx-auto leading-relaxed">${mensagensVazias[filtroNotificacaoAtivo] || mensagensVazias.todas}</p>
                     </div>`;
                 return;
             }
 
-            listaEl.innerHTML = notificacoesAtuaisCache.map(n => `
-                <div class="p-3.5 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-2.5">
-                    <div class="flex items-start gap-2.5">
-                        <span class="text-base mt-0.5">${n.icone}</span>
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-bold text-[#F3EEF6]">${escapeHtml(n.titulo)}</p>
-                            <p class="text-[11px] text-[#9C8EAD] mt-0.5 leading-relaxed">${escapeHtml(n.descricao)}</p>
+            listaEl.innerHTML = visiveis.map(n => `
+                <div class="p-4 rounded-2xl bg-[#141019] border ${n.urgente ? 'border-amber-500/30' : 'border-[#2E2538]'} space-y-3 relative group transition hover:border-[#3F3152]">
+                    <div class="flex items-start justify-between gap-3">
+                        <div class="flex items-start gap-2.5 min-w-0">
+                            <span class="text-lg mt-0.5 shrink-0">${n.icone}</span>
+                            <div class="min-w-0">
+                                <div class="flex items-center gap-2 flex-wrap mb-1">
+                                    <span class="px-2 py-0.5 rounded-full text-[9px] font-bold border uppercase tracking-wider ${n.badgeClasse || 'bg-[#2B2138] text-[#D8B4FE] border-[#3F3152]'}">${n.badgeTexto || 'Lembrete'}</span>
+                                </div>
+                                <p class="text-xs font-bold text-[#F3EEF6] leading-snug">${n.titulo}</p>
+                                <p class="text-[11px] text-[#9C8EAD] mt-1 leading-relaxed">${n.descricao}</p>
+                            </div>
                         </div>
+                        <button type="button" onclick="dispensarNotificacao('${n.id}', event)" class="p-1 text-[#9C8EAD] hover:text-white rounded-lg hover:bg-white/5 transition text-xs shrink-0" title="Dispensar este lembrete">✕</button>
                     </div>
-                    <div class="flex justify-end">
-                        ${n.acaoHtml}
-                    </div>
+                    ${n.acoesHtml ? `
+                    <div class="pt-2 border-t border-[#261F30]/70 flex justify-end">
+                        ${n.acoesHtml}
+                    </div>` : ''}
                 </div>
             `).join('');
         }

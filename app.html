@@ -1609,22 +1609,49 @@
     </div>
 
     <!-- PAINEL FLUTUANTE: CENTRAL DE NOTIFICAÇÕES INTELIGENTES -->
-    <div id="painelNotificacoes" class="hidden fixed inset-0 bg-black/50 backdrop-blur-[1px] z-50 flex items-start justify-end p-4 md:pr-10 md:pt-20" onclick="if(event.target === this) alternarPainelNotificacoes()">
-        <div class="bg-[#1D1724] border border-[#3F3152] rounded-3xl shadow-2xl w-full max-w-md overflow-hidden flex flex-col max-h-[85vh]">
+    <div id="painelNotificacoes" class="hidden fixed inset-0 bg-black/60 backdrop-blur-[2px] z-50 flex items-start justify-end p-3 md:p-6" onclick="if(event.target === this) alternarPainelNotificacoes()">
+        <div class="bg-[#1D1724] border border-[#3F3152] rounded-3xl shadow-2xl w-full max-w-lg overflow-hidden flex flex-col max-h-[90vh]">
+            <!-- CABEÇALHO -->
             <div class="p-5 border-b border-[#2E2538] flex items-center justify-between bg-[#141019]">
-                <div>
-                    <h3 class="font-serif text-lg font-bold text-[#F3EEF6] flex items-center gap-2">
-                        <span>🔔</span> Central de Lembretes
-                    </h3>
-                    <p class="text-[11px] text-[#9C8EAD]">Alertas automáticos de prontuários, sessões e pacotes.</p>
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-2xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center text-[#D8B4FE] text-lg shadow-sm">
+                        🔔
+                    </div>
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <h3 class="font-serif text-lg font-bold text-[#F3EEF6]">Central de Notificações</h3>
+                            <span id="badgeTotalPainelNotificacoes" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-[#8A4F7D]/30 text-[#D8B4FE] border border-[#8A4F7D]/40">0</span>
+                        </div>
+                        <p class="text-[11px] text-[#9C8EAD]">Lembretes clínicos, financeiros e de pacientes em tempo real.</p>
+                    </div>
                 </div>
-                <button type="button" onclick="alternarPainelNotificacoes()" class="text-[#9C8EAD] hover:text-white text-xl leading-none p-1">✕</button>
+                <button type="button" onclick="alternarPainelNotificacoes()" class="p-2 text-[#9C8EAD] hover:text-white rounded-xl hover:bg-white/5 transition leading-none text-lg" title="Fechar">✕</button>
             </div>
+
+            <!-- FILTROS POR CATEGORIA (PILLS) -->
+            <div class="px-4 py-2.5 bg-[#17121F] border-b border-[#261F30] flex items-center gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
+                <button type="button" onclick="filtrarNotificacoes('todas')" id="btnFiltroNotif-todas" class="px-3 py-1.5 rounded-xl font-semibold transition whitespace-nowrap bg-[#8A4F7D] text-white shadow-sm">Todas (<span id="contNotif-todas">0</span>)</button>
+                <button type="button" onclick="filtrarNotificacoes('urgente')" id="btnFiltroNotif-urgente" class="px-3 py-1.5 rounded-xl font-semibold transition whitespace-nowrap text-[#9C8EAD] hover:text-white hover:bg-[#251D2E]">🔴 Urgentes (<span id="contNotif-urgente">0</span>)</button>
+                <button type="button" onclick="filtrarNotificacoes('clinico')" id="btnFiltroNotif-clinico" class="px-3 py-1.5 rounded-xl font-semibold transition whitespace-nowrap text-[#9C8EAD] hover:text-white hover:bg-[#251D2E]">📝 Clínico (<span id="contNotif-clinico">0</span>)</button>
+                <button type="button" onclick="filtrarNotificacoes('financeiro')" id="btnFiltroNotif-financeiro" class="px-3 py-1.5 rounded-xl font-semibold transition whitespace-nowrap text-[#9C8EAD] hover:text-white hover:bg-[#251D2E]">💰 Financeiro (<span id="contNotif-financeiro">0</span>)</button>
+                <button type="button" onclick="filtrarNotificacoes('agenda')" id="btnFiltroNotif-agenda" class="px-3 py-1.5 rounded-xl font-semibold transition whitespace-nowrap text-[#9C8EAD] hover:text-white hover:bg-[#251D2E]">📅 Agenda (<span id="contNotif-agenda">0</span>)</button>
+            </div>
+
+            <!-- BARRA DE CONTROLE (MARCAR TODAS COMO LIDAS / STATUS) -->
+            <div class="px-4 py-2 bg-[#141019]/70 border-b border-[#261F30] flex items-center justify-between text-[11px] text-[#9C8EAD]">
+                <span id="textoStatusFiltroNotificacoes">Exibindo todas as pendências</span>
+                <button type="button" onclick="dispensarTodasNotificacoes()" class="hover:text-[#D8B4FE] transition flex items-center gap-1.5 text-[11px] font-medium" title="Marcar todos os alertas atuais como lidos">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                    <span>Limpar todas</span>
+                </button>
+            </div>
+
+            <!-- LISTAGEM DE NOTIFICAÇÕES -->
             <div id="listaNotificacoesInteligentes" class="p-4 space-y-3 overflow-y-auto flex-1"></div>
         </div>
     </div>
 
     <!-- JAVASCRIPT GERAL -->
-    <script src="app.js?v=20261117k"></script>
+    <script src="app.js?v=20261117m"></script>
 </body>
 </html>
