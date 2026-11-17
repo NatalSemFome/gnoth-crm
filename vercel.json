@@ -1,4 +1,24 @@
 {
+  "headers": [
+    {
+      "source": "/(.*)\\.(html|js|css)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    },
+    {
+      "source": "/(dashboard|home|agenda|agendar|clientes|pacientes|leads|triagens|pagamentos|cobrancas|minha-lp|equipe|perfil|meu-perfil|conta|login|cadastro|triagem)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache, no-store, must-revalidate"
+        }
+      ]
+    }
+  ],
   "rewrites": [
     {
       "source": "/lp/:slug",

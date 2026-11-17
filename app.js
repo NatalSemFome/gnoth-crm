@@ -3242,7 +3242,12 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const chavePixPsicologa = obterChavePixDaPsicologa(psi);
 
             const nomePsi = psi.nome || obterNomeExibicaoUsuario();
-            document.getElementById('pixPacSubtituloRecebedor').textContent = `Recebedor(a): ${nomePsi} (100% direto na sua conta)`;
+            const chavePropriaPsi = (psi.chave_pix || (psi.id ? localStorage.getItem('gnoth_chave_pix_user_' + psi.id) : '') || '').trim();
+            const usandoFallbackAdmin = !chavePropriaPsi && Boolean(chavePixPsicologa) && psi.id && usuarioAtualPerfil && psi.id !== usuarioAtualPerfil.id;
+
+            document.getElementById('pixPacSubtituloRecebedor').textContent = usandoFallbackAdmin
+                ? `Psicóloga ${nomePsi} sem Pix próprio · Usando chave de ${obterNomeExibicaoUsuario()}`
+                : `Recebedor(a): ${nomePsi} (100% direto na conta)`;
             document.getElementById('pixPacNomePaciente').textContent = pac.nome || 'Paciente';
             document.getElementById('pixPacValorFormatado').textContent = formatarBRL(pg.valor);
 
