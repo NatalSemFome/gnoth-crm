@@ -88,6 +88,17 @@
             }
         }
     </script>
+    <script>
+        // Se for a LP de outro psicólogo, oculta até o Supabase carregar os dados dele (evita piscar a foto da Alexia)
+        (function() {
+            const partes = window.location.pathname.split('/lp/');
+            const slugUrl = partes[1] ? partes[1].replace(/\//g, '').trim() : 'AlexiaSturaro';
+            if (slugUrl.toLowerCase() !== 'alexiasturaro') {
+                document.documentElement.style.opacity = '0';
+                document.documentElement.style.transition = 'opacity 0.25s ease';
+            }
+        })();
+    </script>
 </head>
 <body class="bg-brand-50 text-brand-text font-sans antialiased selection:bg-brand-200 selection:text-brand-text">
 
@@ -568,46 +579,70 @@
                     .from('landing_pages')
                     .select('*')
                     .ilike('slug', slugAtual)
+                    .eq('ativo', true)
                     .maybeSingle();
 
-                if (error || !data) return; // Mantém o layout padrão da Alexia se não achar ou se a tabela ainda não existir
+                // 1. Se o psicólogo não existir ou estiver inativo (e não for a página padrão da Alexia):
+                if ((error || !data) && slugAtual.toLowerCase() !== 'alexiasturaro') {
+                    document.body.innerHTML = `
+                        <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif;background:#F7F5F8;color:#2D2633;text-align:center;padding:24px;">
+                            <div>
+                                <h1 style="font-size:24px;margin-bottom:8px;">Página não encontrada</h1>
+                                <p style="color:#6E6278;font-size:14px;margin-bottom:20px;">Este endereço não está ativo no momento.</p>
+                                <a href="https://gnoth.com.br" style="background:#736185;color:#fff;padding:10px 20px;border-radius:10px;text-decoration:none;font-size:14px;">Conhecer o Gnoth</a>
+                            </div>
+                        </div>`;
+                    return;
+                }
 
-                slugAtual = data.slug; // Usa a grafia oficial salva no banco
-                document.title = `${data.nome} | ${data.subtitulo_topo}`;
+                // 2. Se for a Alexia e ainda não tiver linha no banco, mantém o HTML padrão dela:
+                if (error || !data) return;
 
-                // Atualiza todos os textos simples marcados com data-lp
+                // 3. Atualiza as cores dinâmicas da página
+                if (data.cor_500) document.documentElement.style.setProperty('--brand-500', data.cor_500);
+                if (data.cor_600) document.documentElement.style.setProperty('--brand-600', data.cor_600);
+                if (data.cor_700) document.documentElement.style.setProperty('--brand-700', data.cor_700);
+
+                // 4. Atualiza o título da aba do navegador
+                if (data.nome) {
+                    document.title = `${data.nome} | Psicologia Clínica`;
+                }
+
+                // 5. Atualiza os textos marcados com data-lp e data-lp-html
                 document.querySelectorAll('[data-lp]').forEach(el => {
                     const campo = el.getAttribute('data-lp');
                     if (data[campo]) el.textContent = data[campo];
                 });
 
-                // Atualiza parágrafos que possuem tags HTML (como <strong>)
+                const elCrp = document.querySelector('[data-lp="crp"]');
+                if (elCrp && (data.nome || data.crp)) {
+                    elCrp.textContent = [data.nome, data.crp ? `CRP ${data.crp.replace(/crp\s*/i, '')}` : ''].filter(Boolean).join(' • ');
+                }
+
                 document.querySelectorAll('[data-lp-html]').forEach(el => {
                     const campo = el.getAttribute('data-lp-html');
                     if (data[campo]) el.innerHTML = data[campo];
                 });
 
-                // Atualiza foto principal
+                // 6. Atualiza a foto principal da Hero
                 const fotoHero = document.getElementById('lpFotoHero');
                 if (fotoHero && data.foto_url) {
                     fotoHero.src = data.foto_url;
-                    fotoHero.alt = data.nome;
+                    if (data.nome) fotoHero.alt = `Psicóloga ${data.nome}`;
                 }
 
-                // Atualiza link do botão flutuante do WhatsApp
+                // 7. Atualiza o link do botão flutuante de WhatsApp
                 const wppLink = document.getElementById('floatingWppLink');
                 if (wppLink && data.whatsapp) {
                     const numLimpo = data.whatsapp.replace(/\D/g, '');
-                    const msg = encodeURIComponent(`Olá, ${data.nome}! Gostaria de informações sobre as consultas de psicologia.`);
+                    const msg = encodeURIComponent(`Olá, ${data.nome || ''}! Vim pelo seu site e gostaria de saber mais sobre o agendamento.`);
                     wppLink.href = `https://wa.me/${numLimpo}?text=${msg}`;
                 }
-
-                // Atualiza paleta de cores se o cliente tiver cores próprias
-                if (data.cor_500) document.documentElement.style.setProperty('--brand-500', data.cor_500);
-                if (data.cor_600) document.documentElement.style.setProperty('--brand-600', data.cor_600);
-                if (data.cor_700) document.documentElement.style.setProperty('--brand-700', data.cor_700);
-            } catch (err) {
-                console.warn("Usando dados estáticos padrão:", err);
+            } catch (e) {
+                console.warn('Usando dados padrão da página:', e);
+            } finally {
+                // 8. Roda SEMPRE ao final e revela a página suavemente já com os dados do psicólogo
+                document.documentElement.style.opacity = '1';
             }
         }
 
