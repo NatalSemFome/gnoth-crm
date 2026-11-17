@@ -1,0 +1,70 @@
+body { 
+    font-family: 'Plus Jakarta Sans', sans-serif; 
+    background-color: #141019; 
+    color: #F3EEF6; 
+    margin: 0; 
+}
+.font-serif { font-family: 'Playfair Display', Georgia, serif; }
+
+/* Sidebar Dark Ameixa Profundo */
+.sidebar-plum { 
+    background-color: #0E0B12; 
+    color: #E5DCED; 
+    border-color: #261F30;
+}
+.sidebar-link { 
+    color: #9C8EAD; 
+    transition: all 0.2s ease; 
+    font-weight: 500; 
+}
+.sidebar-link:hover { 
+    background-color: rgba(255, 255, 255, 0.05); 
+    color: #FFFFFF; 
+}
+.sidebar-link.ativo { 
+    background-color: #2B2138; 
+    color: #E9DDF5; 
+    font-weight: 600; 
+    border: 1px solid #3F3152;
+}
+
+/* Cartões e Superfícies Dark */
+.card-surface { 
+    background: #1D1724; 
+    border: 1px solid #2E2538; 
+    border-radius: 1.25rem; 
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25); 
+}
+.btn-plum { 
+    background: linear-gradient(135deg, #7D6499 0%, #5F4A78 100%); 
+    color: #FFFFFF; 
+    transition: all 0.2s ease; 
+}
+.btn-plum:hover { 
+    background: linear-gradient(135deg, #8E73AD 0%, #6E568A 100%); 
+    box-shadow: 0 4px 14px rgba(125, 100, 153, 0.35);
+}
+
+/* Inputs e Selects Dark */
+.input-dark {
+    background-color: #141019;
+    border: 1px solid #32283D;
+    color: #F3EEF6;
+}
+.input-dark:focus {
+    border-color: #8E73AD;
+}
+select option {
+    background-color: #1D1724;
+    color: #F3EEF6;
+}
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+/* Scrollbar Dark */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: #141019; }
+::-webkit-scrollbar-thumb { background: #362B42; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #524263; }

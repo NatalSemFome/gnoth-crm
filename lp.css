@@ -1,0 +1,41 @@
+:root {
+    --brand-50: #FAF7FB;
+    --brand-100: #F3EEF6;
+    --brand-150: #E9E1EE;
+    --brand-200: #DCCFE3;
+    --brand-300: #C2ADC9;
+    --brand-400: #947FA7;
+    --brand-500: #736185;
+    --brand-600: #5E4E6D;
+    --brand-700: #4A3D56;
+    --brand-text: #2D2633;
+    --brand-subtext: #5E5466;
+}
+.btn-plum {
+    background-color: var(--brand-600);
+    transition: all 0.25s ease;
+    box-shadow: 0 4px 14px rgba(94, 78, 109, 0.25);
+}
+.btn-plum:hover {
+    background-color: var(--brand-700);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 20px rgba(94, 78, 109, 0.35);
+}
+.btn-plum:active {
+    transform: translateY(0);
+}
+.card-soft-shadow {
+    box-shadow: 0 10px 30px -10px rgba(74, 61, 86, 0.08);
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-soft-shadow:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 16px 36px -10px rgba(74, 61, 86, 0.14);
+}
+@keyframes floatPulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.06); }
+}
+.floating-wpp {
+    animation: floatPulse 3s ease-in-out infinite;
+}

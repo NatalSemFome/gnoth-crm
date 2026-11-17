@@ -1,0 +1,34 @@
+body {
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    background-color: #F9F7F2;
+    color: #231C2B;
+}
+.font-serif {
+    font-family: 'Playfair Display', Georgia, serif;
+}
+.card-plum {
+    background-color: #1D1724;
+    color: #F3EEF6;
+    box-shadow: 0 24px 60px rgba(29, 23, 36, 0.18);
+}
+.btn-plum {
+    background: linear-gradient(135deg, #6E568A 0%, #4E3B63 100%);
+    color: #FFFFFF;
+    transition: all 0.2s ease;
+}
+.btn-plum:hover {
+    background: linear-gradient(135deg, #7D6499 0%, #5F4A78 100%);
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(95, 74, 120, 0.28);
+}
+.btn-sage {
+    background-color: #6B7B6E;
+    color: #FFFFFF;
+    transition: all 0.2s ease;
+}
+.btn-sage:hover {
+    background-color: #5A695D;
+}
+.subtle-border {
+    border-color: #E6E1D6;
+}
