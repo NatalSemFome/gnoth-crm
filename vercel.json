@@ -3,6 +3,10 @@
     {
       "source": "/lp/:slug",
       "destination": "/lp.html"
+    },
+    {
+      "source": "/(dashboard|agenda|agendar|clientes|pacientes|leads|triagens|pagamentos|cobrancas|minha-lp|equipe|login|cadastro|triagem)",
+      "destination": "/app.html"
     }
   ]
 }

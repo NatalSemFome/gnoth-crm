@@ -1245,19 +1245,65 @@
         const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4eGNjbGFheGxiZHlic3N4anl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzNjk4NDksImV4cCI6MjEwOTk0NTg0OX0.79Y7Eu9qXhqDl4uh7jfadeW8fR7IwUwSTpJJ7BQNM5Y";
         const client = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function mudarAba(nomeAba) {
-            if (nomeAba === 'equipe' && typeof ehAdmin === 'function' && !ehAdmin()) {
+        const ABAS_VALIDAS = ['dashboard', 'agenda', 'agendar', 'clientes', 'leads', 'pagamentos', 'minha-lp', 'equipe'];
+        const MAPA_ROTAS_ABAS = {
+            pacientes: 'clientes',
+            triagens: 'leads',
+            cobrancas: 'pagamentos',
+            'minha-landing-page': 'minha-lp'
+        };
+
+        function normalizarNomeAba(valor) {
+            const limpo = String(valor || '').replace(/^[/#]+|[/]+$/g, '').toLowerCase();
+            if (ABAS_VALIDAS.includes(limpo)) return limpo;
+            if (MAPA_ROTAS_ABAS[limpo]) return MAPA_ROTAS_ABAS[limpo];
+            return null;
+        }
+
+        function obterAbaDaUrl() {
+            const pathSeg = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+            const abaPorPath = normalizarNomeAba(pathSeg);
+            if (abaPorPath) return abaPorPath;
+
+            const hash = window.location.hash.replace('#', '');
+            if (hash && !hash.includes('type=recovery') && !hash.includes('access_token=')) {
+                const abaPorHash = normalizarNomeAba(hash);
+                if (abaPorHash) return abaPorHash;
+            }
+            return 'dashboard';
+        }
+
+        function mudarAba(nomeAba, opcoes = {}) {
+            const abaNormalizada = normalizarNomeAba(nomeAba) || 'dashboard';
+            nomeAba = abaNormalizada;
+
+            if (nomeAba === 'equipe' && typeof ehAdmin === 'function' && usuarioAtualPerfil && !ehAdmin()) {
                 alert("Acesso restrito apenas para Administradores.");
                 return;
             }
 
             if (nomeAba === 'minha-lp' && usuarioAtualPerfil && !ehAdmin() && !usuarioTemLPComprada) {
                 alert("Acesso disponível apenas para profissionais que possuem a Landing Page adquirida.");
-                mudarAba('dashboard');
+                mudarAba('dashboard', { substituir: true });
                 return;
             }
 
-            window.location.hash = nomeAba;
+            const params = new URLSearchParams(window.location.search);
+            const emFluxoEspecial = params.has('triagem') || window.location.hash.includes('type=recovery') || window.location.hash.includes('access_token=');
+
+            if (!emFluxoEspecial && !opcoes.naoAtualizarUrl) {
+                if (window.location.protocol === 'file:') {
+                    window.location.hash = nomeAba;
+                } else {
+                    const novaUrl = '/' + nomeAba + (params.has('modo') ? `?modo=${params.get('modo')}` : '');
+                    const urlAtual = window.location.pathname + window.location.search + window.location.hash;
+                    if (opcoes.substituir) {
+                        window.history.replaceState({ aba: nomeAba }, '', novaUrl);
+                    } else if (urlAtual !== novaUrl) {
+                        window.history.pushState({ aba: nomeAba }, '', novaUrl);
+                    }
+                }
+            }
 
             document.querySelectorAll('.secao-conteudo').forEach(secao => {
                 secao.style.display = 'none';
@@ -1282,13 +1328,24 @@
         }
 
         window.addEventListener('DOMContentLoaded', () => {
-            const hashInicial = window.location.hash.replace('#', '') || 'dashboard';
-            mudarAba(hashInicial);
+            const pathSeg = window.location.pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
+            if (pathSeg === 'cadastro') {
+                alternarTelaAuth('cadastro');
+            }
+            const abaInicial = obterAbaDaUrl();
+            const manterRotaAuth = pathSeg === 'cadastro' || pathSeg === 'login';
+            mudarAba(abaInicial, { substituir: true, naoAtualizarUrl: manterRotaAuth });
+        });
+
+        window.addEventListener('popstate', () => {
+            const abaAtual = obterAbaDaUrl();
+            mudarAba(abaAtual, { naoAtualizarUrl: true });
         });
 
         window.addEventListener('hashchange', () => {
-            const hashAtual = window.location.hash.replace('#', '') || 'dashboard';
-            mudarAba(hashAtual);
+            if (window.location.hash.includes('type=recovery') || window.location.hash.includes('access_token=')) return;
+            const abaAtual = obterAbaDaUrl();
+            mudarAba(abaAtual, { substituir: true });
         });
 
         let todosPacientesCache = [];
@@ -1426,8 +1483,7 @@
 
         function copiarLinkTriagem() {
             if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
-            const urlBase = window.location.origin + window.location.pathname;
-            const linkExclusivo = `${urlBase}?triagem=${usuarioAtualPerfil.id}`;
+            const linkExclusivo = `${window.location.origin}/triagem?triagem=${usuarioAtualPerfil.id}`;
             navigator.clipboard.writeText(linkExclusivo).then(() => {
                 const statusEl = document.getElementById('statusCopiaLink');
                 if (statusEl) {
@@ -1484,7 +1540,7 @@
 
             try {
                 const { error } = await client.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/app.html'
+                    redirectTo: window.location.origin + '/dashboard'
                 });
                 if (error) throw error;
 
@@ -1637,13 +1693,15 @@
                 if (thPsicologa) thPsicologa.classList.add('hidden');
             }
 
-            const hashAtual = window.location.hash.replace('#', '');
-            if (hashAtual === 'minha-lp') {
+            const abaAtual = obterAbaDaUrl();
+            if (abaAtual === 'minha-lp') {
                 if (!ehAdmin() && !usuarioTemLPComprada) {
-                    mudarAba('dashboard');
+                    mudarAba('dashboard', { substituir: true });
                 } else if (typeof carregarDadosMinhaLP === 'function') {
                     carregarDadosMinhaLP();
                 }
+            } else if (abaAtual === 'equipe' && !ehAdmin()) {
+                mudarAba('dashboard', { substituir: true });
             }
 
             if (ehAdmin() && typeof carregarEquipe === 'function') {
@@ -1653,12 +1711,17 @@
 
         async function sair() {
             await client.auth.signOut();
-            window.location.reload();
+            if (window.location.protocol !== 'file:') {
+                window.location.href = '/login';
+            } else {
+                window.location.reload();
+            }
         }
 
         function mostrarApp() {
             document.getElementById('loginScreen').classList.add('hidden');
             document.getElementById('appScreen').classList.remove('hidden');
+            mudarAba(obterAbaDaUrl(), { substituir: true });
             carregarDados();
         }
 
