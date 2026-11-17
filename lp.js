@@ -88,6 +88,7 @@ window.addEventListener('DOMContentLoaded', () => {
     }
 
     let slugAtual = obterSlugDaUrl();
+    let psicologaDonaId = null;
 
     // Carrega os dados personalizados caso exista na tabela landing_pages
     async function carregarDadosProfissional() {
@@ -114,6 +115,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
             // 2. Se for a Alexia e ainda não tiver linha no banco, mantém o HTML padrão dela:
             if (error || !data) return;
+
+            psicologaDonaId = data.user_id || null;
 
             // 3. Atualiza as cores dinâmicas da página
             if (data.cor_500) document.documentElement.style.setProperty('--brand-500', data.cor_500);
@@ -156,7 +159,7 @@ window.addEventListener('DOMContentLoaded', () => {
                 wppLink.href = `https://wa.me/${numLimpo}?text=${msg}`;
             }
         } catch (e) {
-            console.warn('Usando dados padrão da página:', e);
+            // Mantém dados padrão silenciosamente sem expor detalhes internos no console
         } finally {
             // 8. Roda SEMPRE ao final e revela a página suavemente já com os dados do psicólogo
             document.documentElement.style.opacity = '1';
@@ -191,23 +194,29 @@ window.addEventListener('DOMContentLoaded', () => {
             const motivo = document.getElementById("message") ? document.getElementById("message").value.trim() : "";
 
             try {
+                const payloadTriagem = {
+                    nome: nome,
+                    whatsapp: whatsapp,
+                    modalidade: modalidade,
+                    periodo_preferencia: periodos,
+                    motivo_consulta: motivo,
+                    status: 'Novo Contato',
+                    lgpd_aceito: true,
+                    lgpd_aceito_em: new Date().toISOString(),
+                    profissional_slug: slugAtual
+                };
+                if (psicologaDonaId) {
+                    payloadTriagem.psicologa_id = psicologaDonaId;
+                }
+
                 const { error } = await supaClient
                     .from('pacientes')
-                    .insert([{
-                        nome: nome,
-                        whatsapp: whatsapp,
-                        modalidade: modalidade,
-                        periodo_preferencia: periodos,
-                        motivo_consulta: motivo,
-                        status: 'Novo Contato',
-                        profissional_slug: slugAtual
-                    }]);
+                    .insert([payloadTriagem]);
 
                 if (error) {
-                    console.error("Erro Supabase:", error);
                     if (feedback) {
                         feedback.className = "text-center text-xs text-red-500 font-semibold";
-                        feedback.textContent = "Erro ao enviar: " + error.message;
+                        feedback.textContent = "Não foi possível enviar no momento. Tente novamente.";
                     }
                 } else {
                     if (feedback) {
@@ -217,7 +226,6 @@ window.addEventListener('DOMContentLoaded', () => {
                     form.reset();
                 }
             } catch (err) {
-                console.error("Exceção:", err);
                 if (feedback) {
                     feedback.className = "text-center text-xs text-red-500 font-semibold";
                     feedback.textContent = "Ocorreu um erro inesperado.";

@@ -489,6 +489,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         let canalRealtime = null;
+        let realtimeConectado = false;
         let intervaloAutoSync = null;
         let timeoutDebounceSync = null;
         let carregandoDadosEmAndamento = false;
@@ -537,7 +538,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         function iniciarSincronizacaoTempoReal() {
-            if (! canalRealtime) {
+            if (!canalRealtime) {
                 try {
                     canalRealtime = client
                         .channel('gnothi-crm-realtime')
@@ -547,27 +548,35 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                         .on('postgres_changes', { event: '*', schema: 'public', table: 'prontuarios_historico' }, () => agendarSincronizacaoTempoReal('prontuarios_historico'))
                         .on('postgres_changes', { event: '*', schema: 'public', table: 'usuarios_perfis' }, () => agendarSincronizacaoTempoReal('usuarios_perfis'))
                         .on('postgres_changes', { event: '*', schema: 'public', table: 'landing_pages' }, () => agendarSincronizacaoTempoReal('landing_pages'))
-                        .subscribe();
+                        .subscribe((status) => {
+                            realtimeConectado = (status === 'SUBSCRIBED');
+                        });
                 } catch (e) {
-                    console.warn('Realtime fallback ativo:', e);
+                    realtimeConectado = false;
                 }
             }
 
             if (!intervaloAutoSync) {
+                let ultimoSyncAutomatico = Date.now();
                 intervaloAutoSync = setInterval(() => {
-                    if (document.visibilityState === 'visible' && usuarioAtualPerfil && usuarioAtualPerfil.id) {
+                    if (document.visibilityState !== 'visible' || !usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
+                    const intervaloAlvo = realtimeConectado ? 45000 : 12000;
+                    if (Date.now() - ultimoSyncAutomatico >= intervaloAlvo) {
+                        ultimoSyncAutomatico = Date.now();
                         carregarDados({ silencioso: true });
                     }
-                }, 8000);
+                }, 6000);
 
                 window.addEventListener('focus', () => {
                     if (usuarioAtualPerfil && usuarioAtualPerfil.id) {
+                        ultimoSyncAutomatico = Date.now();
                         carregarDados({ silencioso: true });
                     }
                 });
 
                 document.addEventListener('visibilitychange', () => {
                     if (document.visibilityState === 'visible' && usuarioAtualPerfil && usuarioAtualPerfil.id) {
+                        ultimoSyncAutomatico = Date.now();
                         carregarDados({ silencioso: true });
                     }
                 });
@@ -608,26 +617,26 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         async function carregarDados(opcoes = {}) {
             if (carregandoDadosEmAndamento && opcoes.silencioso) return;
+            if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
             carregandoDadosEmAndamento = true;
             const versaoInicio = versaoMutacaoLocal;
             try {
-                const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('nome', { ascending: true });
-                if (opcoes.silencioso && versaoMutacaoLocal !== versaoInicio) return;
-                todosUsuariosCache = usuarios || [];
+                const isAdmin = ehAdmin();
 
-                const { data: pacientes } = await client
-                    .from('pacientes')
-                    .select('*')
-                    .is('excluido_em', null)
-                    .order('created_at', { ascending: false });
-                if (opcoes.silencioso && versaoMutacaoLocal !== versaoInicio) return;
-                const todosBrutos = pacientes || [];
+                // 1. Filtra já no banco (Supabase) para não expor dados de outros profissionais na rede
+                const queryUsuarios = isAdmin
+                    ? client.from('usuarios_perfis').select('*').order('nome', { ascending: true })
+                    : client.from('usuarios_perfis').select('*').eq('id', usuarioAtualPerfil.id);
 
-                if (ehAdmin()) {
-                    todosPacientesCache = todosBrutos;
-                } else {
-                    todosPacientesCache = todosBrutos.filter(p => p.psicologa_id === usuarioAtualPerfil.id);
-                }
+                const queryPacientes = isAdmin
+                    ? client.from('pacientes').select('*').is('excluido_em', null).order('created_at', { ascending: false })
+                    : client.from('pacientes').select('*').is('excluido_em', null).eq('psicologa_id', usuarioAtualPerfil.id).order('created_at', { ascending: false });
+
+                const [{ data: usuarios }, { data: pacientes }] = await Promise.all([queryUsuarios, queryPacientes]);
+                if (opcoes.silencioso && versaoMutacaoLocal !== versaoInicio) return;
+
+                todosUsuariosCache = usuarios || [usuarioAtualPerfil];
+                todosPacientesCache = pacientes || [];
 
                 const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
                 const leads = todosPacientesCache.filter(p => p.status === 'Novo Contato');
@@ -655,30 +664,37 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     avisoTriagemTexto.textContent = `${leads.length} ${leads.length === 1 ? 'triagem nova' : 'triagens novas'}`;
                 }
 
-                const idsPacientesVisiveis = new Set(clientes.map(c => c.id));
+                const idsClientesLista = clientes.map(c => c.id);
+                let atendimentos = [];
+                let pagamentos = [];
+                let prontuariosRecentes = [];
 
-                const { data: atendimentos } = await client
-                    .from('atendimentos')
-                    .select('*, pacientes(nome, whatsapp, modalidade, valor_padrao_sessao, psicologa_id)')
-                    .is('excluido_em', null)
-                    .order('data_hora', { ascending: true });
-                todosAtendimentosCache = (atendimentos || []).filter(a => ehAdmin() || idsPacientesVisiveis.has(a.paciente_id));
+                if (isAdmin) {
+                    const [resAtend, resPag, resPront] = await Promise.all([
+                        client.from('atendimentos').select('*, pacientes(nome, whatsapp, modalidade, valor_padrao_sessao, psicologa_id)').is('excluido_em', null).order('data_hora', { ascending: true }),
+                        client.from('pagamentos').select('*, pacientes(nome, whatsapp)').is('excluido_em', null).order('data_vencimento', { ascending: false }),
+                        client.from('prontuarios_historico').select('paciente_id, criado_em').is('excluido_em', null).order('criado_em', { ascending: false })
+                    ]);
+                    atendimentos = resAtend.data || [];
+                    pagamentos = resPag.data || [];
+                    prontuariosRecentes = resPront.data || [];
+                } else if (idsClientesLista.length > 0) {
+                    const [resAtend, resPag, resPront] = await Promise.all([
+                        client.from('atendimentos').select('*, pacientes(nome, whatsapp, modalidade, valor_padrao_sessao, psicologa_id)').is('excluido_em', null).in('paciente_id', idsClientesLista).order('data_hora', { ascending: true }),
+                        client.from('pagamentos').select('*, pacientes(nome, whatsapp)').is('excluido_em', null).in('paciente_id', idsClientesLista).order('data_vencimento', { ascending: false }),
+                        client.from('prontuarios_historico').select('paciente_id, criado_em').is('excluido_em', null).in('paciente_id', idsClientesLista).order('criado_em', { ascending: false })
+                    ]);
+                    atendimentos = resAtend.data || [];
+                    pagamentos = resPag.data || [];
+                    prontuariosRecentes = resPront.data || [];
+                }
 
-                const { data: pagamentos } = await client
-                    .from('pagamentos')
-                    .select('*, pacientes(nome, whatsapp)')
-                    .is('excluido_em', null)
-                    .order('data_vencimento', { ascending: false });
                 if (opcoes.silencioso && versaoMutacaoLocal !== versaoInicio) return;
-                todosPagamentosCache = (pagamentos || []).filter(pg => ehAdmin() || idsPacientesVisiveis.has(pg.paciente_id));
 
-                const { data: prontuariosRecentes } = await client
-                    .from('prontuarios_historico')
-                    .select('paciente_id, criado_em')
-                    .is('excluido_em', null)
-                    .order('criado_em', { ascending: false });
+                todosAtendimentosCache = atendimentos;
+                todosPagamentosCache = pagamentos;
 
-                gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes || []);
+                gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes);
                 renderizarCronogramaHoje(todosAtendimentosCache);
                 renderizarProximosEAlertas(todosAtendimentosCache);
                 aplicarFiltrosClientes();
@@ -1738,7 +1754,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                                 </select>
                             </td>
                             <td class="p-4 text-center" onclick="event.stopPropagation()">
-                                <button onclick="excluirPaciente('${c.id}', '${escapeHtml(c.nome)}')" title="Excluir paciente" class="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg transition">🗑️</button>
+                                <button onclick="excluirPaciente('${c.id}')" title="Excluir paciente" class="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg transition">🗑️</button>
                             </td>
                         </tr>
                     `;
@@ -1788,7 +1804,9 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             }
         }
 
-        async function excluirPaciente(pacienteId, nomePaciente) {
+        async function excluirPaciente(pacienteId, nomeFallback = '') {
+            const pacObj = todosPacientesCache.find(item => item.id === pacienteId);
+            const nomePaciente = pacObj ? pacObj.nome : (nomeFallback || 'este paciente');
             if (!confirm(`Tem certeza que deseja excluir o paciente "${nomePaciente}"?\n\nIsso removerá também todo o histórico de prontuários, sessões e cobranças vinculados a ele.`)) {
                 return;
             }
@@ -2539,7 +2557,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     </div>
                     <div class="flex items-center gap-2 pt-2">
                         <button onclick="tornarCliente('${l.id}')" class="flex-1 py-2.5 btn-plum rounded-xl text-xs font-semibold shadow-sm">Tornar Paciente</button>
-                        <button onclick="excluirTriagem('${l.id}', '${escapeHtml(l.nome)}')" title="Excluir triagem sem tornar paciente" class="px-4 py-2.5 bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 rounded-xl text-xs font-semibold transition">🗑️ Excluir</button>
+                        <button onclick="excluirTriagem('${l.id}')" title="Excluir triagem sem tornar paciente" class="px-4 py-2.5 bg-red-500/15 text-red-400 hover:bg-red-500/25 border border-red-500/30 rounded-xl text-xs font-semibold transition">🗑️ Excluir</button>
                     </div>
                 </div>
             `).join('');
@@ -2554,7 +2572,9 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             await carregarDados();
         }
 
-        async function excluirTriagem(id, nome) {
+        async function excluirTriagem(id, nomeFallback = '') {
+            const leadObj = todosPacientesCache.find(item => item.id === id);
+            const nome = leadObj ? leadObj.nome : (nomeFallback || 'este contato');
             if (!confirm(`Deseja excluir esta triagem de "${nome}"? Ela será removida permanentemente.`)) return;
             const { error } = await client
                 .from('pacientes')
@@ -3438,7 +3458,6 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 
                 pdf.save(nomeArquivoLimpo);
             } catch (err) {
-                console.error("Erro ao gerar PDF:", err);
                 alert("Erro ao gerar o PDF. Tente novamente.");
             } finally {
                 document.body.removeChild(container);
