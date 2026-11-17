@@ -1,0 +1,20 @@
+User-agent: *
+Allow: /
+Allow: /lp/
+Disallow: /dashboard
+Disallow: /home
+Disallow: /agenda
+Disallow: /agendar
+Disallow: /clientes
+Disallow: /pacientes
+Disallow: /leads
+Disallow: /triagens
+Disallow: /pagamentos
+Disallow: /cobrancas
+Disallow: /minha-lp
+Disallow: /equipe
+Disallow: /perfil
+Disallow: /meu-perfil
+Disallow: /conta
+
+Sitemap: https://www.gnoth.com.br/sitemap.xml

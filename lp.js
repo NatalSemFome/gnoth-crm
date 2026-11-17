@@ -123,9 +123,18 @@ window.addEventListener('DOMContentLoaded', () => {
             if (data.cor_600) document.documentElement.style.setProperty('--brand-600', data.cor_600);
             if (data.cor_700) document.documentElement.style.setProperty('--brand-700', data.cor_700);
 
-            // 4. Atualiza o título da aba do navegador
+            // 4. Atualiza o título da aba do navegador e tags de SEO para o Google
             if (data.nome) {
-                document.title = `${data.nome} | Psicologia Clínica`;
+                const sub = data.subtitulo_topo || 'Psicologia Clínica';
+                document.title = `${data.nome} | ${sub}`;
+                const metaDesc = document.getElementById('pageDescription') || document.querySelector('meta[name="description"]');
+                if (metaDesc && (data.sobre_p1 || data.descricao_hero)) {
+                    metaDesc.setAttribute('content', String(data.sobre_p1 || data.descricao_hero).slice(0, 160));
+                }
+            }
+            if (data.slug) {
+                const canon = document.getElementById('canonicalLink') || document.querySelector('link[rel="canonical"]');
+                if (canon) canon.setAttribute('href', `https://www.gnoth.com.br/lp/${data.slug}`);
             }
 
             // 5. Atualiza os textos marcados com data-lp e data-lp-html
