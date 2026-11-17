@@ -5,7 +5,7 @@
       "destination": "/lp.html"
     },
     {
-      "source": "/(dashboard|agenda|agendar|clientes|pacientes|leads|triagens|pagamentos|cobrancas|minha-lp|equipe|login|cadastro|triagem)",
+      "source": "/(dashboard|agenda|agendar|clientes|pacientes|leads|triagens|pagamentos|cobrancas|minha-lp|equipe|perfil|meu-perfil|conta|login|cadastro|triagem)",
       "destination": "/app.html"
     }
   ]
