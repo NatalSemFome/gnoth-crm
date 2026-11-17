@@ -3,21 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gnoth | Gestão Clínica para Psicólogos</title>
-    <meta name="description" content="Prontuários auditáveis no padrão CFP e LGPD, agenda inteligente, link de triagem para bio e recibos em 1 clique.">
+    <title>Gnoth | Gestão Clínica, Prontuário CFP, Receita Saúde e Site para Psicólogos</title>
+    <meta name="description" content="Sistema completo para psicólogos e clínicas: prontuários auditáveis no padrão CFP e LGPD, exportação em lote para o Receita Saúde (.CSV), agenda inteligente, ditado por voz e Landing Page profissional.">
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="index.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400;1,600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="index.css?v=20261117e">
 </head>
-<body class="antialiased selection:bg-[#6E568A] selection:text-white">
+<body class="antialiased selection:bg-[#6E568A] selection:text-white hero-glow">
 
-    <!-- NAVBAR MINIMALISTA -->
+    <!-- NAVBAR -->
     <header class="sticky top-0 z-40 bg-[#F9F7F2]/90 backdrop-blur-md border-b subtle-border">
         <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
             <a href="#" class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center shadow-sm">
+                <div class="w-10 h-10 rounded-2xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center shadow-sm border border-[#32283D]">
                     <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                         <path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z" />
                         <circle cx="12" cy="12" r="3" />
@@ -30,19 +30,43 @@
                 </div>
             </a>
 
-            <nav class="hidden md:flex items-center gap-8 text-xs font-semibold text-[#5C5366]">
+            <nav class="hidden md:flex items-center gap-7 text-xs font-semibold text-[#5C5366]">
                 <a href="#recursos" class="hover:text-[#1D1724] transition">Recursos</a>
+                <a href="#receita-saude" class="hover:text-[#1D1724] transition flex items-center gap-1.5">
+                    <span>Receita Saúde</span>
+                    <span class="px-1.5 py-0.5 rounded-full bg-emerald-600/10 text-emerald-700 text-[9px] font-bold uppercase">Novo</span>
+                </a>
+                <a href="#site-profissional" class="hover:text-[#1D1724] transition">Landing Page</a>
                 <a href="#conformidade" class="hover:text-[#1D1724] transition">CFP & LGPD</a>
                 <a href="#planos" class="hover:text-[#1D1724] transition">Planos</a>
+                <a href="#faq" class="hover:text-[#1D1724] transition">Dúvidas</a>
             </nav>
 
-            <div class="flex items-center gap-3">
+            <div class="hidden sm:flex items-center gap-3">
                 <a href="/dashboard" class="px-4 py-2 text-xs font-semibold text-[#4E3B63] hover:text-[#1D1724] transition">
                     Entrar
                 </a>
                 <a href="/cadastro" class="px-5 py-2.5 btn-plum rounded-full text-xs font-semibold shadow-sm">
                     Testar 7 dias grátis
                 </a>
+            </div>
+
+            <button type="button" id="btnMenuMobileIndex" class="md:hidden p-2 rounded-xl border subtle-border text-[#1D1724]">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+            </button>
+        </div>
+
+        <!-- MENU MOBILE -->
+        <div id="menuMobileIndex" class="hidden md:hidden bg-[#F9F7F2] border-b subtle-border px-6 py-4 space-y-3 text-xs font-semibold text-[#231C2B]">
+            <a href="#recursos" class="block py-1">Recursos</a>
+            <a href="#receita-saude" class="block py-1 text-emerald-700">🏛️ Integração Receita Saúde (.CSV)</a>
+            <a href="#site-profissional" class="block py-1">🌐 Landing Page Profissional</a>
+            <a href="#conformidade" class="block py-1">CFP & LGPD</a>
+            <a href="#planos" class="block py-1">Planos e Preços</a>
+            <a href="#faq" class="block py-1">Dúvidas Frequentes</a>
+            <div class="pt-2 border-t subtle-border flex gap-2">
+                <a href="/dashboard" class="flex-1 py-2.5 text-center rounded-xl border subtle-border">Entrar</a>
+                <a href="/cadastro" class="flex-1 py-2.5 text-center rounded-xl btn-plum">Testar Grátis</a>
             </div>
         </div>
     </header>
@@ -51,64 +75,82 @@
     <section class="max-w-6xl mx-auto px-6 pt-12 pb-20 md:pt-20 md:pb-28">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
             <div class="lg:col-span-7 space-y-6">
-                <span class="inline-block text-[11px] font-bold uppercase tracking-[0.22em] text-[#6E568A]">
-                    Feito para Psicólogos Clínicos
-                </span>
+                <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-[#EFEAF4] border border-[#D8CBE5] text-[11px] font-bold text-[#5F4A78]">
+                    <span>🏛️</span>
+                    <span>Compatível com Receita Saúde / Carnê-Leão Web + Resolução CFP nº 01/2009</span>
+                </div>
 
-                <h1 class="font-serif text-4xl sm:text-5xl lg:text-[54px] font-semibold text-[#1D1724] leading-[1.12] tracking-tight">
-                    Uma clínica organizada para quem cuida de <em class="italic font-normal text-[#6E568A]">histórias.</em>
+                <h1 class="font-serif text-4xl sm:text-5xl lg:text-[54px] font-semibold text-[#1D1724] leading-[1.1] tracking-tight">
+                    Uma clínica silenciosa e organizada para quem cuida de <em class="italic font-normal text-[#6E568A]">histórias.</em>
                 </h1>
 
                 <p class="text-base text-[#5C5366] leading-relaxed max-w-xl">
-                    Abandone planilhas soltas e blocos de notas inseguros. Gerencie prontuários auditáveis no padrão do CFP, agenda recorrente, triagens do Instagram e recibos em PDF em um ambiente silencioso e acolhedor.
+                    Abandone planilhas soltas, anotações inseguras e horas perdidas digitando recibos no e-CAC. O <strong>Gnoth</strong> reúne prontuário com ditado por voz, exportação em lote para o <strong>Receita Saúde (.CSV)</strong>, agenda recorrente e sua própria Landing Page em um único lugar.
                 </p>
 
                 <div class="flex flex-wrap items-center gap-4 pt-2">
-                    <a href="/cadastro" class="px-7 py-3.5 btn-plum rounded-full text-xs font-semibold shadow-md">
+                    <a href="/cadastro" class="px-7 py-4 btn-plum rounded-full text-xs font-bold shadow-md">
                         Começar meus 7 dias grátis →
                     </a>
-                    <a href="#recursos" class="px-6 py-3.5 rounded-full border subtle-border bg-white/60 hover:bg-white text-xs font-semibold text-[#231C2B] transition">
-                        Conhecer o sistema
+                    <a href="#receita-saude" class="px-6 py-4 rounded-full border subtle-border bg-white/80 hover:bg-white text-xs font-semibold text-[#231C2B] transition">
+                        Ver integração Receita Saúde
                     </a>
                 </div>
 
-                <div class="pt-4 flex flex-wrap items-center gap-6 text-xs text-[#6E6578]">
-                    <span class="flex items-center gap-1.5">✓ Sem cartão de crédito</span>
-                    <span class="flex items-center gap-1.5">✓ Adequado à LGPD e CFP nº 01/2009</span>
-                    <span class="flex items-center gap-1.5">✓ Ditado por voz (Chrome, Edge e Safari)</span>
+                <div class="pt-4 grid grid-cols-2 sm:grid-cols-3 gap-3 text-xs text-[#5C5366]">
+                    <span class="flex items-center gap-1.5 font-medium"><strong class="text-emerald-600">✓</strong> Sem cartão de crédito</span>
+                    <span class="flex items-center gap-1.5 font-medium"><strong class="text-emerald-600">✓</strong> Lote .CSV Receita Saúde</span>
+                    <span class="flex items-center gap-1.5 font-medium"><strong class="text-emerald-600">✓</strong> Ditado de Evolução por Voz</span>
+                    <span class="flex items-center gap-1.5 font-medium"><strong class="text-emerald-600">✓</strong> Prontuário Padrão CFP</span>
+                    <span class="flex items-center gap-1.5 font-medium"><strong class="text-emerald-600">✓</strong> Link de Triagem na Bio</span>
+                    <span class="flex items-center gap-1.5 font-medium"><strong class="text-emerald-600">✓</strong> Sincronização em Tempo Real</span>
                 </div>
             </div>
 
+            <!-- PREVIEW INTERATIVO DO PAINEL GNOTH -->
             <div class="lg:col-span-5">
-                <div class="card-plum p-8 sm:p-9 rounded-3xl border border-[#32283D] space-y-6">
-                    <div>
-                        <span class="text-[10px] font-bold uppercase tracking-[0.2em] text-[#C2ADC9]">Acesso Imediato</span>
-                        <h2 class="font-serif text-2xl font-semibold text-white mt-1">
-                            Abra seu consultório digital hoje
-                        </h2>
-                        <p class="text-xs text-[#9C8EAD] mt-1.5 leading-relaxed">
-                            Experimente todos os recursos por 7 dias sem compromisso. Configure seu CRP e comece a atender em menos de 2 minutos.
+                <div class="card-plum p-6 sm:p-8 rounded-3xl border border-[#32283D] space-y-5 relative overflow-hidden">
+                    <div class="flex items-center justify-between border-b border-[#2E2538] pb-4">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-xl bg-[#2B2138] border border-[#3F3152] flex items-center justify-center text-xs font-bold text-[#D8B4FE]">
+                                HC
+                            </div>
+                            <div>
+                                <p class="text-xs font-bold text-white leading-tight">Dra. Helena Costa</p>
+                                <p class="text-[10px] text-[#9C8EAD]">CRP 06/123456 · Psicologia Clínica</p>
+                            </div>
+                        </div>
+                        <span class="px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">● Ao vivo</span>
+                    </div>
+
+                    <!-- Mini KPIs Simulando o Painel Real -->
+                    <div class="grid grid-cols-2 gap-3">
+                        <div class="p-3.5 rounded-2xl bg-[#141019] border border-[#2E2538]">
+                            <span class="text-[10px] uppercase tracking-wider text-[#9C8EAD] font-bold">Recebido no Mês</span>
+                            <p class="font-serif text-xl font-bold text-emerald-400 mt-1">R$ 6.450,00</p>
+                            <span class="text-[10px] text-purple-300 mt-0.5 block">🏛️ 100% Receita Saúde OK</span>
+                        </div>
+                        <div class="p-3.5 rounded-2xl bg-[#141019] border border-[#2E2538]">
+                            <span class="text-[10px] uppercase tracking-wider text-[#9C8EAD] font-bold">Triagens da Bio</span>
+                            <p class="font-serif text-xl font-bold text-amber-300 mt-1">3 novas</p>
+                            <span class="text-[10px] text-[#C2ADC9] mt-0.5 block">🔔 Recebidas sem F5</span>
+                        </div>
+                    </div>
+
+                    <!-- Simulação de Prontuário por Voz + Receita Saúde -->
+                    <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-2.5 text-xs">
+                        <div class="flex items-center justify-between">
+                            <span class="font-bold text-[#F3EEF6]">🎙️ Evolução Clínica #14</span>
+                            <span class="px-2 py-0.5 rounded bg-[#2B2138] text-[#D8B4FE] text-[10px] font-semibold">Res. CFP 01/2009</span>
+                        </div>
+                        <p class="text-[11px] text-[#9C8EAD] leading-relaxed">
+                            Registro cronológico imutável com busca instantânea por palavra-chave e exportação seletiva em PDF.
                         </p>
                     </div>
 
-                    <div class="space-y-3 text-xs text-[#E5DCED] border-y border-[#2E2538] py-4">
-                        <div class="flex items-center justify-between">
-                            <span class="text-[#9C8EAD]">Prontuários & Evoluções</span>
-                            <span class="font-semibold text-emerald-400">Ilimitados</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-[#9C8EAD]">Link de Triagem para Bio</span>
-                            <span class="font-semibold text-purple-300">Incluso</span>
-                        </div>
-                        <div class="flex items-center justify-between">
-                            <span class="text-[#9C8EAD]">Recibos PDF & WhatsApp</span>
-                            <span class="font-semibold text-white">1 Clique</span>
-                        </div>
-                    </div>
-
-                    <div class="space-y-3">
-                        <a href="/cadastro" class="block w-full py-3.5 btn-sage rounded-xl text-center text-xs font-semibold shadow-md">
-                            Criar minha conta gratuita
+                    <div class="space-y-3 pt-1">
+                        <a href="/cadastro" class="block w-full py-3.5 btn-sage rounded-xl text-center text-xs font-bold shadow-md">
+                            Criar minha conta gratuita (7 dias)
                         </a>
                         <p class="text-[11px] text-center text-[#9C8EAD]">
                             Já possui cadastro? <a href="/dashboard" class="text-white font-semibold underline">Entrar no painel</a>
@@ -119,11 +161,90 @@
         </div>
     </section>
 
-    <!-- SEÇÃO: RECURSOS -->
-    <section id="recursos" class="py-20 bg-white border-y subtle-border">
+    <!-- DESTAQUE 1: INTEGRAÇÃO RECEITA SAÚDE & CARNÊ-LEÃO WEB -->
+    <section id="receita-saude" class="py-20 bg-[#1D1724] text-[#F3EEF6] border-y border-[#2E2538]">
+        <div class="max-w-6xl mx-auto px-6">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+                <div class="lg:col-span-6 space-y-5">
+                    <span class="inline-block px-3 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-bold uppercase tracking-wider">
+                        🏛️ Fim da Digitação Manual no e-CAC
+                    </span>
+                    <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-white leading-tight">
+                        Integração inteligente com o <em class="italic font-normal text-emerald-300">Receita Saúde</em> e Carnê-Leão Web.
+                    </h2>
+                    <p class="text-sm text-[#C2ADC9] leading-relaxed">
+                        Desde que o Receita Saúde se tornou obrigatório para psicólogos autônomos, lançar recibo por recibo virou um gargalo. O Gnoth resolve isso de duas formas:
+                    </p>
+
+                    <div class="space-y-3.5 text-xs">
+                        <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-1">
+                            <strong class="text-emerald-300 block text-sm">1. Exportação Oficial em Lote (.CSV) no fim do mês</strong>
+                            <p class="text-[#9C8EAD] leading-relaxed">
+                                Baixe todas as sessões pagas do mês já formatadas nas 12 colunas exigidas pela Receita Federal (Código <code>R01.001.001</code> · Ocupação <code>255 - Psicólogo</code> · CPF do Pagador e CPF do Paciente separados) e importe de uma só vez no Carnê-Leão Web.
+                            </p>
+                        </div>
+                        <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-1">
+                            <strong class="text-purple-300 block text-sm">2. Ponte Rápida 1-Clique + Controle de Recibos Emitidos</strong>
+                            <p class="text-[#9C8EAD] leading-relaxed">
+                                Quando o paciente pede o recibo na hora da sessão, copie CPF, valor e descrição com 1 clique para o app Receita Federal, baixe o comprovante em PDF e marque a cobrança com o selo <strong>🏛️ Receita OK</strong> para nunca emitir em duplicidade.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- SIMULAÇÃO DA TELA DE LOTE RECEITA SAÚDE -->
+                <div class="lg:col-span-6">
+                    <div class="bg-[#141019] p-6 sm:p-8 rounded-3xl border border-[#2E2538] shadow-2xl space-y-5">
+                        <div class="flex items-center justify-between border-b border-[#2E2538] pb-4">
+                            <div>
+                                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Lote Mensal Pronto</span>
+                                <h3 class="font-serif text-xl font-bold text-white mt-0.5">Exportação Receita Saúde (.CSV)</h3>
+                            </div>
+                            <span class="px-3 py-1 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">28/28 CPFs Válidos</span>
+                        </div>
+
+                        <div class="space-y-2.5 text-xs">
+                            <div class="p-3 rounded-xl bg-[#1D1724] border border-[#2E2538] flex items-center justify-between">
+                                <div>
+                                    <span class="font-bold text-white">Mariana Albuquerque</span>
+                                    <span class="text-[#9C8EAD] ml-2">R$ 180,00</span>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-semibold">🏛️ Receita OK</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-[#1D1724] border border-[#2E2538] flex items-center justify-between">
+                                <div>
+                                    <span class="font-bold text-white">Lucas Ferreira (Menor · CPF Pai Pagador)</span>
+                                    <span class="text-[#9C8EAD] ml-2">R$ 200,00</span>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-semibold">🏛️ Receita OK</span>
+                            </div>
+                            <div class="p-3 rounded-xl bg-[#1D1724] border border-[#2E2538] flex items-center justify-between">
+                                <div>
+                                    <span class="font-bold text-white">Beatriz Santos</span>
+                                    <span class="text-[#9C8EAD] ml-2">R$ 180,00</span>
+                                </div>
+                                <span class="px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30 text-[10px] font-semibold">✓ CPF Validado</span>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-xl bg-[#1D1724]/70 border border-[#2E2538] font-mono text-[10px] text-[#C2ADC9] overflow-x-auto whitespace-nowrap">
+                            17/11/2026;R01.001.001;255;180,00;;Atendimento psicologico;PF;12345678901;12345678901;;;
+                        </div>
+
+                        <a href="/cadastro" class="block w-full py-3.5 btn-plum rounded-xl text-center text-xs font-bold shadow-md">
+                            Experimentar Exportador Receita Saúde Grátis →
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- SEÇÃO: RECURSOS COMPLETOS (9 CARDS) -->
+    <section id="recursos" class="py-20 bg-white border-b subtle-border">
         <div class="max-w-6xl mx-auto px-6">
             <div class="text-center max-w-2xl mx-auto mb-16 space-y-3">
-                <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#6E568A]">Rotina Clínica Simplificada</span>
+                <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#6E568A]">Ecossistema Clínico Completo</span>
                 <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-[#1D1724]">
                     Tudo o que você precisa entre uma sessão e outra
                 </h2>
@@ -133,65 +254,117 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                <!-- Card 1 com informação transparente sobre navegadores -->
-                <div class="p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
+                <!-- Card 1 -->
+                <div class="feature-card p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
                     <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">🎙️</span>
-                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Prontuário em Tela Cheia</h3>
+                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Prontuário & Ditado por Voz</h3>
                     <p class="text-xs text-[#5C5366] leading-relaxed">
-                        Registre suas evoluções digitando com conforto, pesquise termos antigos e exporte registros em PDF. Inclui ditado por voz <span class="text-[#4E3B63] font-semibold">(compatível com Chrome, Edge e Safari)</span>.
+                        Registre evoluções falando ou digitando em tela cheia, pesquise palavras-chave em segundos e selecione quais evoluções exportar no PDF oficial (CFP).
                     </p>
                 </div>
 
                 <!-- Card 2 -->
-                <div class="p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
-                    <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">🔗</span>
-                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Link de Triagem para Bio</h3>
+                <div class="feature-card p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">🏛️</span>
+                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Receita Saúde & Recibos PDF</h3>
                     <p class="text-xs text-[#5C5366] leading-relaxed">
-                        Receba um link exclusivo com seu nome, CRP e abordagem para colocar no Instagram. Quem preenche cai direto na sua aba de Triagens.
+                        Exporte o lote mensal `.CSV` para o Carnê-Leão Web, valide CPFs na hora, diferencie CPF do Responsável Financeiro e gere recibos em PDF com 1 clique.
                     </p>
                 </div>
 
                 <!-- Card 3 -->
-                <div class="p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
+                <div class="feature-card p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
                     <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">🗓️</span>
-                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Agenda Recorrente</h3>
+                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Agenda Recorrente Inteligente</h3>
                     <p class="text-xs text-[#5C5366] leading-relaxed">
-                        Agende sessões semanais ou quinzenais por 4, 8 ou 12 semanas em um clique, com bloqueio automático de horários duplicados.
+                        Agende sessões únicas, semanais ou quinzenais por 4, 8 ou 12 semanas. Bloqueia conflitos de horário da mesma psicóloga permitindo múltiplos profissionais no mesmo horário.
                     </p>
                 </div>
 
                 <!-- Card 4 -->
-                <div class="p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
-                    <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">💬</span>
-                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Lembretes via WhatsApp</h3>
+                <div class="feature-card p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">🔗</span>
+                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Link de Triagem em Tempo Real</h3>
                     <p class="text-xs text-[#5C5366] leading-relaxed">
-                        Salve o link fixo do Google Meet ou Zoom na ficha do paciente e envie a confirmação com horário e link da sala em 1 clique.
+                        Link exclusivo para a Bio do Instagram com seu nome, CRP e abordagem. Assim que o paciente envia, o alerta toca na tela sem precisar apertar F5.
                     </p>
                 </div>
 
                 <!-- Card 5 -->
-                <div class="p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
-                    <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">📄</span>
-                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Recibos em PDF (IR / Convênio)</h3>
+                <div class="feature-card p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">🔔</span>
+                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Central de Lembretes</h3>
                     <p class="text-xs text-[#5C5366] leading-relaxed">
-                        Gere recibos com seu CRP e suporte a Responsável Financeiro (nome e CPF do pagador separados do paciente) prontos para reembolso.
+                        O sistema avisa automaticamente quando uma sessão realizada ainda está sem evolução no prontuário ou quando o ciclo de sessões do paciente está acabando.
                     </p>
                 </div>
 
                 <!-- Card 6 -->
-                <div class="p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
-                    <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">🏛️</span>
-                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Modo Individual ou Clínica</h3>
+                <div class="feature-card p-7 rounded-2xl bg-[#F9F7F2] border subtle-border space-y-3">
+                    <span class="w-10 h-10 rounded-xl bg-[#1D1724] text-[#D8B4FE] flex items-center justify-center text-lg">💬</span>
+                    <h3 class="font-serif text-xl font-semibold text-[#1D1724]">Confirmação + Sala no WhatsApp</h3>
                     <p class="text-xs text-[#5C5366] leading-relaxed">
-                        Atenda sozinho(a) com privacidade total ou gerencie uma clínica com múltiplos psicólogos, filtros financeiros por profissional e níveis de acesso.
+                        Salve o link fixo do Google Meet ou Zoom na ficha do paciente e envie o lembrete da sessão já com horário e link da sala em 1 clique.
                     </p>
                 </div>
             </div>
         </div>
     </section>
 
+    <!-- DESTAQUE 2: LANDING PAGE PROFISSIONAL INTEGRADA AO CRM -->
+    <section id="site-profissional" class="py-20 max-w-6xl mx-auto px-6">
+        <div class="rounded-3xl bg-white border subtle-border p-8 sm:p-12 grid grid-cols-1 lg:grid-cols-12 gap-10 items-center shadow-sm">
+            <div class="lg:col-span-6 space-y-4">
+                <span class="inline-block px-3 py-1 rounded-full bg-[#EFEAF4] text-[#5F4A78] text-[10px] font-bold uppercase tracking-wider">
+                    🌐 Captação de Pacientes Particulares
+                </span>
+                <h2 class="font-serif text-3xl sm:text-4xl font-semibold text-[#1D1724] leading-tight">
+                    Sua própria <em class="italic font-normal text-[#6E568A]">Landing Page Profissional</em> editável dentro do CRM.
+                </h2>
+                <p class="text-sm text-[#5C5366] leading-relaxed">
+                    Quer ir além do link da bio e ter um site de alta conversão para tráfego pago (Google Ads / Instagram) e apresentação clínica? Ative o módulo <strong>Minha Landing Page</strong>:
+                </p>
+                <ul class="space-y-2.5 text-xs text-[#231C2B] pt-1">
+                    <li class="flex items-center gap-2"><strong class="text-[#6E568A]">✓</strong> Endereço personalizado (<code>gnoth.com.br/lp/SeuNome</code>)</li>
+                    <li class="flex items-center gap-2"><strong class="text-[#6E568A]">✓</strong> Personalize sua foto, paleta de cores, CRP, textos de abordagem e público-alvo</li>
+                    <li class="flex items-center gap-2"><strong class="text-[#6E568A]">✓</strong> Botão flutuante de WhatsApp + Formulário de acolhimento conectado direto à sua aba de <strong>Triagens</strong></li>
+                </ul>
+                <div class="pt-3">
+                    <a href="/lp/AlexiaSturaro" target="_blank" class="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#1D1724] text-white text-xs font-semibold hover:bg-[#2B2138] transition">
+                        <span>Ver Exemplo de Landing Page ao Vivo</span>
+                        <span>↗</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="lg:col-span-6">
+                <div class="p-6 rounded-3xl bg-[#F9F7F2] border subtle-border space-y-4">
+                    <div class="flex items-center justify-between border-b subtle-border pb-3">
+                        <div class="flex items-center gap-2">
+                            <span class="w-3 h-3 rounded-full bg-red-400"></span>
+                            <span class="w-3 h-3 rounded-full bg-amber-400"></span>
+                            <span class="w-3 h-3 rounded-full bg-emerald-400"></span>
+                        </div>
+                        <span class="px-3 py-1 rounded-lg bg-white border subtle-border font-mono text-[11px] text-[#5F4A78]">gnoth.com.br/lp/SeuNome</span>
+                    </div>
+                    <div class="p-6 rounded-2xl bg-white border subtle-border space-y-3">
+                        <span class="text-[10px] font-bold uppercase tracking-widest text-[#6E568A]">Atendimento Online e Individualizado</span>
+                        <h4 class="font-serif text-2xl font-bold text-[#1D1724]">Um espaço seguro para o seu processo terapêutico.</h4>
+                        <p class="text-xs text-[#5C5366] leading-relaxed">
+                            Edite cada parágrafo, cores e foto direto pela aba "Minha Landing Page" no seu painel e publique instantaneamente sem depender de programador.
+                        </p>
+                        <div class="pt-2 flex flex-wrap gap-2">
+                            <span class="px-3 py-1.5 rounded-lg bg-[#EFEAF4] text-[#4E3B63] text-[11px] font-semibold">🎨 Cores Personalizáveis</span>
+                            <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-700 text-[11px] font-semibold">⚡ Triagem Integrada ao Painel</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
     <!-- SEÇÃO: SEGURANÇA & CONFORMIDADE CFP / LGPD -->
-    <section id="conformidade" class="py-20 max-w-6xl mx-auto px-6">
+    <section id="conformidade" class="py-16 max-w-6xl mx-auto px-6">
         <div class="card-plum rounded-3xl p-8 sm:p-12 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
             <div class="lg:col-span-7 space-y-4">
                 <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-emerald-400">Sigilo & Ética Profissional</span>
@@ -199,16 +372,16 @@
                     Construído sob as normas do <em class="italic font-normal text-[#D8B4FE]">CFP e da LGPD.</em>
                 </h2>
                 <p class="text-sm text-[#C2ADC9] leading-relaxed">
-                    Registros clínicos exigem rastreabilidade e proteção de dados sensíveis. O Gnoth garante que seu consultório esteja respaldado documentalmente.
+                    Registros clínicos exigem rastreabilidade, isolamento por profissional e proteção de dados sensíveis. O Gnoth garante que seu consultório esteja respaldado documentalmente.
                 </p>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 text-xs text-[#E5DCED]">
                     <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538]">
-                        <strong class="text-white block mb-1">🔒 Histórico Imutável</strong>
-                        Evoluções numeradas em ordem cronológica com carimbo de data, hora e autor.
+                        <strong class="text-white block mb-1">🔒 Histórico Imutável & Isolado</strong>
+                        Evoluções numeradas em ordem cronológica com carimbo de data, hora e isolamento estrito por psicóloga.
                     </div>
                     <div class="p-4 rounded-2xl bg-[#141019] border border-[#2E2538]">
                         <strong class="text-white block mb-1">✓ Aceite LGPD Registrado</strong>
-                        Coleta e registro digital de consentimento para tratamento de dados sensíveis.
+                        Coleta e registro digital de consentimento para tratamento de dados sensíveis desde a triagem.
                     </div>
                 </div>
             </div>
@@ -255,10 +428,11 @@
 
                         <ul class="mt-6 space-y-3 text-xs text-[#231C2B]">
                             <li>✓ <strong>1 Psicóloga(o)</strong> com acesso completo</li>
-                            <li>✓ Pacientes e prontuários ilimitados</li>
+                            <li>✓ Pacientes e prontuários ilimitados + Ditado por Voz</li>
+                            <li>✓ <strong>Exportação em Lote .CSV para o Receita Saúde</strong></li>
                             <li>✓ Prontuário em tela cheia + exportação PDF (CFP)</li>
-                            <li>✓ Link público de triagem exclusivo para Bio</li>
-                            <li>✓ Recibos em PDF e lembretes via WhatsApp</li>
+                            <li>✓ Link público de triagem exclusivo para Bio em tempo real</li>
+                            <li>✓ Recibos em PDF (com CPF de Responsável) e WhatsApp em 1 clique</li>
                         </ul>
                     </div>
 
@@ -270,7 +444,7 @@
                 <!-- PLANO CLÍNICA -->
                 <div class="p-8 rounded-3xl card-plum border-2 border-[#6E568A] flex flex-col justify-between space-y-6 relative">
                     <span class="absolute -top-3.5 right-6 px-3.5 py-1 bg-[#6E568A] text-white text-[10px] font-bold uppercase tracking-wider rounded-full shadow">
-                        Para Equipes
+                        Para Equipes & Clínicas
                     </span>
                     <div>
                         <span class="text-xs font-bold uppercase tracking-wider text-[#D8B4FE]">Clínica & Sublocação</span>
@@ -283,11 +457,12 @@
                         </div>
 
                         <ul class="mt-6 space-y-3 text-xs text-[#E5DCED]">
-                            <li>✓ Até <strong>5 psicólogos</strong> na mesma clínica</li>
-                            <li>✓ Painel Administrador com visão geral da equipe</li>
-                            <li>✓ Relatório e filtro financeiro por psicóloga</li>
+                            <li>✓ Até <strong>5 psicólogos</strong> na mesma clínica com agendas independentes</li>
+                            <li>✓ Painel Administrador com gestão de Equipe & Níveis</li>
+                            <li>✓ Filtro financeiro e exportação <strong>Receita Saúde (.CSV)</strong> por psicóloga</li>
+                            <li>✓ Gestão centralizada de Landing Pages da equipe</li>
                             <li>✓ Links de triagem individuais para cada profissional</li>
-                            <li>✓ Todos os recursos de prontuário, LGPD e recibos</li>
+                            <li>✓ Todos os recursos de prontuário CFP, LGPD, voz e recibos</li>
                         </ul>
                     </div>
 
@@ -299,13 +474,63 @@
         </div>
     </section>
 
+    <!-- SEÇÃO: FAQ (PERGUNTAS FREQUENTES) -->
+    <section id="faq" class="py-20 max-w-4xl mx-auto px-6">
+        <div class="text-center mb-12 space-y-2">
+            <span class="text-[11px] font-bold uppercase tracking-[0.22em] text-[#6E568A]">Tire suas Dúvidas</span>
+            <h2 class="font-serif text-3xl font-semibold text-[#1D1724]">Perguntas Frequentes</h2>
+        </div>
+
+        <div class="space-y-3 text-xs">
+            <div class="faq-item rounded-2xl bg-white border subtle-border p-5 cursor-pointer">
+                <div class="flex items-center justify-between font-bold text-sm text-[#1D1724]">
+                    <span>Como funciona a integração com o Receita Saúde / Carnê-Leão Web?</span>
+                    <span class="faq-icon text-[#6E568A] text-lg font-bold">+</span>
+                </div>
+                <p class="faq-answer hidden text-[#5C5366] mt-3 leading-relaxed">
+                    Na aba Cobranças, você clica em "Receita Saúde (.CSV)" para baixar todos os pagamentos quitados do mês no layout oficial de 12 colunas da Receita Federal (Código R01.001.001 e Ocupação 255 - Psicólogo). Depois, basta entrar no portal e-CAC → Carnê-Leão Web → Escrituração → Importar Arquivo CSV para registrar todos os recibos de uma só vez.
+                </p>
+            </div>
+
+            <div class="faq-item rounded-2xl bg-white border subtle-border p-5 cursor-pointer">
+                <div class="flex items-center justify-between font-bold text-sm text-[#1D1724]">
+                    <span>Quando os pais pagam a terapia de um filho menor, o recibo sai no CPF de quem?</span>
+                    <span class="faq-icon text-[#6E568A] text-lg font-bold">+</span>
+                </div>
+                <p class="faq-answer hidden text-[#5C5366] mt-3 leading-relaxed">
+                    Na ficha do paciente você informa o CPF do paciente (Beneficiário) e o Nome/CPF do Responsável Financeiro (Pagador). Tanto o comprovante em PDF quanto o arquivo .CSV do Receita Saúde preenchem automaticamente os dois CPFs separados nas colunas corretas exigidas pela Receita Federal.
+                </p>
+            </div>
+
+            <div class="faq-item rounded-2xl bg-white border subtle-border p-5 cursor-pointer">
+                <div class="flex items-center justify-between font-bold text-sm text-[#1D1724]">
+                    <span>Em uma clínica com mais de uma psicóloga, uma vê os prontuários da outra?</span>
+                    <span class="faq-icon text-[#6E568A] text-lg font-bold">+</span>
+                </div>
+                <p class="faq-answer hidden text-[#5C5366] mt-3 leading-relaxed">
+                    Não. Cada psicóloga tem acesso estrito aos seus próprios pacientes, prontuários e agenda, podendo inclusive agendar sessões no mesmo horário de outras colegas sem conflito.
+                </p>
+            </div>
+
+            <div class="faq-item rounded-2xl bg-white border subtle-border p-5 cursor-pointer">
+                <div class="flex items-center justify-between font-bold text-sm text-[#1D1724]">
+                    <span>Preciso cadastrar cartão de crédito para testar os 7 dias grátis?</span>
+                    <span class="faq-icon text-[#6E568A] text-lg font-bold">+</span>
+                </div>
+                <p class="faq-answer hidden text-[#5C5366] mt-3 leading-relaxed">
+                    Não! Você cria sua conta em menos de 1 minuto usando apenas seu nome, CRP e e-mail, e já libera o painel completo imediatamente.
+                </p>
+            </div>
+        </div>
+    </section>
+
     <!-- FOOTER -->
-    <footer class="py-12 border-t subtle-border text-center space-y-2">
+    <footer class="py-12 border-t subtle-border text-center space-y-2 bg-white">
         <p class="font-serif text-lg font-bold text-[#1D1724]">Gnoth · Gestão Clínica</p>
         <p class="text-xs italic text-[#6E6578]">Do grego "Gnóthi seautón" — Conhece-te a ti mesmo.</p>
         <p class="text-[11px] text-[#8E8499] pt-2">© 2026 Gnoth. Todos os direitos reservados.</p>
     </footer>
 
-    <script src="index.js"></script>
+    <script src="index.js?v=20261117e"></script>
 </body>
 </html>
