@@ -366,8 +366,8 @@
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"/></svg>
                         <span>Cobranças</span>
                     </button>
-                    <!-- SOMENTE ADMINISTRADOR VÊ ESTE BOTÃO -->
-                    <button id="btn-minha-lp" onclick="trocarAbaMobile('minha-lp')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3">
+                    <!-- SOMENTE QUEM TEM LP COMPRADA OU ADMIN VÊ ESTE BOTÃO -->
+                    <button id="btn-minha-lp" onclick="trocarAbaMobile('minha-lp')" class="sidebar-link w-full text-left px-4 py-2.5 rounded-xl text-xs flex items-center gap-3 hidden">
                         <span>🌐</span>
                         <span>Minha Landing Page</span>
                     </button>
@@ -777,7 +777,7 @@
                 <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-[#2E2538] pb-5 mb-6">
                     <div>
                         <p class="text-xs font-semibold text-[#9C8EAD]">Site Profissional</p>
-                        <h2 class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Minha Landing Page</h2>
+                        <h2 id="tituloSecaoLP" class="text-3xl font-bold font-serif text-[#F3EEF6] mt-1">Minha Landing Page</h2>
                     </div>
                     <div class="flex flex-wrap items-center gap-2.5">
                         <div class="px-3.5 py-2 rounded-xl bg-[#141019] border border-[#2E2538] text-xs text-[#C2ADC9] flex items-center gap-2">
@@ -790,6 +790,34 @@
                         <a id="btnAbrirMinhaLP" href="#" target="_blank" class="px-4 py-2 rounded-xl btn-plum text-white text-xs font-semibold transition">
                             Abrir Página ↗
                         </a>
+                    </div>
+                </div>
+
+                <!-- PAINEL DE FILTRO EXCLUSIVO DO ADMIN PARA ACESSAR LP DE OUTROS USUÁRIOS -->
+                <div id="adminFiltroLPBox" class="hidden card-surface p-4 mb-6 border border-purple-500/30 bg-[#1B1424]/90">
+                    <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                        <div class="flex flex-col sm:flex-row sm:items-center gap-3 flex-1">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-lg bg-purple-500/20 text-purple-300 border border-purple-500/30 text-[10px] font-bold uppercase tracking-wider">Visão Admin</span>
+                                <label for="filtroUsuarioLP" class="text-xs font-semibold text-[#E5DCED] whitespace-nowrap">Profissional:</label>
+                            </div>
+                            <select id="filtroStatusCompraLP" onchange="aoMudarFiltroStatusCompraLP()" class="px-3 py-2 input-dark rounded-xl text-xs font-semibold outline-none sm:w-44">
+                                <option value="todos">Todos os usuários</option>
+                                <option value="com_lp">🌐 Com LP comprada</option>
+                                <option value="sem_lp">🔒 Sem LP</option>
+                            </select>
+                            <select id="filtroUsuarioLP" onchange="aoMudarUsuarioLPAdmin()" class="px-3.5 py-2 input-dark rounded-xl text-xs font-semibold outline-none flex-1 max-w-md">
+                            </select>
+                        </div>
+                        <div class="flex flex-wrap items-center gap-2.5">
+                            <span id="badgeStatusCompraLP" class="px-3 py-1.5 rounded-xl text-xs font-semibold"></span>
+                            <button type="button" id="btnLiberarLPAdmin" onclick="liberarLPRapidoAdmin()" class="hidden px-3.5 py-1.5 rounded-xl bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-xs font-semibold transition">
+                                ✨ Liberar LP para este usuário
+                            </button>
+                            <button type="button" id="btnRevogarLPAdmin" onclick="revogarLPAdmin()" class="hidden px-3.5 py-1.5 rounded-xl bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/30 text-xs font-semibold transition">
+                                🗑️ Revogar Acesso à LP
+                            </button>
+                        </div>
                     </div>
                 </div>
 
@@ -910,6 +938,7 @@
                                 <th class="p-4">Nome de Exibição</th>
                                 <th class="p-4">E-mail de Acesso</th>
                                 <th class="p-4">Cargo / Nível</th>
+                                <th class="p-4">Landing Page</th>
                                 <th class="p-4 text-center">Alterar Nível</th>
                             </tr>
                         </thead>
@@ -1222,6 +1251,12 @@
                 return;
             }
 
+            if (nomeAba === 'minha-lp' && usuarioAtualPerfil && !ehAdmin() && !usuarioTemLPComprada) {
+                alert("Acesso disponível apenas para profissionais que possuem a Landing Page adquirida.");
+                mudarAba('dashboard');
+                return;
+            }
+
             window.location.hash = nomeAba;
 
             document.querySelectorAll('.secao-conteudo').forEach(secao => {
@@ -1260,7 +1295,10 @@
         let todosAtendimentosCache = [];
         let todosPagamentosCache = [];
         let todosUsuariosCache = [];
+        let todasLPsCache = [];
         let usuarioAtualPerfil = null;
+        let usuarioTemLPComprada = false;
+        let lpUsuarioSelecionadoId = null;
         let pacienteSelecionadoId = null;
         let dataCalendarioAtual = new Date();
         let diaSelecionadoAgendaIso = null;
@@ -1555,7 +1593,32 @@
 
             const badge = document.getElementById('userRoleBadge');
             const btnEquipe = document.getElementById('btn-equipe');
+            const btnMinhaLp = document.getElementById('btn-minha-lp');
             const thPsicologa = document.getElementById('thPsicologaResponsavel');
+
+            // Verifica se o usuário possui Landing Page comprada/liberada (ou é Admin)
+            if (ehAdmin()) {
+                usuarioTemLPComprada = true;
+            } else {
+                try {
+                    const { data: lpUser } = await client
+                        .from('landing_pages')
+                        .select('id')
+                        .eq('user_id', userId)
+                        .maybeSingle();
+                    usuarioTemLPComprada = Boolean(lpUser) || Boolean(usuarioAtualPerfil?.tem_lp);
+                } catch (e) {
+                    usuarioTemLPComprada = Boolean(usuarioAtualPerfil?.tem_lp);
+                }
+            }
+
+            if (btnMinhaLp) {
+                if (ehAdmin() || usuarioTemLPComprada) {
+                    btnMinhaLp.classList.remove('hidden');
+                } else {
+                    btnMinhaLp.classList.add('hidden');
+                }
+            }
 
             // Regra pura baseada unicamente no campo 'role' salvo no banco de dados
             if (ehAdmin()) {
@@ -1572,6 +1635,15 @@
                 }
                 if (btnEquipe) btnEquipe.classList.add('hidden');
                 if (thPsicologa) thPsicologa.classList.add('hidden');
+            }
+
+            const hashAtual = window.location.hash.replace('#', '');
+            if (hashAtual === 'minha-lp') {
+                if (!ehAdmin() && !usuarioTemLPComprada) {
+                    mudarAba('dashboard');
+                } else if (typeof carregarDadosMinhaLP === 'function') {
+                    carregarDadosMinhaLP();
+                }
             }
 
             if (ehAdmin() && typeof carregarEquipe === 'function') {
@@ -1682,6 +1754,14 @@
         }
         let minhaLPAtual = null;
 
+        function obterUsuarioAlvoLP() {
+            if (ehAdmin() && lpUsuarioSelecionadoId) {
+                const encontrado = todosUsuariosCache.find(u => u.id === lpUsuarioSelecionadoId);
+                if (encontrado) return encontrado;
+            }
+            return usuarioAtualPerfil;
+        }
+
         function atualizarPreviewLinkLP() {
             const slugInput = document.getElementById('lpEditSlug');
             const slugLimpo = (slugInput.value || '').replace(/[^a-zA-Z0-9_-]/g, '');
@@ -1702,23 +1782,200 @@
             alert("Link copiado para a área de transferência:\n" + url);
         }
 
-        async function carregarDadosMinhaLP() {
+        async function prepararFiltroAdminLP() {
+            const adminBox = document.getElementById('adminFiltroLPBox');
+            const selectUser = document.getElementById('filtroUsuarioLP');
+            const selectStatus = document.getElementById('filtroStatusCompraLP');
+            if (!adminBox || !selectUser) return;
+
+            if (!ehAdmin()) {
+                adminBox.classList.add('hidden');
+                return;
+            }
+
+            adminBox.classList.remove('hidden');
+
+            if (todosUsuariosCache.length === 0) {
+                const { data: usuarios } = await client.from('usuarios_perfis').select('*').order('nome', { ascending: true });
+                todosUsuariosCache = usuarios || [];
+            }
+
+            const { data: lps } = await client.from('landing_pages').select('id, user_id, slug, ativo, nome');
+            todasLPsCache = lps || [];
+            const idsComLP = new Set(todasLPsCache.map(item => item.user_id));
+
+            const statusFiltro = selectStatus ? selectStatus.value : 'todos';
+            const listaFiltrada = todosUsuariosCache.filter(u => {
+                const temLP = idsComLP.has(u.id) || Boolean(u.tem_lp);
+                if (statusFiltro === 'com_lp') return temLP;
+                if (statusFiltro === 'sem_lp') return !temLP;
+                return true;
+            });
+
+            if (!lpUsuarioSelecionadoId) {
+                lpUsuarioSelecionadoId = usuarioAtualPerfil.id;
+            }
+
+            if (listaFiltrada.length > 0 && !listaFiltrada.some(u => u.id === lpUsuarioSelecionadoId)) {
+                lpUsuarioSelecionadoId = listaFiltrada[0].id;
+            }
+
+            if (listaFiltrada.length === 0) {
+                selectUser.innerHTML = `<option value="${usuarioAtualPerfil.id}">Nenhum usuário neste filtro</option>`;
+            } else {
+                selectUser.innerHTML = listaFiltrada.map(u => {
+                    const temLP = idsComLP.has(u.id) || Boolean(u.tem_lp);
+                    const nomeExibicao = u.nome || (u.email ? u.email.split('@')[0] : 'Sem nome');
+                    const tagVoce = u.id === usuarioAtualPerfil.id ? ' (Você)' : '';
+                    const tagLP = temLP ? '🌐 Com LP' : '🔒 Sem LP';
+                    return `<option value="${u.id}" ${u.id === lpUsuarioSelecionadoId ? 'selected' : ''}>${escapeHtml(nomeExibicao)}${tagVoce} — ${tagLP}</option>`;
+                }).join('');
+            }
+        }
+
+        function atualizarBadgesAdminLP(temLP, alvo) {
+            const badge = document.getElementById('badgeStatusCompraLP');
+            const btnLiberar = document.getElementById('btnLiberarLPAdmin');
+            const btnRevogar = document.getElementById('btnRevogarLPAdmin');
+            const tituloSecao = document.getElementById('tituloSecaoLP');
+
+            if (tituloSecao) {
+                if (ehAdmin() && alvo && alvo.id !== usuarioAtualPerfil.id) {
+                    const nomeAlvo = alvo.nome || (alvo.email ? alvo.email.split('@')[0] : 'Profissional');
+                    tituloSecao.textContent = `Landing Page · ${nomeAlvo}`;
+                } else {
+                    tituloSecao.textContent = 'Minha Landing Page';
+                }
+            }
+
+            if (!ehAdmin()) return;
+
+            if (badge) {
+                if (temLP) {
+                    badge.textContent = '🌐 LP Comprada / Liberada';
+                    badge.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30';
+                } else {
+                    badge.textContent = '🔒 Sem LP (Aba oculta para este usuário)';
+                    badge.className = 'px-3 py-1.5 rounded-xl text-xs font-semibold bg-amber-500/15 text-amber-300 border border-amber-500/30';
+                }
+            }
+
+            if (btnLiberar) {
+                btnLiberar.classList.toggle('hidden', temLP);
+            }
+            if (btnRevogar) {
+                btnRevogar.classList.toggle('hidden', !temLP);
+            }
+        }
+
+        async function aoMudarFiltroStatusCompraLP() {
+            await prepararFiltroAdminLP();
+            await carregarDadosMinhaLP(true);
+        }
+
+        async function aoMudarUsuarioLPAdmin() {
+            const selectUser = document.getElementById('filtroUsuarioLP');
+            if (selectUser && selectUser.value) {
+                lpUsuarioSelecionadoId = selectUser.value;
+            }
+            await carregarDadosMinhaLP(true);
+        }
+
+        function abrirLPDoUsuarioAdmin(userId) {
+            if (!ehAdmin()) return;
+            lpUsuarioSelecionadoId = userId;
+            const selectStatus = document.getElementById('filtroStatusCompraLP');
+            if (selectStatus) selectStatus.value = 'todos';
+            mudarAba('minha-lp');
+        }
+
+        async function liberarLPRapidoAdmin() {
+            if (!ehAdmin()) return;
+            const alvo = obterUsuarioAlvoLP();
+            if (!alvo || !alvo.id) return;
+
+            const slugBase = ((alvo.nome || alvo.email?.split('@')[0] || 'psicologo').replace(/[^a-zA-Z0-9_-]/g, '')) || `psi-${alvo.id.slice(0, 6)}`;
+            const payload = {
+                user_id: alvo.id,
+                slug: document.getElementById('lpEditSlug')?.value?.trim() || slugBase,
+                nome: document.getElementById('lpEditNome')?.value?.trim() || alvo.nome || 'Profissional',
+                crp: document.getElementById('lpEditCrp')?.value?.trim() || alvo.crp || '',
+                whatsapp: (document.getElementById('lpEditWhatsapp')?.value || '').replace(/\D/g, ''),
+                subtitulo_topo: document.getElementById('lpEditSubtitulo')?.value?.trim() || (alvo.abordagem ? `Psicologia Clínica • ${alvo.abordagem}` : 'Psicologia Clínica'),
+                badge_hero: document.getElementById('lpEditBadgeHero')?.value?.trim() || 'Atendimento Online e Individualizado',
+                titulo_hero: document.getElementById('lpEditTituloHero')?.value?.trim() || 'Quem sou eu?',
+                cor_500: document.getElementById('lpEditCor500')?.value || '#736185',
+                cor_600: document.getElementById('lpEditCor600')?.value || '#5E4E6D',
+                cor_700: document.getElementById('lpEditCor700')?.value || '#4A3D56',
+                ativo: true
+            };
+
+            const { error } = await client
+                .from('landing_pages')
+                .upsert(payload, { onConflict: 'user_id' });
+
+            if (error) {
+                alert("Erro ao liberar Landing Page (verifique se o slug já está em uso): " + error.message);
+                return;
+            }
+
+            alert(`Landing Page liberada com sucesso para ${alvo.nome || alvo.email}! Agora a aba já aparece no painel deste usuário.`);
+            await carregarDadosMinhaLP();
+            if (typeof carregarEquipe === 'function') carregarEquipe();
+        }
+
+        async function revogarLPAdmin() {
+            if (!ehAdmin()) return;
+            const alvo = obterUsuarioAlvoLP();
+            if (!alvo || !alvo.id) return;
+
+            const nomeAlvo = alvo.nome || alvo.email || 'este usuário';
+            if (!confirm(`Deseja revogar o acesso à Landing Page de "${nomeAlvo}"?\n\nA aba "Minha Landing Page" deixará de aparecer para este usuário.`)) return;
+
+            const { error } = await client
+                .from('landing_pages')
+                .delete()
+                .eq('user_id', alvo.id);
+
+            if (error) {
+                alert("Erro ao revogar Landing Page: " + error.message);
+                return;
+            }
+
+            alert(`Acesso à Landing Page revogado para ${nomeAlvo}.`);
+            await carregarDadosMinhaLP();
+            if (typeof carregarEquipe === 'function') carregarEquipe();
+        }
+
+        async function carregarDadosMinhaLP(pularPreparoFiltro = false) {
             if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
+
+            if (ehAdmin() && !pularPreparoFiltro) {
+                await prepararFiltroAdminLP();
+            }
+
+            const alvo = obterUsuarioAlvoLP();
+            if (!alvo || !alvo.id) return;
+
+            const fileInput = document.getElementById('lpEditFotoFile');
+            if (fileInput) fileInput.value = '';
 
             const { data, error } = await client
                 .from('landing_pages')
                 .select('*')
-                .eq('user_id', usuarioAtualPerfil.id)
+                .eq('user_id', alvo.id)
                 .maybeSingle();
 
             minhaLPAtual = data || null;
+            const temLP = Boolean(data) || Boolean(alvo.tem_lp);
+            atualizarBadgesAdminLP(temLP, alvo);
 
-            const slugPadrao = data?.slug || (usuarioAtualPerfil.nome || 'psicologo').replace(/\s+/g, '');
+            const slugPadrao = data?.slug || (alvo.nome || 'psicologo').replace(/[^a-zA-Z0-9_-]/g, '');
             document.getElementById('lpEditSlug').value = slugPadrao;
-            document.getElementById('lpEditNome').value = data?.nome || usuarioAtualPerfil.nome || '';
-            document.getElementById('lpEditCrp').value = data?.crp || usuarioAtualPerfil.crp || '';
+            document.getElementById('lpEditNome').value = data?.nome || alvo.nome || '';
+            document.getElementById('lpEditCrp').value = data?.crp || alvo.crp || '';
             document.getElementById('lpEditWhatsapp').value = data?.whatsapp || '';
-            document.getElementById('lpEditSubtitulo').value = data?.subtitulo_topo || (usuarioAtualPerfil.abordagem ? `Psicologia Clínica • ${usuarioAtualPerfil.abordagem}` : '');
+            document.getElementById('lpEditSubtitulo').value = data?.subtitulo_topo || (alvo.abordagem ? `Psicologia Clínica • ${alvo.abordagem}` : '');
             document.getElementById('lpEditBadgeHero').value = data?.badge_hero || 'Atendimento Online e Individualizado';
             document.getElementById('lpEditTituloHero').value = data?.titulo_hero || 'Quem sou eu?';
             document.getElementById('lpEditSobreP1').value = data?.sobre_p1 || '';
@@ -1743,6 +2000,9 @@
             e.preventDefault();
             if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
 
+            const alvo = obterUsuarioAlvoLP();
+            if (!alvo || !alvo.id) return;
+
             const btn = document.getElementById('btnSalvarMinhaLP');
             const textoOriginal = btn.textContent;
             btn.disabled = true;
@@ -1756,7 +2016,7 @@
             if (fileInput && fileInput.files && fileInput.files[0]) {
                 const file = fileInput.files[0];
                 const fileExt = file.name.split('.').pop();
-                const fileName = `lp-${usuarioAtualPerfil.id}-${Date.now()}.${fileExt}`;
+                const fileName = `lp-${alvo.id}-${Date.now()}.${fileExt}`;
 
                 if (statusFoto) statusFoto.textContent = "Enviando foto...";
 
@@ -1776,7 +2036,7 @@
             }
 
             const payload = {
-                user_id: usuarioAtualPerfil.id,
+                user_id: alvo.id,
                 slug: document.getElementById('lpEditSlug').value.trim(),
                 nome: document.getElementById('lpEditNome').value.trim(),
                 crp: document.getElementById('lpEditCrp').value.trim(),
@@ -1810,7 +2070,14 @@
                 minhaLPAtual = salvo;
                 if (statusFoto) statusFoto.textContent = "✓ Página e foto salvas com sucesso!";
                 atualizarPreviewLinkLP();
-                alert("Sua Landing Page foi atualizada no ar!");
+                if (ehAdmin()) {
+                    await prepararFiltroAdminLP();
+                    atualizarBadgesAdminLP(true, alvo);
+                    if (typeof carregarEquipe === 'function') carregarEquipe();
+                }
+                alert(ehAdmin() && alvo.id !== usuarioAtualPerfil.id
+                    ? `Landing Page de ${alvo.nome || alvo.email} foi salva e liberada no ar!`
+                    : "Sua Landing Page foi atualizada no ar!");
             }
         });
         
@@ -2966,27 +3233,30 @@
             const tbody = document.getElementById('tabelaUsuarios');
             if (!tbody) return;
 
-            tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-[#9C8EAD]">Carregando equipe...</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-[#9C8EAD]">Carregando equipe...</td></tr>`;
 
-            const { data: usuarios, error } = await client
-                .from('usuarios_perfis')
-                .select('*')
-                .order('created_at', { ascending: false });
+            const [{ data: usuarios, error }, { data: lps }] = await Promise.all([
+                client.from('usuarios_perfis').select('*').order('created_at', { ascending: false }),
+                client.from('landing_pages').select('id, user_id, slug, ativo')
+            ]);
 
             if (error) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-red-400">Erro ao carregar equipe: ${escapeHtml(error.message)}</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-red-400">Erro ao carregar equipe: ${escapeHtml(error.message)}</td></tr>`;
                 return;
             }
 
             todosUsuariosCache = usuarios || [];
+            todasLPsCache = lps || [];
+            const idsComLP = new Set(todasLPsCache.map(item => item.user_id));
 
             if (todosUsuariosCache.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="4" class="p-4 text-center text-[#9C8EAD]">Nenhum usuário encontrado na tabela usuarios_perfis.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="5" class="p-4 text-center text-[#9C8EAD]">Nenhum usuário encontrado na tabela usuarios_perfis.</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = todosUsuariosCache.map(u => {
                 const isAdmin = u.role === 'admin';
+                const temLP = idsComLP.has(u.id) || Boolean(u.tem_lp);
                 const nomeAtual = u.nome || (u.email ? u.email.split('@')[0] : 'Sem nome');
                 return `
                     <tr class="hover:bg-white/[0.03]">
@@ -3001,6 +3271,16 @@
                             <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${isAdmin ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-[#2B2138] text-[#C2ADC9]'}">
                                 ${isAdmin ? 'Administrador' : 'Psicólogo'}
                             </span>
+                        </td>
+                        <td class="p-4">
+                            <div class="flex items-center gap-2">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${temLP ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30' : 'bg-white/5 text-[#9C8EAD] border border-[#2E2538]'}">
+                                    ${temLP ? '🌐 Com LP' : '🔒 Sem LP'}
+                                </span>
+                                <button type="button" onclick="abrirLPDoUsuarioAdmin('${u.id}')" class="px-2.5 py-1 bg-[#2B2138] text-[#C2ADC9] hover:bg-[#8E73AD] hover:text-white rounded-lg text-[11px] font-semibold transition">
+                                    ${temLP ? 'Editar LP' : 'Liberar LP'}
+                                </button>
+                            </div>
                         </td>
                         <td class="p-4 text-center">
                             <select onchange="alterarRoleUsuario('${u.id}', this.value)" class="text-xs input-dark rounded-xl px-2 py-1 font-semibold outline-none">
