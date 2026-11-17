@@ -3107,7 +3107,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (inputNome) inputNome.value = nomeExibicao;
             if (inputCrp) inputCrp.value = usuarioAtualPerfil.crp || '';
             if (inputAbordagem) inputAbordagem.value = usuarioAtualPerfil.abordagem || '';
-            if (inputPix) inputPix.value = usuarioAtualPerfil.chave_pix || '';
+            if (inputPix) inputPix.value = obterChavePixDaPsicologa(usuarioAtualPerfil);
 
             const linkExclusivo = `${window.location.origin}/triagem?triagem=${usuarioAtualPerfil.id}`;
             const elPreviewLink = document.getElementById('perfilPreviewLinkTriagem');
@@ -3217,37 +3217,75 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             return base + calcularCRC16Pix(base);
         }
 
+        function obterChavePixDaPsicologa(psi) {
+            const alvo = psi || usuarioAtualPerfil || {};
+            const candidatos = [
+                alvo.chave_pix,
+                alvo.id ? localStorage.getItem('gnoth_chave_pix_user_' + alvo.id) : null,
+                usuarioAtualPerfil?.chave_pix,
+                usuarioAtualPerfil?.id ? localStorage.getItem('gnoth_chave_pix_user_' + usuarioAtualPerfil.id) : null
+            ];
+            for (const c of candidatos) {
+                if (c && String(c).trim() !== '') return String(c).trim();
+            }
+            return '';
+        }
+
         // 1. PIX DA PSICÓLOGA (COBRANÇAS DOS PACIENTES -> CAI DIRETO NA CONTA DA PSICÓLOGA)
         function abrirModalPixPaciente(pagamentoId) {
             const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
             if (!pg) return;
 
+            pagamentoPixPacienteAtualId = pagamentoId;
             const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
             const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
-            const chavePixPsicologa = (psi.chave_pix || '').trim();
+            const chavePixPsicologa = obterChavePixDaPsicologa(psi);
 
-            if (!chavePixPsicologa) {
-                alert('Cadastre sua Chave Pix primeiro na página "Meu Perfil" para gerar cobranças Pix que caem direto na sua conta!');
-                mudarAba('perfil');
-                return;
-            }
-
-            pagamentoPixPacienteAtualId = pagamentoId;
             const nomePsi = psi.nome || obterNomeExibicaoUsuario();
-            const codigoPix = gerarPayloadPixEMV(chavePixPsicologa, nomePsi, pg.valor, 'SESSAO');
-
             document.getElementById('pixPacSubtituloRecebedor').textContent = `Recebedor(a): ${nomePsi} (100% direto na sua conta)`;
             document.getElementById('pixPacNomePaciente').textContent = pac.nome || 'Paciente';
             document.getElementById('pixPacValorFormatado').textContent = formatarBRL(pg.valor);
-            document.getElementById('pixPacChaveExibicao').textContent = `Chave Pix da Psicóloga: ${chavePixPsicologa}`;
-            document.getElementById('pixPacCodigoCopiaECola').value = codigoPix;
+
+            const inputChave = document.getElementById('pixPacInputChaveRapida');
+            if (inputChave) inputChave.value = chavePixPsicologa;
+
+            atualizarPreviewQrCodeModalPixPaciente();
+
+            const modal = document.getElementById('modalPixPaciente');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function atualizarPreviewQrCodeModalPixPaciente() {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoPixPacienteAtualId);
+            if (!pg) return;
+
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+            const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
+            const nomePsi = psi.nome || obterNomeExibicaoUsuario();
+            const chaveDigitada = (document.getElementById('pixPacInputChaveRapida')?.value || '').trim();
 
             const qrImg = document.getElementById('pixPacQrCodeImg');
+            const elChave = document.getElementById('pixPacChaveExibicao');
+            const elCodigo = document.getElementById('pixPacCodigoCopiaECola');
+            const btnWpp = document.getElementById('btnEnviarPixWhatsappPaciente');
+
+            if (!chaveDigitada) {
+                if (elChave) elChave.textContent = '⚠️ Digite sua chave Pix no campo acima para gerar o QR Code';
+                if (elCodigo) elCodigo.value = '';
+                if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=GNOTH';
+                return;
+            }
+
+            const codigoPix = gerarPayloadPixEMV(chaveDigitada, nomePsi, pg.valor, 'SESSAO');
+            if (elChave) elChave.textContent = `Chave: ${chaveDigitada}`;
+            if (elCodigo) elCodigo.value = codigoPix;
             if (qrImg) {
                 qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(codigoPix)}`;
             }
 
-            const btnWpp = document.getElementById('btnEnviarPixWhatsappPaciente');
             if (btnWpp) {
                 const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
                 const msg = `Olá, ${pac.nome || ''}! Segue o código Pix Copia e Cola referente à nossa sessão (${formatarBRL(pg.valor)}):\n\n${codigoPix}`;
@@ -3255,12 +3293,29 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     ? `https://wa.me/55${numLimpo}?text=${encodeURIComponent(msg)}`
                     : `https://wa.me/?text=${encodeURIComponent(msg)}`;
             }
+        }
 
-            const modal = document.getElementById('modalPixPaciente');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.style.display = 'flex';
+        async function salvarChavePixRapidaModalPaciente() {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoPixPacienteAtualId);
+            const pac = pg ? (todosPacientesCache.find(item => item.id === pg.paciente_id) || {}) : {};
+            const psiAlvoId = pac.psicologa_id || usuarioAtualPerfil?.id;
+            const novaChave = (document.getElementById('pixPacInputChaveRapida')?.value || '').trim();
+
+            if (!novaChave || !psiAlvoId) {
+                alert('Digite uma chave Pix válida.');
+                return;
             }
+
+            localStorage.setItem('gnoth_chave_pix_user_' + psiAlvoId, novaChave);
+            if (usuarioAtualPerfil && usuarioAtualPerfil.id === psiAlvoId) {
+                usuarioAtualPerfil.chave_pix = novaChave;
+            }
+            const uCache = todosUsuariosCache.find(u => u.id === psiAlvoId);
+            if (uCache) uCache.chave_pix = novaChave;
+
+            await client.from('usuarios_perfis').update({ chave_pix: novaChave }).eq('id', psiAlvoId);
+            atualizarPreviewQrCodeModalPixPaciente();
+            exibirToastTempoReal('Chave Pix salva com sucesso!');
         }
 
         function copiarCodigoPixPaciente() {
@@ -3412,6 +3467,15 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 usuarioAtualPerfil.crp = crp;
                 usuarioAtualPerfil.abordagem = abordagem;
                 usuarioAtualPerfil.chave_pix = chave_pix;
+                localStorage.setItem('gnoth_chave_pix_user_' + usuarioAtualPerfil.id, chave_pix);
+
+                const uCache = todosUsuariosCache.find(u => u.id === usuarioAtualPerfil.id);
+                if (uCache) {
+                    uCache.nome = nome;
+                    uCache.crp = crp;
+                    uCache.abordagem = abordagem;
+                    uCache.chave_pix = chave_pix;
+                }
                 
                 atualizarSaudacao();
                 carregarPaginaPerfil();

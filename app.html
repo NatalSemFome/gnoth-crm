@@ -1533,6 +1533,16 @@
                 </div>
             </div>
 
+            <div class="p-3 rounded-2xl bg-[#141019] border border-[#2E2538] space-y-1.5">
+                <label class="block text-[10px] font-bold uppercase text-[#9C8EAD]">Chave Pix da Psicóloga (Recebedora Direta)</label>
+                <div class="flex items-center gap-2">
+                    <input type="text" id="pixPacInputChaveRapida" placeholder="CPF, E-mail, Celular ou Aleatória" oninput="atualizarPreviewQrCodeModalPixPaciente()" class="flex-1 px-3 py-1.5 input-dark rounded-xl text-xs font-mono outline-none">
+                    <button type="button" onclick="salvarChavePixRapidaModalPaciente()" class="px-3 py-1.5 rounded-xl bg-[#2B2138] hover:bg-[#8E73AD] text-[#C2ADC9] hover:text-white text-[11px] font-semibold transition shrink-0">
+                        💾 Salvar Chave
+                    </button>
+                </div>
+            </div>
+
             <div class="flex flex-col items-center justify-center p-4 rounded-2xl bg-white text-[#1D1724] space-y-2">
                 <img id="pixPacQrCodeImg" src="" alt="QR Code Pix" class="w-44 h-44 object-contain">
                 <p id="pixPacChaveExibicao" class="text-[11px] font-mono text-[#5C5366] font-semibold"></p>
@@ -1615,6 +1625,6 @@
     </div>
 
     <!-- JAVASCRIPT GERAL -->
-    <script src="app.js?v=20261117g"></script>
+    <script src="app.js?v=20261117h"></script>
 </body>
 </html>
