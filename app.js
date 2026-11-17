@@ -4,6 +4,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         const ABAS_VALIDAS = ['dashboard', 'agenda', 'agendar', 'clientes', 'leads', 'pagamentos', 'minha-lp', 'equipe', 'perfil'];
         const MAPA_ROTAS_ABAS = {
+            home: 'dashboard',
             pacientes: 'clientes',
             triagens: 'leads',
             cobrancas: 'pagamentos',
