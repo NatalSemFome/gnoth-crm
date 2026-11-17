@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title id="pageTitle">Alexia Sturaro | Psicologia Clínica & Abordagem Junguiana</title>
+    <meta name="description" content="Psicoterapia online para adultos, casais e acompanhamento perinatal sob a abordagem junguiana. Acolhimento, autoconhecimento e transformação.">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Montserrat, Playfair Display, Great Vibes -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+
+    <!-- Variáveis CSS Dinâmicas (Permitem trocar a cor de cada cliente pelo banco) -->
+    <style>
+        :root {
+            --brand-50: #FAF7FB;
+            --brand-100: #F3EEF6;
+            --brand-150: #E9E1EE;
+            --brand-200: #DCCFE3;
+            --brand-300: #C2ADC9;
+            --brand-400: #947FA7;
+            --brand-500: #736185;
+            --brand-600: #5E4E6D;
+            --brand-700: #4A3D56;
+            --brand-text: #2D2633;
+            --brand-subtext: #5E5466;
+        }
+        .btn-plum {
+            background-color: var(--brand-600);
+            transition: all 0.25s ease;
+            box-shadow: 0 4px 14px rgba(94, 78, 109, 0.25);
+        }
+        .btn-plum:hover {
+            background-color: var(--brand-700);
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px rgba(94, 78, 109, 0.35);
+        }
+        .btn-plum:active {
+            transform: translateY(0);
+        }
+        .card-soft-shadow {
+            box-shadow: 0 10px 30px -10px rgba(74, 61, 86, 0.08);
+            transition: transform 0.25s ease, box-shadow 0.25s ease;
+        }
+        .card-soft-shadow:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 36px -10px rgba(74, 61, 86, 0.14);
+        }
+        @keyframes floatPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.06); }
+        }
+        .floating-wpp {
+            animation: floatPulse 3s ease-in-out infinite;
+        }
+    </style>
+
+    <!-- Configuração do tema Tailwind apontando para as variáveis dinâmicas -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: 'var(--brand-50)',
+                            100: 'var(--brand-100)',
+                            150: 'var(--brand-150)',
+                            200: 'var(--brand-200)',
+                            300: 'var(--brand-300)',
+                            400: 'var(--brand-400)',
+                            500: 'var(--brand-500)',
+                            600: 'var(--brand-600)',
+                            700: 'var(--brand-700)',
+                            text: 'var(--brand-text)',
+                            subtext: 'var(--brand-subtext)',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Montserrat', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                        script: ['Great Vibes', 'cursive'],
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-brand-50 text-brand-text font-sans antialiased selection:bg-brand-200 selection:text-brand-text">
+
+    <!-- Top Navigation Header -->
+    <header class="w-full bg-[#FAF7FB]/90 backdrop-blur-md sticky top-0 z-50 transition-all border-b border-brand-150">
+        <div class="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
+            <a href="#home" class="flex flex-col">
+                <span data-lp="nome" class="font-script text-3xl md:text-4xl text-brand-600 tracking-wide hover:opacity-90 transition">
+                    Alexia Sturaro
+                </span>
+                <span data-lp="subtitulo_topo" class="text-[10px] uppercase tracking-widest text-brand-400 font-semibold -mt-1">
+                    Psicologia Clínica • CRP 06/205830
+                </span>
+            </a>
+
+            <!-- Desktop Nav Links -->
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="#home" class="text-sm font-medium text-brand-text hover:text-brand-500 transition-colors">Início</a>
+                <a href="#sobre" class="text-sm font-medium text-brand-text hover:text-brand-500 transition-colors">Sobre</a>
+                <a href="#sinais" class="text-sm font-medium text-brand-text hover:text-brand-500 transition-colors">Sinais</a>
+                <a href="#servicos" class="text-sm font-medium text-brand-text hover:text-brand-500 transition-colors">Atendimentos</a>
+                <a href="#faq" class="text-sm font-medium text-brand-text hover:text-brand-500 transition-colors">Dúvidas</a>
+                <a href="#contato" class="btn-plum text-white text-xs font-semibold uppercase tracking-wider px-5 py-2.5 rounded-full inline-block">
+                    Agendar
+                </a>
+            </nav>
+
+            <!-- Mobile Menu Button -->
+            <button id="mobileMenuBtn" class="md:hidden text-brand-text hover:text-brand-500 p-2 focus:outline-none" aria-label="Abrir Menu">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Drawer Menu -->
+        <div id="mobileMenu" class="hidden md:hidden bg-[#FAF7FB] border-b border-brand-150 px-6 py-4 flex flex-col gap-3">
+            <a href="#home" class="text-sm font-medium text-brand-text hover:text-brand-500 py-1">Início</a>
+            <a href="#sobre" class="text-sm font-medium text-brand-text hover:text-brand-500 py-1">Sobre</a>
+            <a href="#sinais" class="text-sm font-medium text-brand-text hover:text-brand-500 py-1">Sinais</a>
+            <a href="#servicos" class="text-sm font-medium text-brand-text hover:text-brand-500 py-1">Atendimentos</a>
+            <a href="#faq" class="text-sm font-medium text-brand-text hover:text-brand-500 py-1">Dúvidas</a>
+            <a href="#contato" class="btn-plum text-white text-xs font-semibold uppercase tracking-wider px-5 py-2.5 rounded-full text-center mt-2">
+                Agendar Consulta
+            </a>
+        </div>
+    </header>
+
+    <main id="home">
+        <!-- 1. Hero Section -->
+        <section class="relative pt-12 pb-16 md:py-24 overflow-hidden">
+            <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <div class="lg:col-span-7 flex flex-col items-center lg:items-start text-center lg:text-left z-10">
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-brand-100 text-brand-600 text-xs font-semibold tracking-wider uppercase mb-5 border border-brand-150">
+                        <span class="w-2 h-2 rounded-full bg-brand-500 animate-pulse"></span>
+                        <span data-lp="badge_hero">Atendimento Clínico Online</span>
+                    </span>
+
+                    <h1 data-lp="titulo_hero" class="font-serif text-3xl sm:text-4xl md:text-5xl font-bold tracking-tight text-brand-text leading-[1.2] mb-6">
+                        Um espaço seguro para acolher sua história e transformar suas dores.
+                    </h1>
+                    
+                    <p data-lp="descricao_hero" class="text-brand-subtext text-sm sm:text-base leading-relaxed max-w-xl mb-8">
+                        Psicoterapia humanizada com abordagem junguiana para adultos, casais e acompanhamento perinatal. Encontre clareza, autoconhecimento e equilíbrio para os momentos de transição da sua vida.
+                    </p>
+
+                    <!-- CTAs -->
+                    <div class="flex flex-col sm:flex-row items-center gap-4 mb-8 w-full sm:w-auto">
+                        <a href="#contato" class="btn-plum text-white font-semibold text-xs tracking-wider uppercase px-8 py-4 rounded-full inline-flex items-center justify-center w-full sm:w-auto">
+                            Agendar Minha Consulta
+                        </a>
+                        <a href="#sobre" class="text-brand-600 hover:text-brand-700 text-xs font-semibold uppercase tracking-wider px-6 py-4 rounded-full border border-brand-200 hover:bg-brand-100/50 transition w-full sm:w-auto text-center">
+                            Conhecer a Abordagem
+                        </a>
+                    </div>
+
+                    <!-- Selos de Confiança -->
+                    <div class="space-y-2 pt-2 inline-flex flex-col items-center lg:items-start text-brand-subtext text-xs sm:text-sm">
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-4 h-4 rounded-full bg-brand-200 text-brand-600 flex items-center justify-center font-bold text-[10px]">✓</span>
+                            <span>Atendimento online seguro e sigiloso (CFP)</span>
+                        </div>
+                        <div class="flex items-center gap-2.5">
+                            <span class="w-4 h-4 rounded-full bg-brand-200 text-brand-600 flex items-center justify-center font-bold text-[10px]">✓</span>
+                            <span>Acolhimento empático e sem julgamentos</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Imagem da Hero (Com barra / inicial para funcionar em /lp/slug) -->
+                <div class="lg:col-span-5 relative flex justify-center items-center">
+                    <div class="absolute -inset-4 bg-gradient-to-tr from-brand-200 to-transparent rounded-full filter blur-2xl opacity-60"></div>
+                    
+                    <div class="relative w-full max-w-sm md:max-w-md mx-auto">
+                        <div class="rounded-3xl overflow-hidden shadow-2xl border-4 border-white bg-white">
+                            <img id="lpFotoHero" src="/Alexia.jpeg" 
+                                alt="Profissional de Psicologia" 
+                                class="w-full h-[440px] sm:h-[490px] object-cover object-center"
+                                loading="eager"
+                                onerror="this.src='https://placehold.co/600x800/E9E1EE/2D2633?text=Psicologia+Clinica'">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- 2. Sobre Mim (Quem Sou Eu) -->
+        <section id="sobre" class="py-20 bg-white border-y border-brand-150">
+            <div class="max-w-5xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-10 items-center">
+                <div class="md:col-span-5 text-center md:text-left">
+                    <span class="font-script text-3xl text-brand-500 block mb-1">Trajetória e Propósito</span>
+                    <h2 class="font-serif text-3xl font-bold text-brand-text mb-4">Quem sou eu?</h2>
+                    <div data-lp="crp" class="inline-block px-4 py-1.5 bg-brand-100 rounded-full text-brand-600 text-xs font-semibold mb-6">
+                        Alexia Sturaro • CRP 06/205830
+                    </div>
+                </div>
+                <div class="md:col-span-7 space-y-4 text-brand-subtext text-sm sm:text-base leading-relaxed">
+                    <p data-lp-html="sobre_p1">
+                        Eu sou <strong class="text-brand-text">Alexia Sturaro</strong>, psicóloga clínica com atuação fundamentada na <strong class="text-brand-text">abordagem junguiana</strong>, que compreende cada indivíduo a partir de sua totalidade e acredita no potencial natural de transformação e individuação.
+                    </p>
+                    <p data-lp-html="sobre_p2">
+                        Dedico minha escuta ao atendimento de <strong class="text-brand-text">adultos e casais</strong>, além de realizar acompanhamento especializado no <strong class="text-brand-text">ciclo perinatal</strong> (tentantes, gestação, luto parental e pós-parto).
+                    </p>
+                    <p data-lp-html="sobre_p3">
+                        Minha prática clínica não busca apenas silenciar sintomas, mas compreender o que suas emoções estão tentando comunicar para construir uma vida mais autêntica e alinhada ao que você é.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Sinais de que você precisa de terapia -->
+        <section id="sinais" class="py-20 bg-brand-150/70">
+            <div class="max-w-6xl mx-auto px-6 text-center">
+                <span class="font-script text-3xl text-brand-500 block mb-1">Atenção ao que o corpo diz</span>
+                <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-text mb-12 max-w-md mx-auto leading-snug">
+                    Sinais de que este é o momento de buscar apoio
+                </h2>
+
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12 justify-center max-w-5xl mx-auto">
+                    <div class="bg-white/95 rounded-2xl p-7 text-center flex flex-col items-center justify-center card-soft-shadow border border-white/80">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-100 flex items-center justify-center mb-5 text-brand-600">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 4.44-2.04"/>
+                                <path d="M14.5 2A2.5 2.5 0 0 0 12 4.5v15a2.5 2.5 0 0 0 4.96.44 2.5 2.5 0 0 0 2.96-3.08 3 3 0 0 0 .34-5.58 2.5 2.5 0 0 0-1.32-4.24 2.5 2.5 0 0 0-4.44-2.04"/>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <circle cx="12" cy="16" r="0.5" fill="currentColor"></circle>
+                            </svg>
+                        </div>
+                        <h3 class="font-bold text-brand-text text-sm mb-2">Sobrecarga Constante</h3>
+                        <p class="text-xs sm:text-sm text-brand-subtext leading-relaxed">
+                            Cansaço mental profundo, irritabilidade e sensação de estar no limite.
+                        </p>
+                    </div>
+
+                    <div class="bg-white/95 rounded-2xl p-7 text-center flex flex-col items-center justify-center card-soft-shadow border border-white/80">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-100 flex items-center justify-center mb-5 text-brand-600">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+                                <path d="M3 3v5h5"></path>
+                                <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"></path>
+                                <path d="M16 16h5v5"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-bold text-brand-text text-sm mb-2">Repetição de Padrões</h3>
+                        <p class="text-xs sm:text-sm text-brand-subtext leading-relaxed">
+                            Ciclos em relacionamentos e escolhas que acabam sempre te machucando.
+                        </p>
+                    </div>
+
+                    <div class="bg-white/95 rounded-2xl p-7 text-center flex flex-col items-center justify-center card-soft-shadow border border-white/80">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-100 flex items-center justify-center mb-5 text-brand-600">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                            </svg>
+                        </div>
+                        <h3 class="font-bold text-brand-text text-sm mb-2">Dificuldade com Limites</h3>
+                        <p class="text-xs sm:text-sm text-brand-subtext leading-relaxed">
+                            Medo de decepcionar, culpa ao dizer "não" e anulação das próprias vontades.
+                        </p>
+                    </div>
+
+                    <div class="bg-white/95 rounded-2xl p-7 text-center flex flex-col items-center justify-center card-soft-shadow border border-white/80">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-100 flex items-center justify-center mb-5 text-brand-600">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 12a1 1 0 1 0 1-1"></path>
+                                <path d="M13 8a3 3 0 1 0 1 5"></path>
+                                <path d="M10 16a5 5 0 1 0 5-7"></path>
+                                <path d="M18 10a7 7 0 1 0-7 9"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-bold text-brand-text text-sm mb-2">Ansiedade & Vazio</h3>
+                        <p class="text-xs sm:text-sm text-brand-subtext leading-relaxed">
+                            Angústia, inquietação interna ou sensação de desconexão sem motivo aparente.
+                        </p>
+                    </div>
+                </div>
+
+                <a href="#contato" class="btn-plum text-white font-semibold text-xs tracking-wider uppercase px-8 py-3.5 rounded-full inline-block">
+                    Quero Agendar Uma Sessão
+                </a>
+            </div>
+        </section>
+
+        <!-- 4. Como podemos te ajudar? -->
+        <section class="py-20 bg-white">
+            <div class="max-w-6xl mx-auto px-6 grid grid-cols-1 md:grid-cols-12 gap-12 items-center">
+                <div class="md:col-span-5 flex items-center justify-center">
+                    <div class="rounded-3xl overflow-hidden shadow-xl border-4 border-brand-100 bg-white w-full max-w-md h-full min-h-[380px] flex">
+                        <img src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=800&auto=format&fit=crop" 
+                             alt="Ambiente Acolhedor de Terapia" 
+                             class="w-full h-full object-cover object-center"
+                             loading="lazy">
+                    </div>
+                </div>
+
+                <div class="md:col-span-7 flex flex-col justify-center items-center lg:items-start text-center lg:text-left">
+                    <span class="font-script text-3xl text-brand-500 block mb-1">Parceria Analítica</span>
+                    <h2 class="font-serif text-2xl sm:text-3xl md:text-4xl font-bold text-brand-text mb-6">
+                        Como realmente podemos te ajudar?
+                    </h2>
+
+                    <div class="space-y-4 text-brand-subtext text-xs sm:text-sm leading-relaxed mb-8">
+                        <p>
+                            Não ofereço fórmulas prontas ou conselhos de manual. O processo terapêutico é uma travessia compartilhada para desvendar as raízes do que te paralisa.
+                        </p>
+                        <div class="border-l-2 border-brand-400 pl-4 space-y-2 text-left">
+                            <p><strong class="text-brand-text">Mapear a origem do conflito:</strong> entender por que certas angústias insistem em se repetir.</p>
+                            <p><strong class="text-brand-text">Dar sentido aos sintomas:</strong> transformar ansiedade e desânimo em compreensão sobre suas reais necessidades.</p>
+                            <p><strong class="text-brand-text">Espaço livre de julgamento:</strong> olhar para culpas, medos e inseguranças com acolhimento.</p>
+                            <p><strong class="text-brand-text">Autonomia prática:</strong> traduzir reflexões profundas em limites saudáveis e decisões firmes no dia a dia.</p>
+                        </div>
+                    </div>
+
+                    <a href="#contato" class="btn-plum text-white font-semibold text-xs tracking-wider uppercase px-8 py-3.5 rounded-full inline-block">
+                        Falar Comigo
+                    </a>
+                </div>
+            </div>
+        </section>
+
+        <!-- 5. Modalidades de Atendimento -->
+        <section id="servicos" class="py-20 bg-brand-50 border-t border-brand-150">
+            <div class="max-w-6xl mx-auto px-6 text-center">
+                <span class="font-script text-3xl text-brand-500 block mb-1">Cuidado Especializado</span>
+                <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-text mb-12">
+                    Formatos de Atendimento
+                </h2>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12 max-w-5xl mx-auto">
+                    <div class="bg-white rounded-3xl p-8 flex flex-col items-center justify-center card-soft-shadow border border-brand-200">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-100 flex items-center justify-center mb-6 text-brand-600 shadow-sm">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="2" y="3" width="20" height="14" rx="2"></rect>
+                                <line x1="8" y1="21" x2="16" y2="21"></line>
+                                <line x1="12" y1="17" x2="12" y2="21"></line>
+                            </svg>
+                        </div>
+                        <h3 class="font-serif font-bold text-brand-text text-lg mb-3">Terapia Online</h3>
+                        <p class="text-xs sm:text-sm text-brand-subtext leading-relaxed">
+                            Sessões no conforto do seu espaço, com total sigilo e flexibilidade de horários onde você estiver.
+                        </p>
+                    </div>
+
+                    <div class="bg-white rounded-3xl p-8 flex flex-col items-center justify-center card-soft-shadow border border-brand-200">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-100 flex items-center justify-center mb-6 text-brand-600 shadow-sm">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                        </div>
+                        <h3 class="font-serif font-bold text-brand-text text-lg mb-3">Adultos & Casais</h3>
+                        <p class="text-xs sm:text-sm text-brand-subtext leading-relaxed">
+                            Trabalho voltado para relacionamentos, autoconhecimento, transições de carreira e saúde emocional.
+                        </p>
+                    </div>
+
+                    <div class="bg-white rounded-3xl p-8 flex flex-col items-center justify-center card-soft-shadow border border-brand-200">
+                        <div class="w-14 h-14 rounded-2xl bg-brand-100 flex items-center justify-center mb-6 text-brand-600 shadow-sm">
+                            <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
+                            </svg>
+                        </div>
+                        <h3 class="font-serif font-bold text-brand-text text-lg mb-3">Perinatalidade & Maternidade</h3>
+                        <p class="text-xs sm:text-sm text-brand-subtext leading-relaxed">
+                            Suporte especializado para tentantes, gestação, depressão pós-parto e adaptações da parentalidade.
+                        </p>
+                    </div>
+                </div>
+
+                <a href="#contato" class="btn-plum text-white font-semibold text-xs tracking-wider uppercase px-8 py-3.5 rounded-full inline-block">
+                    Agendar Horário
+                </a>
+            </div>
+        </section>
+
+        <!-- 6. Dúvidas Frequentes (FAQ) -->
+        <section id="faq" class="py-20 bg-white border-t border-brand-150">
+            <div class="max-w-3xl mx-auto px-6">
+                <div class="text-center mb-12">
+                    <span class="font-script text-3xl text-brand-500 block mb-1">Tire Suas Dúvidas</span>
+                    <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-text">
+                        Perguntas Frequentes
+                    </h2>
+                </div>
+
+                <div class="space-y-4">
+                    <div class="p-6 rounded-2xl bg-brand-50 border border-brand-150">
+                        <h3 class="font-serif font-semibold text-brand-text text-base mb-2">Como funcionam as sessões online?</h3>
+                        <p class="text-brand-subtext text-xs sm:text-sm leading-relaxed">
+                            As sessões são realizadas por videochamada criptografada (como Google Meet), com duração de 50 minutos. Você só precisa de uma conexão estável e de um local privativo onde se sinta à vontade para conversar.
+                        </p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-brand-50 border border-brand-150">
+                        <h3 class="font-serif font-semibold text-brand-text text-base mb-2">Você aceita convênio médico?</h3>
+                        <p class="text-brand-subtext text-xs sm:text-sm leading-relaxed">
+                            Os atendimentos são particulares. No entanto, forneço recibo detalhado com CRP para que você possa solicitar o reembolso integral ou parcial junto ao seu plano de saúde.
+                        </p>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-brand-50 border border-brand-150">
+                        <h3 class="font-serif font-semibold text-brand-text text-base mb-2">Qual a frequência recomendada das sessões?</h3>
+                        <p class="text-brand-subtext text-xs sm:text-sm leading-relaxed">
+                            Inicialmente, o recomendado são sessões semanais para estabelecer o vínculo terapêutico e dar ritmo ao processo. Conforme a evolução, a frequência pode ser espaçada em comum acordo.
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 7. Seção de Contato e Triagem -->
+        <section id="contato" class="py-20 bg-brand-100/40 border-t border-brand-150">
+            <div class="max-w-xl mx-auto px-6">
+                <div class="text-center mb-10">
+                    <span class="font-script text-3xl text-brand-500 block mb-1">Primeiro Passo</span>
+                    <h2 class="font-serif text-2xl md:text-3xl font-bold text-brand-text mb-2">Inicie seu Acolhimento</h2>
+                    <p class="text-xs sm:text-sm text-brand-subtext">Preencha os campos abaixo e entrarei em contato via WhatsApp para combinarmos o melhor horário.</p>
+                </div>
+
+                <form id="triageForm" class="bg-white p-8 rounded-3xl card-soft-shadow border border-brand-150 space-y-5">
+                    <div>
+                        <label for="fullName" class="block text-xs font-semibold uppercase tracking-wider text-brand-text mb-1.5">Seu Nome *</label>
+                        <input type="text" id="fullName" required placeholder="Como prefere ser chamada(o)?" class="w-full px-4 py-2.5 rounded-xl border border-brand-200 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition">
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label for="whatsapp" class="block text-xs font-semibold uppercase tracking-wider text-brand-text mb-1.5">WhatsApp com DDD *</label>
+                            <input type="tel" id="whatsapp" required placeholder="(11) 99999-9999" maxlength="15" class="w-full px-4 py-2.5 rounded-xl border border-brand-200 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition">
+                        </div>
+                        <div>
+                            <label for="modality" class="block text-xs font-semibold uppercase tracking-wider text-brand-text mb-1.5">Modalidade *</label>
+                            <select id="modality" required class="w-full px-4 py-2.5 rounded-xl border border-brand-200 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition bg-white">
+                                <option value="Online">Online</option>
+                                <option value="Presencial">Presencial</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-semibold uppercase tracking-wider text-brand-text mb-1.5">Período de Preferência</label>
+                        <div class="flex justify-start sm:justify-between gap-4 pt-1 flex-wrap">
+                            <label class="text-xs text-brand-subtext font-medium flex items-center cursor-pointer">
+                                <input type="checkbox" name="timePref" value="Manhã" class="mr-2 accent-brand-600"> Manhã
+                            </label>
+                            <label class="text-xs text-brand-subtext font-medium flex items-center cursor-pointer">
+                                <input type="checkbox" name="timePref" value="Tarde" class="mr-2 accent-brand-600"> Tarde
+                            </label>
+                            <label class="text-xs text-brand-subtext font-medium flex items-center cursor-pointer">
+                                <input type="checkbox" name="timePref" value="Noite" class="mr-2 accent-brand-600"> Noite
+                            </label>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label for="message" class="block text-xs font-semibold uppercase tracking-wider text-brand-text mb-1.5">Mensagem (Opcional)</label>
+                        <textarea id="message" rows="3" placeholder="Compartilhe brevemente o que te traz à busca por terapia..." class="w-full px-4 py-2.5 rounded-xl border border-brand-200 text-sm outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-200 transition"></textarea>
+                    </div>
+
+                    <button type="submit" id="submitBtn" class="btn-plum text-white font-semibold text-xs tracking-wider uppercase px-8 py-3.5 rounded-full w-full">
+                        Enviar e Solicitar Horário
+                    </button>
+                    <p id="formFeedback" class="text-center text-xs font-semibold min-h-[16px]"></p>
+                </form>
+            </div>
+        </section>
+    </main>
+
+    <!-- Botão Flutuante de WhatsApp -->
+    <a id="floatingWppLink" href="https://wa.me/5511999999999?text=Ol%C3%A1%2C%20Alexia!%20Gostaria%20de%20informa%C3%A7%C3%B5es%20sobre%20as%20consultas%20de%20psicologia." 
+       target="_blank" 
+       rel="noopener noreferrer"
+       class="fixed bottom-6 right-6 z-50 bg-emerald-600 hover:bg-emerald-700 text-white p-3.5 rounded-full shadow-xl flex items-center justify-center transition-transform floating-wpp"
+       aria-label="Falar no WhatsApp"
+       title="Falar diretamente no WhatsApp">
+        <svg class="w-7 h-7" fill="currentColor" viewBox="0 0 24 24">
+            <path d="M12.031 2C6.511 2 2.023 6.488 2.021 12.008c-.001 1.84.498 3.636 1.446 5.213L2 22l4.928-1.423a9.98 9.98 0 0 0 5.101 1.433h.004c5.518 0 10.007-4.488 10.009-10.008.001-2.673-1.036-5.186-2.924-7.075A9.948 9.948 0 0 0 12.031 2zm0 18.283h-.003a8.28 8.28 0 0 1-4.218-1.154l-.302-.18-2.924.845.854-2.85-.197-.314a8.27 8.27 0 0 1-1.266-4.622c.002-4.57 3.72-8.287 8.29-8.287 2.214 0 4.296.863 5.86 2.428a8.243 8.243 0 0 1 2.422 5.862c-.002 4.571-3.72 8.288-8.514 8.288zm4.542-6.195c-.249-.125-1.472-.726-1.7-.809-.228-.083-.394-.125-.56.125-.166.249-.644.809-.789.975-.145.166-.291.187-.54.062s-1.05-.387-2.001-1.234c-.74-.66-1.24-1.475-1.385-1.724-.145-.249-.015-.384.11-.508.112-.112.249-.291.374-.436.124-.145.166-.249.249-.415.083-.166.042-.312-.021-.436-.062-.125-.56-1.349-.768-1.849-.203-.488-.41-.422-.56-.43-.145-.008-.312-.01-.478-.01s-.436.062-.664.312c-.228.249-.872.852-.872 2.078s.893 2.411 1.018 2.577c.125.166 1.758 2.685 4.26 3.766.595.257 1.06.411 1.423.526.598.19 1.142.163 1.572.099.48-.072 1.472-.602 1.68-1.183.208-.581.208-1.08.145-1.183-.062-.104-.228-.166-.477-.291z"/>
+        </svg>
+    </a>
+
+    <!-- Footer -->
+    <footer class="bg-brand-700 text-white py-12">
+        <div class="max-w-6xl mx-auto px-6 text-center space-y-4">
+            <span data-lp="nome" class="font-script text-3xl md:text-4xl text-brand-200 inline-block">
+                Alexia Sturaro
+            </span>
+            <p class="text-xs text-brand-200/80 max-w-md mx-auto">
+                <span data-lp="subtitulo_topo">Psicologia Clínica & Abordagem Junguiana • CRP 06/205830</span><br>
+                Cuidado, acolhimento e suporte para todas as fases da sua vida.
+            </p>
+            <div class="pt-4 border-t border-brand-500/30 text-xs text-brand-300">
+                &copy; Todos os direitos reservados.
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script de Menu Mobile e Máscara de Telefone -->
+    <script>
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+
+        if (mobileMenuBtn && mobileMenu) {
+            mobileMenuBtn.addEventListener('click', () => {
+                mobileMenu.classList.toggle('hidden');
+            });
+
+            mobileMenu.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => {
+                    mobileMenu.classList.add('hidden');
+                });
+            });
+        }
+
+        const wppInput = document.getElementById('whatsapp');
+        if (wppInput) {
+            wppInput.addEventListener('input', (e) => {
+                let v = e.target.value.replace(/\D/g, '');
+                if (v.length > 11) v = v.slice(0, 11);
+                if (v.length > 6) {
+                    v = `(${v.slice(0, 2)}) ${v.slice(2, 7)}-${v.slice(7)}`;
+                } else if (v.length > 2) {
+                    v = `(${v.slice(0, 2)}) ${v.slice(2)}`;
+                } else if (v.length > 0) {
+                    v = `(${v}`;
+                }
+                e.target.value = v;
+            });
+        }
+    </script>
+
+    <!-- Supabase JS Client + Motor Dinâmico Multi-Cliente -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script>
+        const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
+        const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl4eGNjbGFheGxiZHlic3N4anl3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTQzNjk4NDksImV4cCI6MjEwOTk0NTg0OX0.79Y7Eu9qXhqDl4uh7jfadeW8fR7IwUwSTpJJ7BQNM5Y";
+
+        const supaClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Identifica o slug pela URL (ex: /lp/AlexiaSturaro -> 'AlexiaSturaro')
+        function obterSlugDaUrl() {
+            const partes = window.location.pathname.split('/').filter(Boolean);
+            const indiceLp = partes.findIndex(p => p.toLowerCase() === 'lp');
+            if (indiceLp !== -1 && partes[indiceLp + 1]) {
+                return partes[indiceLp + 1];
+            }
+            return 'AlexiaSturaro'; // Fallback padrão
+        }
+
+        let slugAtual = obterSlugDaUrl();
+
+        // Carrega os dados personalizados caso exista na tabela landing_pages
+        async function carregarDadosProfissional() {
+            try {
+                const { data, error } = await supaClient
+                    .from('landing_pages')
+                    .select('*')
+                    .ilike('slug', slugAtual)
+                    .maybeSingle();
+
+                if (error || !data) return; // Mantém o layout padrão da Alexia se não achar ou se a tabela ainda não existir
+
+                slugAtual = data.slug; // Usa a grafia oficial salva no banco
+                document.title = `${data.nome} | ${data.subtitulo_topo}`;
+
+                // Atualiza todos os textos simples marcados com data-lp
+                document.querySelectorAll('[data-lp]').forEach(el => {
+                    const campo = el.getAttribute('data-lp');
+                    if (data[campo]) el.textContent = data[campo];
+                });
+
+                // Atualiza parágrafos que possuem tags HTML (como <strong>)
+                document.querySelectorAll('[data-lp-html]').forEach(el => {
+                    const campo = el.getAttribute('data-lp-html');
+                    if (data[campo]) el.innerHTML = data[campo];
+                });
+
+                // Atualiza foto principal
+                const fotoHero = document.getElementById('lpFotoHero');
+                if (fotoHero && data.foto_url) {
+                    fotoHero.src = data.foto_url;
+                    fotoHero.alt = data.nome;
+                }
+
+                // Atualiza link do botão flutuante do WhatsApp
+                const wppLink = document.getElementById('floatingWppLink');
+                if (wppLink && data.whatsapp) {
+                    const numLimpo = data.whatsapp.replace(/\D/g, '');
+                    const msg = encodeURIComponent(`Olá, ${data.nome}! Gostaria de informações sobre as consultas de psicologia.`);
+                    wppLink.href = `https://wa.me/${numLimpo}?text=${msg}`;
+                }
+
+                // Atualiza paleta de cores se o cliente tiver cores próprias
+                if (data.cor_500) document.documentElement.style.setProperty('--brand-500', data.cor_500);
+                if (data.cor_600) document.documentElement.style.setProperty('--brand-600', data.cor_600);
+                if (data.cor_700) document.documentElement.style.setProperty('--brand-700', data.cor_700);
+            } catch (err) {
+                console.warn("Usando dados estáticos padrão:", err);
+            }
+        }
+
+        carregarDadosProfissional();
+
+        // Envio do Formulário de Triagem vinculado ao slug do profissional
+        const form = document.getElementById("triageForm");
+        const feedback = document.getElementById("formFeedback");
+
+        if (form) {
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const submitBtn = document.getElementById("submitBtn");
+                const btnOriginalText = submitBtn.textContent;
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Gravando...";
+
+                if (feedback) {
+                    feedback.className = "text-center text-xs text-brand-500 font-semibold";
+                    feedback.textContent = "Processando agendamento...";
+                }
+
+                const nome = document.getElementById("fullName").value.trim();
+                const whatsapp = document.getElementById("whatsapp").value.trim();
+                const modalidade = document.getElementById("modality").value;
+                const checkboxes = document.querySelectorAll('input[name="timePref"]:checked');
+                const periodos = Array.from(checkboxes).map(cb => cb.value).join(", ") || "Flexível";
+                const motivo = document.getElementById("message") ? document.getElementById("message").value.trim() : "";
+
+                try {
+                    const { error } = await supaClient
+                        .from('pacientes')
+                        .insert([{
+                            nome: nome,
+                            whatsapp: whatsapp,
+                            modalidade: modalidade,
+                            periodo_preferencia: periodos,
+                            motivo_consulta: motivo,
+                            status: 'Novo Contato',
+                            profissional_slug: slugAtual
+                        }]);
+
+                    if (error) {
+                        console.error("Erro Supabase:", error);
+                        if (feedback) {
+                            feedback.className = "text-center text-xs text-red-500 font-semibold";
+                            feedback.textContent = "Erro ao enviar: " + error.message;
+                        }
+                    } else {
+                        if (feedback) {
+                            feedback.className = "text-center text-xs text-emerald-600 font-semibold";
+                            feedback.textContent = "✓ Acolhimento solicitado com sucesso! Entraremos em contato via WhatsApp.";
+                        }
+                        form.reset();
+                    }
+                } catch (err) {
+                    console.error("Exceção:", err);
+                    if (feedback) {
+                        feedback.className = "text-center text-xs text-red-500 font-semibold";
+                        feedback.textContent = "Ocorreu um erro inesperado.";
+                    }
+                } finally {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = btnOriginalText;
+                }
+            });
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/lp/:slug",
+      "destination": "/lp.html"
+    }
+  ]
+}
