@@ -2274,6 +2274,11 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             todasLPsCache = lps || [];
             const idsComLP = new Set(todasLPsCache.map(item => item.user_id));
 
+            const inputPixSis = document.getElementById('inputChavePixSistemaGnoth');
+            if (inputPixSis) {
+                inputPixSis.value = obterChavePixOficialSistemaGnoth();
+            }
+
             if (todosUsuariosCache.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-[#9C8EAD]">Nenhum usuário encontrado na tabela usuarios_perfis.</td></tr>`;
                 return;
@@ -2284,6 +2289,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 const temLP = idsComLP.has(u.id) || Boolean(u.tem_lp);
                 const nomeAtual = u.nome || (u.email ? u.email.split('@')[0] : 'Sem nome');
                 const infoPlano = obterResumoPlanoUsuario(u);
+                const vencAssinatura = obterTextoVencimentoAssinatura(u.id, infoPlano.ehAssinante);
 
                 return `
                     <tr class="hover:bg-white/[0.03]">
@@ -2307,7 +2313,8 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                                 </select>
                                 ${!infoPlano.ehAssinante
                                     ? `<button type="button" onclick="tornarUsuarioAssinanteRapido('${u.id}')" class="px-2.5 py-1 rounded-lg bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/30 text-[11px] font-semibold transition">⭐ Tornar Assinante</button>`
-                                    : ''
+                                    : `<span class="text-[10px] text-[#9C8EAD]">${vencAssinatura}</span>
+                                       <button type="button" onclick="renovarAssinatura30Dias('${u.id}')" title="Renovar +30 dias de assinatura" class="px-2 py-1 rounded-lg bg-[#2B2138] hover:bg-[#3F3152] text-[#C2ADC9] text-[10px] font-semibold transition">🔄 +30d</button>`
                                 }
                             </div>
                         </td>
@@ -2373,6 +2380,14 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (novoPlano === 'individual_lp') {
                 const u = todosUsuariosCache.find(item => item.id === userId);
                 if (u) await garantirLPCriadaParaUsuario(u);
+            }
+
+            if (novoPlano !== 'trial') {
+                const mapa = obterMapaVencimentosAssinatura();
+                if (!mapa[userId]) {
+                    mapa[userId] = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
+                    localStorage.setItem('gnoth_vencimentos_assinatura', JSON.stringify(mapa));
+                }
             }
 
             if (usuarioAtualPerfil && usuarioAtualPerfil.id === userId) {
@@ -2892,7 +2907,8 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                         <td class="p-4">
                             <div class="flex items-center justify-center gap-2">
                                 ${!isPago 
-                                    ? `<button onclick="marcarComoPago('${pg.id}')" class="px-3 py-1 btn-plum rounded-lg text-xs font-semibold shadow-sm">Confirmar</button>` 
+                                    ? `<button onclick="abrirModalPixPaciente('${pg.id}')" title="Gerar QR Code e Pix Copia e Cola da Psicóloga" class="px-2.5 py-1 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-lg text-xs font-semibold transition">💠 Pix</button>
+                                       <button onclick="marcarComoPago('${pg.id}')" class="px-3 py-1 btn-plum rounded-lg text-xs font-semibold shadow-sm">Confirmar</button>` 
                                     : `<button onclick="abrirModalReceitaSaudeIndividual('${pg.id}')" class="px-2.5 py-1 ${emitidoRS ? 'bg-purple-500/15 text-purple-300 border-purple-500/30' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'} hover:opacity-90 border rounded-lg text-xs font-semibold transition">🏛️ Receita Saúde / Recibo</button>`}
                                 <button onclick="excluirCobranca('${pg.id}')" title="Excluir cobrança" class="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-500/15 rounded-lg transition">🗑️</button>
                             </div>
@@ -3098,6 +3114,271 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (elPreviewLink) elPreviewLink.textContent = linkExclusivo;
             const btnAbrirTriagem = document.getElementById('btnAbrirMeuLinkTriagem');
             if (btnAbrirTriagem) btnAbrirTriagem.href = linkExclusivo;
+
+            const statusPlanoEl = document.getElementById('paginaPerfilStatusPlano');
+            if (statusPlanoEl) {
+                const info = obterResumoPlanoUsuario(usuarioAtualPerfil);
+                statusPlanoEl.textContent = info.label;
+            }
+        }
+
+        // =========================================================================
+        // MOTOR NATIVO PIX EMVCo BRCode (SEPARANDO PIX DA PSICÓLOGA X PIX DO SISTEMA)
+        // =========================================================================
+        let pagamentoPixPacienteAtualId = null;
+
+        function validarDigitosCpf(str) {
+            if (!/^\d{11}$/.test(str) || /^(\d)\1{10}$/.test(str)) return false;
+            let soma = 0;
+            for (let i = 0; i < 9; i++) soma += parseInt(str.charAt(i), 10) * (10 - i);
+            let resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            if (resto !== parseInt(str.charAt(9), 10)) return false;
+            soma = 0;
+            for (let i = 0; i < 10; i++) soma += parseInt(str.charAt(i), 10) * (11 - i);
+            resto = (soma * 10) % 11;
+            if (resto === 10 || resto === 11) resto = 0;
+            return resto === parseInt(str.charAt(10), 10);
+        }
+
+        function normalizarChavePixParaEMV(chaveBruta) {
+            const raw = String(chaveBruta || '').trim();
+            if (!raw) return '';
+            if (raw.includes('@')) return raw.toLowerCase();
+            if (/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(raw)) {
+                return raw.toLowerCase();
+            }
+            if (raw.startsWith('+')) {
+                return '+' + raw.replace(/\D/g, '');
+            }
+            const digitos = raw.replace(/\D/g, '');
+            if (digitos.length === 14) return digitos; // CNPJ
+            if (digitos.length === 11) {
+                // Se tiver parênteses no original ou não for CPF válido e tiver 9º dígito de celular, trata como telefone +55
+                if (raw.includes('(') || (!validarDigitosCpf(digitos) && digitos[2] === '9')) {
+                    return '+55' + digitos;
+                }
+                return digitos; // CPF
+            }
+            if (digitos.length === 10) return '+55' + digitos;
+            return raw;
+        }
+
+        function formatarCampoEMV(id, valor) {
+            const valStr = String(valor || '');
+            const tam = String(valStr.length).padStart(2, '0');
+            return `${id}${tam}${valStr}`;
+        }
+
+        function calcularCRC16Pix(payloadSemCrc) {
+            let crc = 0xFFFF;
+            for (let i = 0; i < payloadSemCrc.length; i++) {
+                crc ^= payloadSemCrc.charCodeAt(i) << 8;
+                for (let j = 0; j < 8; j++) {
+                    if ((crc & 0x8000) !== 0) {
+                        crc = ((crc << 1) ^ 0x1021) & 0xFFFF;
+                    } else {
+                        crc = (crc << 1) & 0xFFFF;
+                    }
+                }
+            }
+            return crc.toString(16).toUpperCase().padStart(4, '0');
+        }
+
+        function gerarPayloadPixEMV(chavePix, nomeRecebedor, valorNumerico, txid = 'GNOTH') {
+            const chaveLimpa = normalizarChavePixParaEMV(chavePix);
+            const nomeLimpo = String(nomeRecebedor || 'PROFISSIONAL')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+                .replace(/[^a-zA-Z0-9 ]/g, '')
+                .toUpperCase()
+                .trim()
+                .slice(0, 25) || 'PROFISSIONAL';
+
+            const valorStr = Number(valorNumerico || 0).toFixed(2);
+            const txidLimpo = String(txid || 'GNOTH').replace(/[^a-zA-Z0-9]/g, '').toUpperCase().slice(0, 25) || '***';
+
+            const merchantAccount = formatarCampoEMV('00', 'br.gov.bcb.pix') + formatarCampoEMV('01', chaveLimpa);
+            const additionalData = formatarCampoEMV('05', txidLimpo);
+
+            const base = [
+                formatarCampoEMV('00', '01'),
+                formatarCampoEMV('26', merchantAccount),
+                formatarCampoEMV('52', '0000'),
+                formatarCampoEMV('53', '986'),
+                Number(valorNumerico) > 0 ? formatarCampoEMV('54', valorStr) : '',
+                formatarCampoEMV('58', 'BR'),
+                formatarCampoEMV('59', nomeLimpo),
+                formatarCampoEMV('60', 'SAO PAULO'),
+                formatarCampoEMV('62', additionalData),
+                '6304'
+            ].join('');
+
+            return base + calcularCRC16Pix(base);
+        }
+
+        // 1. PIX DA PSICÓLOGA (COBRANÇAS DOS PACIENTES -> CAI DIRETO NA CONTA DA PSICÓLOGA)
+        function abrirModalPixPaciente(pagamentoId) {
+            const pg = todosPagamentosCache.find(item => item.id === pagamentoId);
+            if (!pg) return;
+
+            const pac = todosPacientesCache.find(item => item.id === pg.paciente_id) || pg.pacientes || {};
+            const psi = todosUsuariosCache.find(u => u.id === pac.psicologa_id) || usuarioAtualPerfil || {};
+            const chavePixPsicologa = (psi.chave_pix || '').trim();
+
+            if (!chavePixPsicologa) {
+                alert('Cadastre sua Chave Pix primeiro na página "Meu Perfil" para gerar cobranças Pix que caem direto na sua conta!');
+                mudarAba('perfil');
+                return;
+            }
+
+            pagamentoPixPacienteAtualId = pagamentoId;
+            const nomePsi = psi.nome || obterNomeExibicaoUsuario();
+            const codigoPix = gerarPayloadPixEMV(chavePixPsicologa, nomePsi, pg.valor, 'SESSAO');
+
+            document.getElementById('pixPacSubtituloRecebedor').textContent = `Recebedor(a): ${nomePsi} (100% direto na sua conta)`;
+            document.getElementById('pixPacNomePaciente').textContent = pac.nome || 'Paciente';
+            document.getElementById('pixPacValorFormatado').textContent = formatarBRL(pg.valor);
+            document.getElementById('pixPacChaveExibicao').textContent = `Chave Pix da Psicóloga: ${chavePixPsicologa}`;
+            document.getElementById('pixPacCodigoCopiaECola').value = codigoPix;
+
+            const qrImg = document.getElementById('pixPacQrCodeImg');
+            if (qrImg) {
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(codigoPix)}`;
+            }
+
+            const btnWpp = document.getElementById('btnEnviarPixWhatsappPaciente');
+            if (btnWpp) {
+                const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
+                const msg = `Olá, ${pac.nome || ''}! Segue o código Pix Copia e Cola referente à nossa sessão (${formatarBRL(pg.valor)}):\n\n${codigoPix}`;
+                btnWpp.href = numLimpo
+                    ? `https://wa.me/55${numLimpo}?text=${encodeURIComponent(msg)}`
+                    : `https://wa.me/?text=${encodeURIComponent(msg)}`;
+            }
+
+            const modal = document.getElementById('modalPixPaciente');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function copiarCodigoPixPaciente() {
+            const codigo = document.getElementById('pixPacCodigoCopiaECola')?.value;
+            if (!codigo) return;
+            navigator.clipboard.writeText(codigo);
+            exibirToastTempoReal('Código Pix da Psicóloga copiado!');
+        }
+
+        async function confirmarPagamentoDoModalPix() {
+            if (!pagamentoPixPacienteAtualId) return;
+            const id = pagamentoPixPacienteAtualId;
+            fecharModal('modalPixPaciente');
+            await marcarComoPago(id);
+            exibirToastTempoReal('Pagamento confirmado como Pago!');
+        }
+
+        // 2. PIX DO SISTEMA GNOTH (ASSINATURA DO SAAS -> CAI NA CONTA DO GNOTH / ADMIN)
+        function obterChavePixOficialSistemaGnoth() {
+            const salvoLocal = localStorage.getItem('gnoth_chave_pix_sistema');
+            if (salvoLocal && salvoLocal.trim()) return salvoLocal.trim();
+            const adminUser = todosUsuariosCache.find(u => u.role === 'admin' && u.chave_pix);
+            if (adminUser && adminUser.chave_pix) return adminUser.chave_pix.trim();
+            if (ehAdmin() && usuarioAtualPerfil?.chave_pix) return usuarioAtualPerfil.chave_pix.trim();
+            return 'contato@gnoth.com.br';
+        }
+
+        async function salvarChavePixSistemaGnoth() {
+            if (!ehAdmin()) return;
+            const input = document.getElementById('inputChavePixSistemaGnoth');
+            if (!input || !input.value.trim()) {
+                alert('Informe a chave Pix oficial do sistema Gnoth.');
+                return;
+            }
+            const chave = input.value.trim();
+            localStorage.setItem('gnoth_chave_pix_sistema', chave);
+            if (usuarioAtualPerfil && usuarioAtualPerfil.id) {
+                await client.from('usuarios_perfis').update({ chave_pix: chave }).eq('id', usuarioAtualPerfil.id);
+                usuarioAtualPerfil.chave_pix = chave;
+            }
+            exibirToastTempoReal('Chave Pix oficial do sistema Gnoth salva!');
+        }
+
+        function obterMapaVencimentosAssinatura() {
+            try {
+                return JSON.parse(localStorage.getItem('gnoth_vencimentos_assinatura') || '{}');
+            } catch (e) {
+                return {};
+            }
+        }
+
+        function obterTextoVencimentoAssinatura(userId, ehAssinante) {
+            if (!ehAssinante) return '';
+            const mapa = obterMapaVencimentosAssinatura();
+            const iso = mapa[userId];
+            if (!iso) return 'Ciclo ativo';
+            const dt = new Date(iso);
+            const dias = Math.ceil((dt - new Date()) / (1000 * 60 * 60 * 24));
+            const dataStr = dt.toLocaleDateString('pt-BR');
+            if (dias < 0) return `🔴 Venceu em ${dataStr}`;
+            if (dias <= 5) return `🟡 Vence em ${dataStr} (${dias}d)`;
+            return `🟢 Vence em ${dataStr}`;
+        }
+
+        function renovarAssinatura30Dias(userId) {
+            if (!ehAdmin()) return;
+            const mapa = obterMapaVencimentosAssinatura();
+            const novaData = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
+            mapa[userId] = novaData.toISOString();
+            localStorage.setItem('gnoth_vencimentos_assinatura', JSON.stringify(mapa));
+            carregarEquipe();
+            exibirToastTempoReal(`Assinatura renovada por +30 dias (até ${novaData.toLocaleDateString('pt-BR')})!`);
+        }
+
+        function abrirModalPixAssinaturaSistema() {
+            const select = document.getElementById('selectPlanoPixAssinatura');
+            if (select && usuarioAtualPerfil) {
+                const planoAtual = (usuarioAtualPerfil.plano || '').toLowerCase();
+                if (['individual', 'individual_lp', 'clinica'].includes(planoAtual)) {
+                    select.value = planoAtual;
+                }
+            }
+            atualizarCodigoPixAssinaturaSistema();
+            const modal = document.getElementById('modalPixAssinaturaSistema');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.display = 'flex';
+            }
+        }
+
+        function atualizarCodigoPixAssinaturaSistema() {
+            const plano = document.getElementById('selectPlanoPixAssinatura')?.value || 'individual';
+            const mapaValores = {
+                individual: 49.90,
+                individual_lp: 79.90,
+                clinica: 119.90
+            };
+            const valor = mapaValores[plano] || 49.90;
+            const chaveSistema = obterChavePixOficialSistemaGnoth();
+            const codigoPix = gerarPayloadPixEMV(chaveSistema, 'GNOTH GESTAO CLINICA', valor, 'ASSINATURA');
+
+            const elChave = document.getElementById('pixSisChaveExibicao');
+            if (elChave) elChave.textContent = `Recebedor: Gnoth Gestão Clínica (${chaveSistema}) · ${formatarBRL(valor)}`;
+
+            const elCodigo = document.getElementById('pixSisCodigoCopiaECola');
+            if (elCodigo) elCodigo.value = codigoPix;
+
+            const qrImg = document.getElementById('pixSisQrCodeImg');
+            if (qrImg) {
+                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(codigoPix)}`;
+            }
+        }
+
+        function copiarCodigoPixAssinaturaSistema() {
+            const codigo = document.getElementById('pixSisCodigoCopiaECola')?.value;
+            if (!codigo) return;
+            navigator.clipboard.writeText(codigo);
+            exibirToastTempoReal('Código Pix da Assinatura Gnoth copiado!');
         }
 
         function abrirModalPerfilProfissional() {
