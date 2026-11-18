@@ -148,9 +148,24 @@ window.addEventListener('DOMContentLoaded', () => {
                 elCrp.textContent = [data.nome, data.crp ? `CRP ${data.crp.replace(/crp\s*/i, '')}` : ''].filter(Boolean).join(' • ');
             }
 
+            function sanitizarHtmlSeguroLP(texto) {
+                if (!texto) return '';
+                const escapado = String(texto)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+                return escapado
+                    .replace(/&lt;strong(?:\s+class=&quot;[^&]*&quot;)?&gt;([\s\S]*?)&lt;\/strong&gt;/gi, '<strong class="text-brand-text">$1</strong>')
+                    .replace(/&lt;b&gt;([\s\S]*?)&lt;\/b&gt;/gi, '<strong class="text-brand-text">$1</strong>')
+                    .replace(/&lt;em&gt;([\s\S]*?)&lt;\/em&gt;/gi, '<em>$1</em>')
+                    .replace(/\r?\n/g, '<br>');
+            }
+
             document.querySelectorAll('[data-lp-html]').forEach(el => {
                 const campo = el.getAttribute('data-lp-html');
-                if (data[campo]) el.innerHTML = data[campo];
+                if (data[campo]) el.innerHTML = sanitizarHtmlSeguroLP(data[campo]);
             });
 
             // 6. Atualiza a foto principal da Hero
@@ -160,12 +175,15 @@ window.addEventListener('DOMContentLoaded', () => {
                 if (data.nome) fotoHero.alt = `Psicóloga ${data.nome}`;
             }
 
-            // 7. Atualiza o link do botão flutuante de WhatsApp
+            // 7. Atualiza o link do botão flutuante de WhatsApp (garantindo DDI 55 para números do Brasil)
             const wppLink = document.getElementById('floatingWppLink');
             if (wppLink && data.whatsapp) {
                 const numLimpo = data.whatsapp.replace(/\D/g, '');
-                const msg = encodeURIComponent(`Olá, ${data.nome || ''}! Vim pelo seu site e gostaria de saber mais sobre o agendamento.`);
-                wppLink.href = `https://wa.me/${numLimpo}?text=${msg}`;
+                if (numLimpo) {
+                    const numComDdi = (numLimpo.length === 10 || numLimpo.length === 11) ? `55${numLimpo}` : numLimpo;
+                    const msg = encodeURIComponent(`Olá, ${data.nome || ''}! Vim pelo seu site e gostaria de saber mais sobre o agendamento.`);
+                    wppLink.href = `https://wa.me/${numComDdi}?text=${msg}`;
+                }
             }
         } catch (e) {
             // Mantém dados padrão silenciosamente sem expor detalhes internos no console
@@ -218,9 +236,17 @@ window.addEventListener('DOMContentLoaded', () => {
                     payloadTriagem.psicologa_id = psicologaDonaId;
                 }
 
-                const { error } = await supaClient
+                let { error } = await supaClient
                     .from('pacientes')
                     .insert([payloadTriagem]);
+
+                // Fallback resiliente caso a coluna opcional profissional_slug ainda não exista no banco
+                if (error && String(error.message || '').includes('profissional_slug')) {
+                    const payloadSemSlug = { ...payloadTriagem };
+                    delete payloadSemSlug.profissional_slug;
+                    const retry = await supaClient.from('pacientes').insert([payloadSemSlug]);
+                    error = retry.error;
+                }
 
                 if (error) {
                     if (feedback) {

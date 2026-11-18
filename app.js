@@ -130,6 +130,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         let modalidadeSelecionadaAgendamento = 'Online';
         let filtroClienteAtivo = 'Todos';
         let filtroCobrancaAtivo = 'Todas';
+        let chavePixSistemaCache = '';
 
         let recognition = null;
         let gravando = false;
@@ -149,6 +150,29 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         function escapeHtml(texto) {
             if (!texto) return '';
             return String(texto).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+        }
+
+        function formatarNumeroWhatsappBrasil(fone) {
+            const dig = String(fone || '').replace(/\D/g, '');
+            if (!dig) return '';
+            if ((dig.length === 12 || dig.length === 13) && dig.startsWith('55')) return dig;
+            return '55' + dig;
+        }
+
+        function gerarImagemQrCodeSeguro(conteudoTexto) {
+            const valor = String(conteudoTexto || 'GNOTH');
+            if (typeof window.QRious === 'function') {
+                try {
+                    const qr = new window.QRious({
+                        value: valor,
+                        size: 220,
+                        padding: 12,
+                        level: 'M'
+                    });
+                    return qr.toDataURL('image/png');
+                } catch (e) {}
+            }
+            return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(valor)}`;
         }
 
         function ehAdmin() {
@@ -205,7 +229,17 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 psicologaTriagemPublicaId = triagemPsiId;
                 document.getElementById('loginScreen').classList.add('hidden');
                 document.getElementById('publicTriagemScreen').classList.remove('hidden');
-                const { data: psi } = await client.from('usuarios_perfis').select('nome, crp, abordagem').eq('id', triagemPsiId).single();
+                let psi = null;
+                try {
+                    const resRpc = await client.rpc('obter_perfil_publico_triagem', { p_id: triagemPsiId });
+                    if (resRpc.data && resRpc.data[0]) {
+                        psi = resRpc.data[0];
+                    }
+                } catch (e) {}
+                if (!psi) {
+                    const { data: psiFallback } = await client.from('usuarios_perfis').select('nome, crp, abordagem').eq('id', triagemPsiId).maybeSingle();
+                    psi = psiFallback;
+                }
                 if (psi) {
                     document.getElementById('publicPsiNome').textContent = psi.nome || 'Atendimento Psicológico';
                     const detalhes = [psi.crp ? 'CRP ' + psi.crp : '', psi.abordagem || ''].filter(Boolean).join(' · ');
@@ -403,27 +437,62 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     .from('usuarios_perfis')
                     .select('*')
                     .eq('id', userId)
-                    .single();
+                    .maybeSingle();
 
                 if (error || !data) {
-                    // Se por algum motivo o perfil ainda não existir na tabela, cria um registro padrão limpo baseado no e-mail
-                    usuarioAtualPerfil = { 
-                        id: userId, 
-                        email: fallbackEmail, 
-                        nome: fallbackEmail.split('@')[0], 
-                        role: 'psicologo' 
+                    const trialFimIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+                    const novoPerfilPadrao = {
+                        id: userId,
+                        email: fallbackEmail,
+                        nome: fallbackEmail ? fallbackEmail.split('@')[0] : 'Profissional',
+                        role: 'psicologo',
+                        plano: 'trial',
+                        trial_ends_at: trialFimIso
                     };
+                    try {
+                        const { data: inserido } = await client
+                            .from('usuarios_perfis')
+                            .insert([novoPerfilPadrao])
+                            .select()
+                            .single();
+                        usuarioAtualPerfil = inserido || novoPerfilPadrao;
+                    } catch (errIns) {
+                        usuarioAtualPerfil = novoPerfilPadrao;
+                    }
                 } else {
                     usuarioAtualPerfil = data;
+                    // Caso conta antiga esteja em trial mas sem data de término gravada, inicializa 7 dias
+                    if ((!usuarioAtualPerfil.plano || usuarioAtualPerfil.plano === 'trial') && !usuarioAtualPerfil.trial_ends_at && usuarioAtualPerfil.role !== 'admin') {
+                        const trialFimIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+                        usuarioAtualPerfil.plano = 'trial';
+                        usuarioAtualPerfil.trial_ends_at = trialFimIso;
+                        try {
+                            await client.from('usuarios_perfis').update({ plano: 'trial', trial_ends_at: trialFimIso }).eq('id', userId);
+                        } catch (e) {}
+                    }
                 }
             } catch(e) {
-                usuarioAtualPerfil = { 
-                    id: userId, 
-                    email: fallbackEmail, 
-                    nome: fallbackEmail.split('@')[0], 
-                    role: 'psicologo' 
+                usuarioAtualPerfil = {
+                    id: userId,
+                    email: fallbackEmail,
+                    nome: fallbackEmail ? fallbackEmail.split('@')[0] : 'Profissional',
+                    role: 'psicologo',
+                    plano: 'trial',
+                    trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
                 };
             }
+
+            // Carrega chave Pix oficial do sistema Gnoth (acessível em qualquer celular/navegador)
+            try {
+                const { data: cfgPix } = await client
+                    .from('sistema_config')
+                    .select('valor')
+                    .eq('chave', 'pix_oficial_gnoth')
+                    .maybeSingle();
+                if (cfgPix && cfgPix.valor) {
+                    chavePixSistemaCache = String(cfgPix.valor).trim();
+                }
+            } catch (e) {}
             
             atualizarSaudacao();
             atualizarBadgeTrial();
@@ -1149,7 +1218,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (modalidade === 'Online' && pac.link_sala && pac.link_sala.trim() !== '') {
                 msg += ` Segue o link da sala: ${pac.link_sala.trim()}`;
             }
-            return `https://wa.me/55${numLimpo}?text=${encodeURIComponent(msg)}`;
+            return `https://wa.me/${formatarNumeroWhatsappBrasil(numLimpo)}?text=${encodeURIComponent(msg)}`;
         }
 
         let notificacoesAtuaisCache = [];
@@ -1389,7 +1458,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                             const meuNome = obterNomeExibicaoUsuario();
 
                             const msgCob = encodeURIComponent(`Olá, ${nomePac}! Tudo bem? Aqui é ${meuNome}. Passando para lembrar da cobrança referente à nossa sessão no valor de ${valorFmt}, que venceu em ${vencFmt}. Se precisar da chave Pix ou do código Copia e Cola, é só me avisar!`);
-                            const linkWpp = numLimpo ? `https://wa.me/55${numLimpo}?text=${msgCob}` : null;
+                            const linkWpp = numLimpo ? `https://wa.me/${formatarNumeroWhatsappBrasil(numLimpo)}?text=${msgCob}` : null;
 
                             let botoes = `<button onclick="alternarPainelNotificacoes(); abrirModalPixPaciente('${pg.id}')" class="px-3 py-1.5 bg-[#2B2138] hover:bg-[#3F3152] border border-[#3F3152] text-[#D8B4FE] rounded-xl text-[11px] font-semibold flex items-center gap-1.5"><span>⚡</span> Gerar Pix</button>`;
                             if (linkWpp) {
@@ -1474,7 +1543,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                             const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
                             const meuNome = obterNomeExibicaoUsuario();
                             const msgFollow = encodeURIComponent(`Olá, ${pac.nome}! Tudo bem por aí? Aqui é ${meuNome}. Passando para saber como você está e se gostaria de agendar nosso próximo encontro terapêutico.`);
-                            const linkWppFollow = numLimpo ? `https://wa.me/55${numLimpo}?text=${msgFollow}` : null;
+                            const linkWppFollow = numLimpo ? `https://wa.me/${formatarNumeroWhatsappBrasil(numLimpo)}?text=${msgFollow}` : null;
 
                             let botoes = `<button onclick="alternarPainelNotificacoes(); trocarAbaMobile('agendar')" class="px-3.5 py-1.5 btn-plum rounded-xl text-[11px] font-semibold flex items-center gap-1.5 shadow-sm"><span>📅</span> Agendar Sessão</button>`;
                             if (linkWppFollow) {
@@ -1511,7 +1580,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                                 const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
                                 const meuNome = obterNomeExibicaoUsuario();
                                 const msgAniv = encodeURIComponent(`Olá, ${pac.nome}! Desejo a você um feliz aniversário! Muita saúde, paz e realizações neste novo ciclo. Um abraço afetuoso, ${meuNome}.`);
-                                const linkWppAniv = numLimpo ? `https://wa.me/55${numLimpo}?text=${msgAniv}` : null;
+                                const linkWppAniv = numLimpo ? `https://wa.me/${formatarNumeroWhatsappBrasil(numLimpo)}?text=${msgAniv}` : null;
 
                                 let botoes = '';
                                 if (linkWppAniv) {
@@ -2141,6 +2210,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         if (formAgendamento) {
             formAgendamento.addEventListener('submit', async (e) => {
                 e.preventDefault();
+                if (!verificarAcessoEscritaAssinatura()) return;
                 const dataBase = montarDataLocalAgendamento();
                 if (!dataBase || isNaN(dataBase.getTime())) {
                     alert("Selecione uma data e um horário válidos.");
@@ -2430,7 +2500,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const meuNome = obterNomeExibicaoUsuario();
             if (numLimpo && btnWpp) {
                 const msgWpp = encodeURIComponent(`Olá, ${p.nome}! Tudo bem? Aqui é ${meuNome}.`);
-                btnWpp.href = `https://wa.me/55${numLimpo}?text=${msgWpp}`;
+                btnWpp.href = `https://wa.me/${formatarNumeroWhatsappBrasil(numLimpo)}?text=${msgWpp}`;
                 btnWpp.classList.remove('hidden');
             } else if (btnWpp) {
                 btnWpp.classList.add('hidden');
@@ -2768,6 +2838,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         function abrirModalCliente() {
+            if (!verificarAcessoEscritaAssinatura()) return;
             const containerPsi = document.getElementById('containerSelectPsicologaNovoPaciente');
             const selectPsi = document.getElementById('clientePsicologaSelect');
             if (ehAdmin() && containerPsi && selectPsi) {
@@ -2783,6 +2854,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         document.getElementById('formNovoCliente').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!verificarAcessoEscritaAssinatura()) return;
             const btnSalvar = document.getElementById('formNovoCliente').querySelector('button[type="submit"]');
             if (btnSalvar) {
                 btnSalvar.disabled = true;
@@ -2863,18 +2935,30 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         function obterResumoPlanoUsuario(u) {
             const plano = (u.plano || 'trial').toLowerCase();
-            if (plano === 'individual_lp') {
-                return { codigo: 'individual_lp', label: '🌟 Assinante + LP', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true };
-            }
-            if (plano === 'clinica') {
-                return { codigo: 'clinica', label: '🏛️ Assinante Clínica', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true };
-            }
-            if (plano === 'individual' || plano === 'assinante' || plano === 'ativo') {
-                return { codigo: 'individual', label: '⭐ Assinante Individual', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true };
+            if (plano === 'individual_lp' || plano === 'clinica' || plano === 'individual' || plano === 'assinante' || plano === 'ativo') {
+                const isoVenc = u.assinatura_vence_em || obterMapaVencimentosAssinatura()[u.id];
+                const venceuAssinatura = isoVenc && new Date(isoVenc) < new Date();
+                if (venceuAssinatura && u.role !== 'admin') {
+                    return {
+                        codigo: plano === 'individual_lp' || plano === 'clinica' ? plano : 'individual',
+                        label: '⚠️ Assinatura Vencida',
+                        classe: 'bg-red-500/15 text-red-300 border border-red-500/30',
+                        ehAssinante: true,
+                        expirado: true
+                    };
+                }
+                if (plano === 'individual_lp') {
+                    return { codigo: 'individual_lp', label: '🌟 Assinante + LP', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true, expirado: false };
+                }
+                if (plano === 'clinica') {
+                    return { codigo: 'clinica', label: '🏛️ Assinante Clínica', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true, expirado: false };
+                }
+                return { codigo: 'individual', label: '⭐ Assinante Individual', classe: 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30', ehAssinante: true, expirado: false };
             }
 
             let labelTrial = '⏳ Em Trial';
             let classeTrial = 'bg-amber-500/15 text-amber-300 border border-amber-500/30';
+            let expirado = false;
             if (u.trial_ends_at) {
                 const dias = Math.ceil((new Date(u.trial_ends_at) - new Date()) / (1000 * 60 * 60 * 24));
                 if (dias > 0) {
@@ -2882,17 +2966,35 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 } else {
                     labelTrial = '⚠️ Trial Expirado';
                     classeTrial = 'bg-red-500/15 text-red-300 border border-red-500/30';
+                    expirado = true;
                 }
             }
-            return { codigo: 'trial', label: labelTrial, classe: classeTrial, ehAssinante: false };
+            return { codigo: 'trial', label: labelTrial, classe: classeTrial, ehAssinante: false, expirado };
+        }
+
+        function verificarAcessoEscritaAssinatura() {
+            if (!usuarioAtualPerfil || ehAdmin()) return true;
+            const resumo = obterResumoPlanoUsuario(usuarioAtualPerfil);
+            if (!resumo.expirado) return true;
+
+            const msg = resumo.ehAssinante
+                ? 'O ciclo da sua assinatura encerrou.\n\nSeus prontuários e exportações continuam 100% liberados para leitura e download (Resolução CFP nº 01/2009), mas para criar novos agendamentos, pacientes ou cobranças, renove sua assinatura Gnoth.'
+                : 'Seu período de teste grátis de 7 dias encerrou.\n\nSeus prontuários e dados já cadastrados continuam 100% liberados para consulta e exportação (CFP), mas para continuar cadastrando novos pacientes e sessões, escolha seu plano Gnoth.';
+            alert(msg);
+            if (typeof abrirModalPixAssinaturaSistema === 'function') {
+                abrirModalPixAssinaturaSistema();
+            }
+            return false;
         }
 
         async function carregarEquipe() {
             if (!ehAdmin()) return;
             const tbody = document.getElementById('tabelaUsuarios');
+            const cardsMobile = document.getElementById('listaCardsUsuariosMobile');
             if (!tbody) return;
 
             tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-[#9C8EAD]">Carregando equipe...</td></tr>`;
+            if (cardsMobile) cardsMobile.innerHTML = `<div class="card-surface p-5 text-center text-xs text-[#9C8EAD]">Carregando equipe...</div>`;
 
             const [{ data: usuarios, error }, { data: lps }] = await Promise.all([
                 client.from('usuarios_perfis').select('*').order('created_at', { ascending: false }),
@@ -2901,6 +3003,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
             if (error) {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-red-400">Erro ao carregar equipe: ${escapeHtml(error.message)}</td></tr>`;
+                if (cardsMobile) cardsMobile.innerHTML = `<div class="card-surface p-5 text-center text-xs text-red-400">Erro: ${escapeHtml(error.message)}</div>`;
                 return;
             }
 
@@ -2915,6 +3018,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
             if (todosUsuariosCache.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="p-4 text-center text-[#9C8EAD]">Nenhum usuário encontrado na tabela usuarios_perfis.</td></tr>`;
+                if (cardsMobile) cardsMobile.innerHTML = `<div class="card-surface p-5 text-center text-xs text-[#9C8EAD]">Nenhum usuário encontrado.</div>`;
                 return;
             }
 
@@ -2923,14 +3027,14 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 const temLP = idsComLP.has(u.id) || Boolean(u.tem_lp);
                 const nomeAtual = u.nome || (u.email ? u.email.split('@')[0] : 'Sem nome');
                 const infoPlano = obterResumoPlanoUsuario(u);
-                const vencAssinatura = obterTextoVencimentoAssinatura(u.id, infoPlano.ehAssinante);
+                const vencAssinatura = obterTextoVencimentoAssinatura(u, infoPlano.ehAssinante);
 
                 return `
                     <tr class="hover:bg-white/[0.03]">
                         <td class="p-4">
                             <div class="flex items-center gap-2">
                                 <input type="text" value="${escapeHtml(nomeAtual)}" id="nomeUser_${u.id}" class="text-xs font-bold input-dark rounded-lg px-2.5 py-1 outline-none">
-                                <button type="button" onclick="salvarNomeUsuarioEquipe('${u.id}')" class="px-2.5 py-1 bg-[#2B2138] text-[#C2ADC9] hover:bg-[#8E73AD] hover:text-white rounded-lg text-[11px] font-semibold transition">Salvar</button>
+                                <button type="button" onclick="salvarNomeUsuarioEquipe('${u.id}', 'nomeUser_${u.id}')" class="px-2.5 py-1 bg-[#2B2138] text-[#C2ADC9] hover:bg-[#8E73AD] hover:text-white rounded-lg text-[11px] font-semibold transition">Salvar</button>
                             </div>
                         </td>
                         <td class="p-4 text-xs text-[#9C8EAD]">${escapeHtml(u.email)}</td>
@@ -2976,6 +3080,61 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     </tr>
                 `;
             }).join('');
+
+            if (cardsMobile) {
+                cardsMobile.innerHTML = todosUsuariosCache.map(u => {
+                    const isAdmin = u.role === 'admin';
+                    const temLP = idsComLP.has(u.id) || Boolean(u.tem_lp);
+                    const nomeAtual = u.nome || (u.email ? u.email.split('@')[0] : 'Sem nome');
+                    const infoPlano = obterResumoPlanoUsuario(u);
+                    const vencAssinatura = obterTextoVencimentoAssinatura(u, infoPlano.ehAssinante);
+
+                    return `
+                        <div class="card-surface p-4 space-y-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center gap-2">
+                                        <input type="text" value="${escapeHtml(nomeAtual)}" id="nomeUserMob_${u.id}" class="w-full text-xs font-bold input-dark rounded-lg px-2.5 py-1.5 outline-none">
+                                        <button type="button" onclick="salvarNomeUsuarioEquipe('${u.id}', 'nomeUserMob_${u.id}')" class="px-3 py-1.5 bg-[#2B2138] text-[#C2ADC9] hover:bg-[#8E73AD] hover:text-white rounded-lg text-[11px] font-semibold shrink-0">Salvar</button>
+                                    </div>
+                                    <p class="text-[11px] text-[#9C8EAD] truncate mt-1">${escapeHtml(u.email || '')}</p>
+                                </div>
+                                <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold shrink-0 ${isAdmin ? 'bg-purple-500/20 text-purple-300 border border-purple-500/30' : 'bg-[#2B2138] text-[#C2ADC9]'}">
+                                    ${isAdmin ? 'Admin' : 'Psi'}
+                                </span>
+                            </div>
+
+                            <div class="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-[#2E2538]">
+                                <span class="px-2.5 py-1 rounded-full text-[11px] font-semibold ${infoPlano.classe}">${infoPlano.label}</span>
+                                ${infoPlano.ehAssinante ? `<span class="text-[10px] text-[#9C8EAD]">${vencAssinatura}</span>` : ''}
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-2">
+                                <select onchange="alterarPlanoUsuarioEquipe('${u.id}', this.value)" class="w-full text-xs input-dark rounded-xl px-2.5 py-2 font-semibold outline-none">
+                                    <option value="trial" ${infoPlano.codigo === 'trial' ? 'selected' : ''}>⏳ Trial (7d)</option>
+                                    <option value="individual" ${infoPlano.codigo === 'individual' ? 'selected' : ''}>⭐ Individual</option>
+                                    <option value="individual_lp" ${infoPlano.codigo === 'individual_lp' ? 'selected' : ''}>🌟 Indiv. + LP</option>
+                                    <option value="clinica" ${infoPlano.codigo === 'clinica' ? 'selected' : ''}>🏛️ Clínica</option>
+                                </select>
+                                <select onchange="alterarRoleUsuario('${u.id}', this.value)" class="w-full text-xs input-dark rounded-xl px-2.5 py-2 font-semibold outline-none">
+                                    <option value="psicologo" ${!isAdmin ? 'selected' : ''}>Cargo: Psicólogo</option>
+                                    <option value="admin" ${isAdmin ? 'selected' : ''}>Cargo: Admin</option>
+                                </select>
+                            </div>
+
+                            <div class="flex items-center gap-2 pt-1">
+                                ${!infoPlano.ehAssinante
+                                    ? `<button type="button" onclick="tornarUsuarioAssinanteRapido('${u.id}')" class="flex-1 py-2 rounded-xl bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 text-xs font-semibold">⭐ Tornar Assinante</button>`
+                                    : `<button type="button" onclick="renovarAssinatura30Dias('${u.id}')" class="flex-1 py-2 rounded-xl bg-[#2B2138] text-[#E5DCED] border border-[#3F3152] text-xs font-semibold">🔄 Renovar +30 dias</button>`
+                                }
+                                <button type="button" onclick="abrirLPDoUsuarioAdmin('${u.id}')" class="py-2 px-3 rounded-xl bg-[#2B2138] text-[#C2ADC9] border border-[#3F3152] text-xs font-semibold">
+                                    ${temLP ? '🌐 Editar LP' : '🔓 Liberar LP'}
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         async function garantirLPCriadaParaUsuario(u) {
@@ -2998,14 +3157,24 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         async function alterarPlanoUsuarioEquipe(userId, novoPlano) {
             if (!ehAdmin()) return;
+            const venc30d = novoPlano !== 'trial'
+                ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+                : null;
+
             const payloadUpdate = {
                 plano: novoPlano,
                 trial_ends_at: novoPlano === 'trial'
                     ? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
-                    : null
+                    : null,
+                assinatura_vence_em: venc30d
             };
 
-            const { error } = await client.from('usuarios_perfis').update(payloadUpdate).eq('id', userId);
+            let { error } = await client.from('usuarios_perfis').update(payloadUpdate).eq('id', userId);
+            if (error && String(error.message || '').includes('assinatura_vence_em')) {
+                const { assinatura_vence_em, ...semColunaVenc } = payloadUpdate;
+                const retry = await client.from('usuarios_perfis').update(semColunaVenc).eq('id', userId);
+                error = retry.error;
+            }
             if (error) {
                 alert('Erro ao atualizar plano do usuário: ' + error.message);
                 return;
@@ -3018,15 +3187,14 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
             if (novoPlano !== 'trial') {
                 const mapa = obterMapaVencimentosAssinatura();
-                if (!mapa[userId]) {
-                    mapa[userId] = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
-                    localStorage.setItem('gnoth_vencimentos_assinatura', JSON.stringify(mapa));
-                }
+                mapa[userId] = venc30d;
+                localStorage.setItem('gnoth_vencimentos_assinatura', JSON.stringify(mapa));
             }
 
             if (usuarioAtualPerfil && usuarioAtualPerfil.id === userId) {
                 usuarioAtualPerfil.plano = payloadUpdate.plano;
                 usuarioAtualPerfil.trial_ends_at = payloadUpdate.trial_ends_at;
+                usuarioAtualPerfil.assinatura_vence_em = venc30d;
                 atualizarBadgeTrial();
             }
 
@@ -3116,9 +3284,9 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             }
         });
 
-        async function salvarNomeUsuarioEquipe(userId) {
+        async function salvarNomeUsuarioEquipe(userId, inputIdOverride = '') {
             if (!ehAdmin()) return;
-            const input = document.getElementById(`nomeUser_${userId}`);
+            const input = document.getElementById(inputIdOverride || `nomeUser_${userId}`);
             if (!input || !input.value.trim()) return;
 
             const { error } = await client.from('usuarios_perfis').update({ nome: input.value.trim() }).eq('id', userId);
@@ -3340,6 +3508,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
         
         function abrirModalCobranca() {
+            if (!verificarAcessoEscritaAssinatura()) return;
             const clientes = todosPacientesCache.filter(p => p.status !== 'Novo Contato');
             const select = document.getElementById('cobrancaClienteSelect');
             if (clientes.length === 0) return alert("Cadastre um paciente primeiro.");
@@ -3350,6 +3519,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         document.getElementById('formNovaCobranca').addEventListener('submit', async (e) => {
             e.preventDefault();
+            if (!verificarAcessoEscritaAssinatura()) return;
             const paciente_id = document.getElementById('cobrancaClienteSelect').value;
             const valor = parseFloat(document.getElementById('cobrancaValor').value) || 150.00;
             const data_vencimento = document.getElementById('cobrancaVencimento').value;
@@ -3388,8 +3558,12 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         async function tornarCliente(id) {
-            const psicologa_id = usuarioAtualPerfil ? usuarioAtualPerfil.id : null;
-            await client.from('pacientes').update({ 
+            if (!verificarAcessoEscritaAssinatura()) return;
+            const leadExistente = todosPacientesCache.find(item => item.id === id);
+            const psicologa_id = (leadExistente && leadExistente.psicologa_id)
+                ? leadExistente.psicologa_id
+                : (usuarioAtualPerfil ? usuarioAtualPerfil.id : null);
+            await client.from('pacientes').update({
                 status: 'Em Atendimento',
                 psicologa_id
             }).eq('id', id);
@@ -3501,11 +3675,15 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             });
 
             const tbody = document.getElementById('tabelaPagamentos');
+            const cardsMobile = document.getElementById('listaCardsPagamentosMobile');
             if (!tbody) return;
 
             if (filtrados.length === 0) {
                 const cols = isAdmin ? 6 : 5;
                 tbody.innerHTML = `<tr><td colspan="${cols}" class="p-6 text-center text-[#9C8EAD]">Nenhuma cobrança encontrada neste filtro.</td></tr>`;
+                if (cardsMobile) {
+                    cardsMobile.innerHTML = `<div class="card-surface p-6 text-center text-xs text-[#9C8EAD]">Nenhuma cobrança encontrada neste filtro.</div>`;
+                }
                 return;
             }
 
@@ -3530,7 +3708,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
                 return `
                     <tr class="hover:bg-white/[0.03]">
-                        <td class="p-4 font-bold text-xs text-[#F3EEF6]">${escapeHtml(pac ? pac.nome : 'Paciente')}</td>
+                        <td class="p-4 font-bold text-xs text-[#F3EEF6]">${escapeHtml(pac ? pac.nome : (pacObj ? pacObj.nome : 'Paciente'))}</td>
                         ${colPsi}
                         <td class="p-4 text-xs font-bold text-white">${formatarBRL(pg.valor)}</td>
                         <td class="p-4 text-xs text-[#9C8EAD]">${pg.data_vencimento ? new Date(pg.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—'}</td>
@@ -3550,6 +3728,48 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     </tr>
                 `;
             }).join('');
+
+            if (cardsMobile) {
+                cardsMobile.innerHTML = filtrados.map(pg => {
+                    const pac = pg.pacientes;
+                    const pacObj = todosPacientesCache.find(item => item.id === pg.paciente_id);
+                    const nomePac = pac ? pac.nome : (pacObj ? pacObj.nome : 'Paciente');
+                    const nomePsi = pacObj ? obterNomePsicologa(pacObj.psicologa_id) : '—';
+                    const vencStr = pg.data_vencimento ? new Date(pg.data_vencimento + 'T00:00:00').toLocaleDateString('pt-BR') : '—';
+
+                    const isPago = pg.status === 'Pago';
+                    const isAtrasado = !isPago && pg.data_vencimento && pg.data_vencimento < hojeStr;
+                    const sitPill = isPago
+                        ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/30'
+                        : (isAtrasado ? 'bg-red-500/15 text-red-400 border border-red-500/30' : 'bg-amber-500/15 text-amber-300 border border-amber-500/30');
+                    const sitText = isPago ? '● Pago' : (isAtrasado ? '● Em atraso' : '● Pendente');
+                    const emitidoRS = isPago && typeof foiEmitidoReceitaSaude === 'function' && foiEmitidoReceitaSaude(pg.id);
+
+                    return `
+                        <div class="card-surface p-4 space-y-3">
+                            <div class="flex items-start justify-between gap-2">
+                                <div class="min-w-0">
+                                    <p class="font-bold text-sm text-[#F3EEF6] truncate">${escapeHtml(nomePac)}</p>
+                                    <p class="text-[11px] text-[#9C8EAD] mt-0.5">Vencimento: ${vencStr}${isAdmin ? ` · Psi: ${escapeHtml(nomePsi)}` : ''}</p>
+                                </div>
+                                <div class="text-right shrink-0">
+                                    <p class="font-serif text-base font-bold text-white">${formatarBRL(pg.valor)}</p>
+                                    <span class="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-semibold ${sitPill}">${sitText}</span>
+                                </div>
+                            </div>
+                            ${emitidoRS ? `<div><span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-purple-500/20 text-purple-300 border border-purple-500/30">🏛️ Emitido no Receita Saúde</span></div>` : ''}
+                            <div class="flex items-center gap-2 pt-2 border-t border-[#2E2538]">
+                                ${!isPago
+                                    ? `<button type="button" onclick="abrirModalPixPaciente('${pg.id}')" class="flex-1 py-2 px-3 bg-emerald-500/15 hover:bg-emerald-500/25 text-emerald-300 border border-emerald-500/30 rounded-xl text-xs font-semibold transition">💠 Cobrar Pix</button>
+                                       <button type="button" onclick="marcarComoPago('${pg.id}')" class="flex-1 py-2 px-3 btn-plum rounded-xl text-xs font-semibold shadow-sm">Confirmar</button>`
+                                    : `<button type="button" onclick="abrirModalReceitaSaudeIndividual('${pg.id}')" class="flex-1 py-2 px-3 ${emitidoRS ? 'bg-purple-500/15 text-purple-300 border-purple-500/30' : 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'} border rounded-xl text-xs font-semibold transition">🏛️ Receita Saúde / Recibo</button>`
+                                }
+                                <button type="button" onclick="excluirCobranca('${pg.id}')" title="Excluir cobrança" class="py-2 px-3 text-red-400 hover:bg-red-500/15 border border-[#2E2538] rounded-xl text-xs transition">🗑️</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
         }
 
         async function marcarComoPago(id) {
@@ -3663,7 +3883,19 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 return;
             }
 
-            if (data.session) {
+            if (data.session && data.user) {
+                try {
+                    const trialFimIso = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+                    await client.from('usuarios_perfis').upsert({
+                        id: data.user.id,
+                        email,
+                        nome,
+                        crp: crp || null,
+                        role: 'psicologo',
+                        plano: 'trial',
+                        trial_ends_at: trialFimIso
+                    }, { onConflict: 'id' });
+                } catch (e) {}
                 await checarPerfilUsuario(data.user.id, data.user.email);
                 mostrarApp();
             } else {
@@ -3673,30 +3905,18 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         });
 
         function atualizarBadgeTrial() {
-            const badge = document.getElementById('trialBadgeNav');
-            if (!badge || !usuarioAtualPerfil) return;
+            const badges = [
+                document.getElementById('trialBadgeNav'),
+                document.getElementById('trialBadgeMobile')
+            ].filter(Boolean);
+            if (badges.length === 0 || !usuarioAtualPerfil) return;
 
-            const plano = (usuarioAtualPerfil.plano || 'trial').toLowerCase();
-            if (plano === 'individual' || plano === 'individual_lp' || plano === 'clinica' || plano === 'assinante' || plano === 'ativo') {
+            const resumo = obterResumoPlanoUsuario(usuarioAtualPerfil);
+            badges.forEach((badge) => {
                 badge.classList.remove('hidden');
-                badge.textContent = plano === 'individual_lp' ? '🌟 Assinante + LP' : '⭐ Assinante';
-                badge.className = "px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
-            } else if (plano === 'trial' && usuarioAtualPerfil.trial_ends_at) {
-                const fim = new Date(usuarioAtualPerfil.trial_ends_at);
-                const agora = new Date();
-                const diasRestantes = Math.ceil((fim - agora) / (1000 * 60 * 60 * 24));
-
-                badge.classList.remove('hidden');
-                if (diasRestantes > 0) {
-                    badge.textContent = `Trial: ${diasRestantes}d`;
-                    badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-amber-500/20 text-amber-300 border border-amber-500/30";
-                } else {
-                    badge.textContent = "Trial expirado";
-                    badge.className = "px-2 py-0.5 rounded-md text-[10px] font-semibold bg-red-500/20 text-red-300 border border-red-500/30";
-                }
-            } else {
-                badge.classList.add('hidden');
-            }
+                badge.textContent = resumo.label;
+                badge.className = `${badge.id === 'trialBadgeMobile' ? 'px-2 py-1 text-[9px]' : 'px-2.5 py-1 text-[10px]'} rounded-lg font-semibold cursor-pointer hover:opacity-90 transition ${resumo.classe}`;
+            });
         }
 
         function carregarPaginaPerfil() {
@@ -3914,7 +4134,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (!chaveDigitada) {
                 if (elChave) elChave.textContent = '⚠️ Digite sua chave Pix no campo acima para gerar o QR Code';
                 if (elCodigo) elCodigo.value = '';
-                if (qrImg) qrImg.src = 'https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=GNOTH';
+                if (qrImg) qrImg.src = gerarImagemQrCodeSeguro('GNOTH');
                 return;
             }
 
@@ -3922,14 +4142,14 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (elChave) elChave.textContent = `Chave: ${chaveDigitada}`;
             if (elCodigo) elCodigo.value = codigoPix;
             if (qrImg) {
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(codigoPix)}`;
+                qrImg.src = gerarImagemQrCodeSeguro(codigoPix);
             }
 
             if (btnWpp) {
-                const numLimpo = (pac.whatsapp || '').replace(/\D/g, '');
+                const foneWpp = formatarNumeroWhatsappBrasil(pac.whatsapp);
                 const msg = `Olá, ${pac.nome || ''}! Segue o código Pix Copia e Cola referente à nossa sessão (${formatarBRL(pg.valor)}):\n\n${codigoPix}`;
-                btnWpp.href = numLimpo
-                    ? `https://wa.me/55${numLimpo}?text=${encodeURIComponent(msg)}`
+                btnWpp.href = foneWpp
+                    ? `https://wa.me/${foneWpp}?text=${encodeURIComponent(msg)}`
                     : `https://wa.me/?text=${encodeURIComponent(msg)}`;
             }
         }
@@ -3974,6 +4194,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
         // 2. PIX DO SISTEMA GNOTH (ASSINATURA DO SAAS -> CAI NA CONTA DO GNOTH / ADMIN)
         function obterChavePixOficialSistemaGnoth() {
+            if (chavePixSistemaCache && chavePixSistemaCache.trim()) return chavePixSistemaCache.trim();
             const salvoLocal = localStorage.getItem('gnoth_chave_pix_sistema');
             if (salvoLocal && salvoLocal.trim()) return salvoLocal.trim();
             const adminUser = todosUsuariosCache.find(u => u.role === 'admin' && u.chave_pix);
@@ -3990,12 +4211,16 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 return;
             }
             const chave = input.value.trim();
+            chavePixSistemaCache = chave;
             localStorage.setItem('gnoth_chave_pix_sistema', chave);
-            if (usuarioAtualPerfil && usuarioAtualPerfil.id) {
-                await client.from('usuarios_perfis').update({ chave_pix: chave }).eq('id', usuarioAtualPerfil.id);
-                usuarioAtualPerfil.chave_pix = chave;
-            }
-            exibirToastTempoReal('Chave Pix oficial do sistema Gnoth salva!');
+            try {
+                await client.from('sistema_config').upsert({
+                    chave: 'pix_oficial_gnoth',
+                    valor: chave,
+                    updated_at: new Date().toISOString()
+                }, { onConflict: 'chave' });
+            } catch (e) {}
+            exibirToastTempoReal('Chave Pix oficial do sistema Gnoth salva para todos os dispositivos!');
         }
 
         function obterMapaVencimentosAssinatura() {
@@ -4006,10 +4231,13 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             }
         }
 
-        function obterTextoVencimentoAssinatura(userId, ehAssinante) {
+        function obterTextoVencimentoAssinatura(userOrId, ehAssinante) {
             if (!ehAssinante) return '';
+            const userObj = (userOrId && typeof userOrId === 'object')
+                ? userOrId
+                : (todosUsuariosCache.find(u => u.id === userOrId) || { id: userOrId });
             const mapa = obterMapaVencimentosAssinatura();
-            const iso = mapa[userId];
+            const iso = userObj.assinatura_vence_em || mapa[userObj.id];
             if (!iso) return 'Ciclo ativo';
             const dt = new Date(iso);
             const dias = Math.ceil((dt - new Date()) / (1000 * 60 * 60 * 24));
@@ -4019,17 +4247,37 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             return `🟢 Vence em ${dataStr}`;
         }
 
-        function renovarAssinatura30Dias(userId) {
+        async function renovarAssinatura30Dias(userId) {
             if (!ehAdmin()) return;
+            const u = todosUsuariosCache.find(item => item.id === userId);
+            const baseIso = u?.assinatura_vence_em || obterMapaVencimentosAssinatura()[userId];
+            const baseDate = (baseIso && new Date(baseIso) > new Date()) ? new Date(baseIso) : new Date();
+            const novaData = new Date(baseDate.getTime() + 30 * 24 * 60 * 60 * 1000);
+            const novaIso = novaData.toISOString();
+
             const mapa = obterMapaVencimentosAssinatura();
-            const novaData = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000);
-            mapa[userId] = novaData.toISOString();
+            mapa[userId] = novaIso;
             localStorage.setItem('gnoth_vencimentos_assinatura', JSON.stringify(mapa));
-            carregarEquipe();
+
+            try {
+                await client.from('usuarios_perfis').update({ assinatura_vence_em: novaIso }).eq('id', userId);
+            } catch (e) {}
+
+            await carregarEquipe();
             exibirToastTempoReal(`Assinatura renovada por +30 dias (até ${novaData.toLocaleDateString('pt-BR')})!`);
         }
 
-        function abrirModalPixAssinaturaSistema() {
+        async function abrirModalPixAssinaturaSistema() {
+            if (!chavePixSistemaCache) {
+                try {
+                    const { data: cfgPix } = await client
+                        .from('sistema_config')
+                        .select('valor')
+                        .eq('chave', 'pix_oficial_gnoth')
+                        .maybeSingle();
+                    if (cfgPix && cfgPix.valor) chavePixSistemaCache = String(cfgPix.valor).trim();
+                } catch (e) {}
+            }
             const select = document.getElementById('selectPlanoPixAssinatura');
             if (select && usuarioAtualPerfil) {
                 const planoAtual = (usuarioAtualPerfil.plano || '').toLowerCase();
@@ -4064,7 +4312,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
 
             const qrImg = document.getElementById('pixSisQrCodeImg');
             if (qrImg) {
-                qrImg.src = `https://api.qrserver.com/v1/create-qr-code/?size=220x220&margin=6&data=${encodeURIComponent(codigoPix)}`;
+                qrImg.src = gerarImagemQrCodeSeguro(codigoPix);
             }
         }
 
@@ -4185,6 +4433,8 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             localStorage.setItem('gnoth_receita_saude_emitidos', JSON.stringify(mapa));
             const pg = todosPagamentosCache.find(p => p.id === pagamentoId);
             if (pg) pg.receita_saude_emitido = status;
+            // Sincroniza silenciosamente no banco caso a coluna exista (permite ver entre celular e PC)
+            client.from('pagamentos').update({ receita_saude_emitido: Boolean(status) }).eq('id', pagamentoId).then(() => {}).catch(() => {});
         }
 
         function limparCpfApenasDigitos(cpf) {
@@ -4591,14 +4841,14 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                             <div style="font-size: 22px; font-weight: bold; color: #3f3152; letter-spacing: 1px;">RECIBO DE ATENDIMENTO PSICOLÓGICO</div>
                             <div style="font-size: 12px; color: #666; margin-top: 4px;">Emitido via Gnoth · Gestão Clínica</div>
                         </div>
-                        <div style="font-size: 20px; font-weight: bold; background: #f5f0fa; padding: 8px 16px; border-radius: 8px; color: #3f3152;">${valorFormatado}</div>
+                        <div style="font-size: 20px; font-weight: bold; background: #f5f0fa; padding: 8px 16px; border-radius: 8px; color: #3f3152;">${escapeHtml(valorFormatado)}</div>
                     </div>
-                    <p style="font-size: 15px; line-height: 1.8; margin-bottom: 36px; text-align: justify;">Recebi de <strong>${pagadorNome}</strong> (${pagadorCpf}) a importância de <strong>${valorFormatado}</strong>${detalheBeneficiario} realizadas até a presente data.</p>
-                    <p style="font-size: 14px;">Data de quitação: <strong>${dataRecibo}</strong></p>
+                    <p style="font-size: 15px; line-height: 1.8; margin-bottom: 36px; text-align: justify;">Recebi de <strong>${escapeHtml(pagadorNome)}</strong> (${escapeHtml(pagadorCpf)}) a importância de <strong>${escapeHtml(valorFormatado)}</strong>${escapeHtml(detalheBeneficiario)} realizadas até a presente data.</p>
+                    <p style="font-size: 14px;">Data de quitação: <strong>${escapeHtml(dataRecibo)}</strong></p>
                     <div style="margin-top: 56px; text-align: center;">
                         <div style="border-top: 1px solid #333; width: 280px; margin: 0 auto 8px auto;"></div>
-                        <strong>${nomePsi}</strong><br>
-                        <span style="font-size: 13px; color: #444;">Psicóloga(o) · CRP: ${crpPsi}</span>
+                        <strong>${escapeHtml(nomePsi)}</strong><br>
+                        <span style="font-size: 13px; color: #444;">Psicóloga(o) · CRP: ${escapeHtml(crpPsi)}</span>
                     </div>
                     <div style="font-size: 12px; color: #666; margin-top: 32px; text-align: center;">Documento válido para fins de comprovação de despesas médicas e reembolso.</div>
                 </div>
@@ -4713,6 +4963,19 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             ].join('');
 
             const janela = window.open('', '_blank', 'width=850,height=700');
-            janela.document.write(htmlProntuario);
-            janela.document.close();
+            if (janela && janela.document) {
+                janela.document.write(htmlProntuario);
+                janela.document.close();
+            } else {
+                // Fallback para iPhone / Safari quando window.open é bloqueado
+                const blob = new Blob([htmlProntuario], { type: 'text/html;charset=utf-8' });
+                const urlBlob = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = urlBlob;
+                link.download = `Prontuario_${(pac.nome || 'Paciente').replace(/[^a-zA-Z0-9]/g, '_')}.html`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                setTimeout(() => URL.revokeObjectURL(urlBlob), 10000);
+            }
         }

@@ -13,9 +13,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap" rel="stylesheet">
 
     <link rel="stylesheet" href="app.css?v=20261117e">
-    <!-- Biblioteca jsPDF para gerar PDF direto -->
+    <!-- Biblioteca jsPDF e QRious (QR Code local sem enviar dados para terceiros) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
 </head>
 <body class="min-h-screen">
     <!-- 0. TELA PÚBLICA DE TRIAGEM (LINK DA BIO DA PSICÓLOGA) -->
@@ -231,6 +232,7 @@
                 </div>
             </div>
             <div class="flex items-center gap-1.5">
+                <button type="button" id="trialBadgeMobile" onclick="abrirModalPixAssinaturaSistema()" title="Ver assinatura" class="hidden px-2 py-1 rounded-lg text-[9px] font-semibold transition"></button>
                 <button type="button" onclick="alternarPainelNotificacoes()" class="relative p-2 text-white hover:bg-white/10 rounded-xl">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
                     <span id="badgeNotificacoesMobile" class="hidden absolute top-0.5 right-0.5 min-w-[16px] h-[16px] px-1 rounded-full bg-red-500 text-white text-[9px] font-bold flex items-center justify-center">0</span>
@@ -322,7 +324,7 @@
 
             <!-- BARRA SUPERIOR DIREITA (NOTIFICAÇÕES + BOTÃO DE USUÁRIO) -->
             <div class="hidden md:flex items-center justify-end gap-3 mb-6">
-                <span id="trialBadgeNav" class="hidden px-2.5 py-1 rounded-lg text-[10px] font-semibold"></span>
+                <button type="button" id="trialBadgeNav" onclick="abrirModalPixAssinaturaSistema()" title="Gerenciar assinatura Gnoth" class="hidden px-2.5 py-1 rounded-lg text-[10px] font-semibold cursor-pointer hover:opacity-90 transition"></button>
 
                 <button type="button" onclick="alternarPainelNotificacoes()" title="Central de Notificações e Pendências" class="relative p-2.5 rounded-2xl bg-[#1D1724] hover:bg-[#2B2138] border border-[#32283D] text-[#E5DCED] transition shadow-sm">
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
@@ -780,7 +782,11 @@
                     </div>
                 </div>
 
-                <div class="card-surface overflow-x-auto">
+                <!-- VERSÃO EM CARDS PARA CELULAR (COBRANÇAS) -->
+                <div id="listaCardsPagamentosMobile" class="block md:hidden space-y-3"></div>
+
+                <!-- VERSÃO EM TABELA PARA DESKTOP (COBRANÇAS) -->
+                <div class="hidden md:block card-surface overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="border-b border-[#2E2538] text-[11px] font-bold text-[#9C8EAD] uppercase tracking-wider">
                             <tr>
@@ -971,14 +977,19 @@
                         </div>
                         <p class="text-[11px] text-[#9C8EAD] mt-0.5">Esta chave é usada exclusivamente quando uma psicóloga gera o Pix da assinatura do Gnoth. As cobranças de pacientes usam a chave individual de cada psicóloga.</p>
                     </div>
-                    <div class="flex items-center gap-2 shrink-0">
-                        <input type="text" id="inputChavePixSistemaGnoth" placeholder="CPF, CNPJ, E-mail ou Aleatória do Gnoth" class="px-3.5 py-2 input-dark rounded-xl text-xs font-mono outline-none w-64">
+                    <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0 w-full md:w-auto">
+                        <input type="text" id="inputChavePixSistemaGnoth" placeholder="CPF, CNPJ, E-mail ou Aleatória do Gnoth" class="px-3.5 py-2 input-dark rounded-xl text-xs font-mono outline-none w-full sm:w-64">
                         <button type="button" onclick="salvarChavePixSistemaGnoth()" class="px-4 py-2 rounded-xl btn-plum text-white text-xs font-semibold shadow-sm transition">
                             💾 Salvar Pix do Sistema
                         </button>
                     </div>
                 </div>
-                <div class="card-surface overflow-x-auto">
+
+                <!-- CARDS MOBILE PARA EQUIPE -->
+                <div id="listaCardsUsuariosMobile" class="block md:hidden space-y-3"></div>
+
+                <!-- TABELA DESKTOP PARA EQUIPE -->
+                <div class="hidden md:block card-surface overflow-x-auto">
                     <table class="w-full text-left text-xs">
                         <thead class="border-b border-[#2E2538] text-[11px] font-bold text-[#9C8EAD] uppercase tracking-wider">
                             <tr>
@@ -1681,6 +1692,6 @@
     </div>
 
     <!-- JAVASCRIPT GERAL -->
-    <script src="app.js?v=20261117r"></script>
+    <script src="app.js?v=20261118a"></script>
 </body>
 </html>
