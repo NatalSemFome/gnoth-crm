@@ -21,6 +21,14 @@
   ],
   "rewrites": [
     {
+      "source": "/termos",
+      "destination": "/termos.html"
+    },
+    {
+      "source": "/privacidade",
+      "destination": "/privacidade.html"
+    },
+    {
       "source": "/lp/:slug",
       "destination": "/lp.html"
     },

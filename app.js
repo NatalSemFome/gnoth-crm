@@ -260,12 +260,18 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             if (!usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
             const linkExclusivo = `${window.location.origin}/triagem?triagem=${usuarioAtualPerfil.id}`;
             navigator.clipboard.writeText(linkExclusivo).then(() => {
+                try {
+                    localStorage.setItem('gnoth_onboarding_link_' + usuarioAtualPerfil.id, '1');
+                } catch (e) {}
                 const statusEl = document.getElementById('statusCopiaLink');
                 if (statusEl) {
                     statusEl.textContent = "✓ Copiado!";
                     setTimeout(() => { statusEl.textContent = "Copiar"; }, 2500);
                 }
-                alert("Link exclusivo copiado!\n\nCole na bio do seu Instagram:\n" + linkExclusivo);
+                if (typeof renderizarOnboarding === 'function') {
+                    renderizarOnboarding();
+                }
+                exibirToastTempoReal('Link de triagem copiado para a área de transferência!');
             });
         }
 
@@ -702,6 +708,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 todosPagamentosCache = pagamentos;
 
                 gerarNotificacoesInteligentes(todosPacientesCache, todosAtendimentosCache, prontuariosRecentes, todosPagamentosCache, usuarioAtualPerfil);
+                renderizarOnboarding();
                 renderizarCronogramaHoje(todosAtendimentosCache);
                 renderizarProximosEAlertas(todosAtendimentosCache);
                 aplicarFiltrosClientes();
@@ -1629,6 +1636,110 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                     </div>` : ''}
                 </div>
             `).join('');
+        }
+
+        function ocultarOnboarding() {
+            const card = document.getElementById('cardOnboardingGnoth');
+            if (card) card.classList.add('hidden');
+            if (usuarioAtualPerfil && usuarioAtualPerfil.id) {
+                try {
+                    localStorage.setItem('gnoth_onboarding_oculto_' + usuarioAtualPerfil.id, '1');
+                } catch (e) {}
+            }
+        }
+
+        function renderizarOnboarding() {
+            const card = document.getElementById('cardOnboardingGnoth');
+            const lista = document.getElementById('listaPassosOnboarding');
+            if (!card || !lista || !usuarioAtualPerfil || !usuarioAtualPerfil.id) return;
+
+            try {
+                if (localStorage.getItem('gnoth_onboarding_oculto_' + usuarioAtualPerfil.id) === '1') {
+                    card.classList.add('hidden');
+                    return;
+                }
+            } catch (e) {}
+
+            const uid = usuarioAtualPerfil.id;
+            const temPerfil = Boolean((usuarioAtualPerfil.nome || '').trim()) && Boolean((usuarioAtualPerfil.crp || '').trim());
+            const chavePix = (usuarioAtualPerfil.chave_pix || localStorage.getItem('gnoth_chave_pix_user_' + uid) || '').trim();
+            const temPix = Boolean(chavePix);
+            const copiouLink = (localStorage.getItem('gnoth_onboarding_link_' + uid) === '1') || (todosPacientesCache || []).some(p => p.status === 'Novo Contato');
+            const temPaciente = (todosPacientesCache || []).some(p => p.status !== 'Novo Contato');
+            const temSessao = (todosAtendimentosCache || []).length > 0;
+
+            const passos = [
+                {
+                    feito: temPerfil,
+                    titulo: 'Completar Perfil & CRP',
+                    desc: 'Para recibos e prontuários CFP.',
+                    btnLabel: 'Abrir Perfil',
+                    acao: "trocarAbaMobile('perfil')"
+                },
+                {
+                    feito: temPix,
+                    titulo: 'Cadastrar Chave Pix',
+                    desc: 'Receba 100% direto na conta.',
+                    btnLabel: 'Configurar Pix',
+                    acao: "trocarAbaMobile('perfil')"
+                },
+                {
+                    feito: copiouLink,
+                    titulo: 'Copiar Link da Bio',
+                    desc: 'Capte novos pacientes online.',
+                    btnLabel: 'Copiar Link',
+                    acao: 'copiarLinkTriagem()'
+                },
+                {
+                    feito: temPaciente,
+                    titulo: '1º Paciente',
+                    desc: 'Cadastre seu primeiro paciente.',
+                    btnLabel: '+ Cadastrar',
+                    acao: "trocarAbaMobile('clientes'); abrirModalCliente();"
+                },
+                {
+                    feito: temSessao,
+                    titulo: '1ª Sessão na Agenda',
+                    desc: 'Marque o primeiro atendimento.',
+                    btnLabel: 'Agendar',
+                    acao: "trocarAbaMobile('agendar')"
+                }
+            ];
+
+            const concluidos = passos.filter(p => p.feito).length;
+            const pct = Math.round((concluidos / passos.length) * 100);
+
+            const badge = document.getElementById('onboardingProgressBadge');
+            const bar = document.getElementById('onboardingProgressBar');
+            const sub = document.getElementById('onboardingSubtitulo');
+
+            if (badge) badge.textContent = `${concluidos}/${passos.length}`;
+            if (bar) bar.style.width = `${pct}%`;
+            if (sub) {
+                sub.textContent = concluidos === passos.length
+                    ? '🎉 Tudo pronto! Sua clínica está 100% configurada. Você já pode ocultar este guia.'
+                    : 'Configure sua clínica em menos de 3 minutos para atender e receber via Pix.';
+            }
+
+            lista.innerHTML = passos.map((p, idx) => `
+                <div class="p-3 rounded-2xl border transition flex flex-col justify-between gap-2.5 ${p.feito ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-[#141019] border-[#2E2538] hover:border-[#3F3152]'}">
+                    <div class="flex items-start gap-2.5">
+                        <span class="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 ${p.feito ? 'bg-emerald-500 text-white' : 'bg-[#2B2138] text-[#C2ADC9] border border-[#3F3152]'}">
+                            ${p.feito ? '✓' : idx + 1}
+                        </span>
+                        <div class="min-w-0">
+                            <p class="text-xs font-bold leading-snug ${p.feito ? 'text-emerald-300 line-through opacity-90' : 'text-[#F3EEF6]'}">${p.titulo}</p>
+                            <p class="text-[10px] text-[#9C8EAD] mt-0.5 leading-snug">${p.desc}</p>
+                        </div>
+                    </div>
+                    ${p.feito
+                        ? `<span class="text-[10px] font-semibold text-emerald-400 pl-7">Concluído ✓</span>`
+                        : `<button type="button" onclick="${p.acao}" class="w-full py-2 px-3 rounded-xl bg-[#2B2138] hover:bg-[#3F3152] text-[#E9DDF5] text-[11px] font-semibold transition border border-[#3F3152] text-center">${p.btnLabel} →</button>`
+                    }
+                </div>
+            `).join('');
+
+            card.classList.remove('hidden');
         }
 
         function renderizarCronogramaHoje(atendimentos) {
@@ -2625,6 +2736,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 limparDispensadasDoPaciente(pacienteSelecionadoId);
                 aplicarFiltrosClientes();
                 gerarNotificacoesInteligentes();
+                renderizarOnboarding();
 
                 if (novoTexto.length > 0) {
                     const autorNome = obterNomeExibicaoUsuario();
@@ -2731,6 +2843,7 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
                 // 2. Re-renderiza imediatamente a lista de pacientes, notificações e agenda
                 aplicarFiltrosClientes();
                 gerarNotificacoesInteligentes();
+                renderizarOnboarding();
                 if (typeof prepararTelaAgendamento === 'function') {
                     prepararTelaAgendamento({ preservarSelecao: true });
                 }
