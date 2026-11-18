@@ -4193,14 +4193,13 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
         }
 
         // 2. PIX DO SISTEMA GNOTH (ASSINATURA DO SAAS -> CAI NA CONTA DO GNOTH / ADMIN)
+        const CHAVE_PIX_PADRAO_SISTEMA_GNOTH = 'e8636132-591c-4638-97f9-38fe82826a43';
+
         function obterChavePixOficialSistemaGnoth() {
             if (chavePixSistemaCache && chavePixSistemaCache.trim()) return chavePixSistemaCache.trim();
             const salvoLocal = localStorage.getItem('gnoth_chave_pix_sistema');
             if (salvoLocal && salvoLocal.trim()) return salvoLocal.trim();
-            const adminUser = todosUsuariosCache.find(u => u.role === 'admin' && u.chave_pix);
-            if (adminUser && adminUser.chave_pix) return adminUser.chave_pix.trim();
-            if (ehAdmin() && usuarioAtualPerfil?.chave_pix) return usuarioAtualPerfil.chave_pix.trim();
-            return 'contato@gnoth.com.br';
+            return CHAVE_PIX_PADRAO_SISTEMA_GNOTH;
         }
 
         async function salvarChavePixSistemaGnoth() {
@@ -4304,8 +4303,10 @@ const SUPABASE_URL = "https://yxxcclaaxlbdybssxjyw.supabase.co";
             const chaveSistema = obterChavePixOficialSistemaGnoth();
             const codigoPix = gerarPayloadPixEMV(chaveSistema, 'GNOTH GESTAO CLINICA', valor, 'ASSINATURA');
 
+            const ehUuidAleatoria = /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-/.test(chaveSistema);
+            const resumoChave = ehUuidAleatoria ? `Chave Oficial (${chaveSistema.slice(0, 8)}…)` : chaveSistema;
             const elChave = document.getElementById('pixSisChaveExibicao');
-            if (elChave) elChave.textContent = `Recebedor: Gnoth Gestão Clínica (${chaveSistema}) · ${formatarBRL(valor)}`;
+            if (elChave) elChave.textContent = `Gnoth Gestão Clínica · ${resumoChave} · ${formatarBRL(valor)}`;
 
             const elCodigo = document.getElementById('pixSisCodigoCopiaECola');
             if (elCodigo) elCodigo.value = codigoPix;

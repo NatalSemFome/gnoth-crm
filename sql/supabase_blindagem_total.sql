@@ -26,13 +26,11 @@ CREATE TABLE IF NOT EXISTS public.sistema_config (
     updated_at timestamptz DEFAULT now()
 );
 
--- Popula automaticamente a Chave Pix do Sistema a partir da chave atual do Admin (se já cadastrada)
+-- Define a Chave Pix Aleatória Oficial do Sistema Gnoth (para assinaturas do SaaS)
 INSERT INTO public.sistema_config (chave, valor)
-SELECT 'pix_oficial_gnoth', trim(chave_pix)
-FROM public.usuarios_perfis
-WHERE role = 'admin' AND chave_pix IS NOT NULL AND trim(chave_pix) <> ''
-LIMIT 1
-ON CONFLICT (chave) DO NOTHING;
+VALUES ('pix_oficial_gnoth', 'e8636132-591c-4638-97f9-38fe82826a43')
+ON CONFLICT (chave) DO UPDATE
+SET valor = EXCLUDED.valor, updated_at = now();
 
 -- 3. FUNÇÃO AUXILIAR ANTI-RECURSÃO PARA CHECAR ADMINISTRADOR
 CREATE OR REPLACE FUNCTION public.eh_admin_gnoth()
